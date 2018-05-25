@@ -1,0 +1,31 @@
+{
+  "name": "drenso/symfony-oidc-bundle",
+  "description": "OpenID connect bundle for Symfony",
+  "keywords": [
+    "symfony",
+    "oidc",
+    "openid connect"
+  ],
+  "type": "symfony-bundle",
+  "homepage": "https://gitlab.drenso.nl/intern/symfony-oidc",
+  "license": "closed",
+  "authors": [
+    {
+      "name": "Bob van de Vijver",
+      "email": "bob@drenso.nl"
+    },
+    {
+      "name": "Tobias Feijten",
+      "email": "tobias@drenso.nl"
+    }
+  ],
+  "require": {},
+  "require-dev": {
+    "drenso/phan-extensions": "^2.3"
+  },
+  "autoload": {
+    "psr-4": {
+      "Drenso\\OidcBundle\\": ""
+    }
+  }
+}
