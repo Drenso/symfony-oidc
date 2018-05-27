@@ -4,9 +4,28 @@ This bundle can be used to add OIDC support to any application. Currently it has
 
 ### Composer
 
-You can add this bundle to the `composer.json` by defining the security options: see [Composer docs](https://getcomposer.org/doc/articles/handling-private-packages-with-satis.md#security). 
+You can add this bundle to the `composer.json`. You will need to create a new api-key for every project 
+(with the deploy user). See the example below:
 
-You will need to create a new deploy key for every installation (dev or prod).
+```php
+{
+    "repositories": [
+        {
+            "type": "gitlab",
+            "url":  "git@gitlab.drenso.nl:intern/symfony-oidc.git"
+        }
+    ],
+    "require": {
+        "drenso/symfony-oidc-bundle": "v1.0.1",
+    },
+    "config": {
+        "gitlab-domains": [
+            "gitlab.drenso.nl"
+        ],
+        "gitlab-token": {"gitlab.drenso.nl": "<api-token>"}
+    },
+}
+```
 
 ### Usage
 
@@ -24,6 +43,33 @@ services:
       $wellKnownUrl: '%oidc.well_known_url%'
       $clientId: '%oidc.client_id%'
       $clientSecret: '%oidc.client_secret%'
+```
+
+Also, register the security listeners:
+
+```php
+services:
+  security.authentication.provider.oidc:
+    class: Drenso\OidcBundle\Security\Authentication\Provider\OidcProvider
+    arguments:
+      - ''
+      - '@security.user_checker'
+      - '@security.token_storage'
+      - '@logger'
+
+  security.authentication.listener.oidc:
+    class: Drenso\OidcBundle\Security\Firewall\OidcListener
+    arguments:
+      - '@security.token_storage'
+      - '@security.authentication.manager'
+      - '@security.authentication.session_strategy'
+      - '@security.http_utils'
+      - ''
+      - ''
+      - ''
+      - { }
+      - '@logger'
+      - '@Drenso\OidcBundle\OidcClient'
 ```
 
 Use the controller below to forward an user to the OIDC service:
@@ -61,6 +107,22 @@ security:
     main:
       pattern: ^/
       oidc: ~
+```
+
+Add the ListenerFactory to the `Kernel.php`:
+
+```php
+  /**
+   * @param ContainerBuilder $container
+   */
+  protected function build(ContainerBuilder $container)
+  {
+
+    // Register the Oidc factory
+    $extension = $container->getExtension('security');
+    assert($extension instanceof SecurityExtension);
+    $extension->addSecurityListenerFactory(new OidcFactory());
+  }
 ```
 
 Lastly, make sure that the your custom UserProvider implements the `OidcUserProviderInterface`.
