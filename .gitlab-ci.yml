@@ -18,6 +18,9 @@ install-dependencies:
     - find vendor/ -name .git -type d -exec rm -rf {} \+
   tags:
     - docker
+  except:
+    - master
+    - tags
 
 php-analysis:
   stage: static
@@ -30,3 +33,6 @@ php-analysis:
     - php7 /opt/phan/phan -k tests/phan/config.php
   tags:
     - docker
+  except:
+    - master
+    - tags
