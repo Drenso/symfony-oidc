@@ -86,8 +86,8 @@ Use the controller below to forward an user to the OIDC service:
    *
    * @return RedirectResponse
    *
-   * @throws \App\Oidc\Exception\OidcConfigurationException
-   * @throws \App\Oidc\Exception\OidcConfigurationResolveException
+   * @throws \Drenso\OidcBundle\Exception\OidcConfigurationException
+   * @throws \Drenso\OidcBundle\Exception\OidcConfigurationResolveException
    */
   public function surfconext(SessionInterface $session, OidcClient $oidc)
   {
