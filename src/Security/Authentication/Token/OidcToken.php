@@ -80,6 +80,22 @@ class OidcToken extends AbstractToken
   }
 
   /**
+   * @return string
+   */
+  public function getAffiliations()
+  {
+    return $this->getUserData('edu_person_affiliations');
+  }
+
+  /**
+   * @return string
+   */
+  public function getUids()
+  {
+    return $this->getUserData('uids');
+  }
+
+  /**
    * @param $userData
    *
    * @return OidcToken
