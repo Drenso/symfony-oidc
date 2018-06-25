@@ -38,61 +38,61 @@ class OidcToken extends AbstractToken
   /**
    * @return string
    */
-  public function getDisplayName()
+  public function getDisplayName() : string
   {
-    return $this->getUserData('preferred_username');
+    return $this->getUserDataString('preferred_username');
   }
 
   /**
    * @return string
    */
-  public function getFamilyName()
+  public function getFamilyName() : string
   {
-    return $this->getUserData('family_name');
+    return $this->getUserDataString('family_name');
   }
 
   /**
    * @return string
    */
-  public function getFullName()
+  public function getFullName() : string
   {
-    return $this->getUserData('name');
+    return $this->getUserDataString('name');
   }
 
   /**
    * @return string
    */
-  public function getGivenName()
+  public function getGivenName() : string
   {
-    return $this->getUserData('given_name');
+    return $this->getUserDataString('given_name');
   }
 
   /**
    * @return string
    */
-  public function getUsername()
+  public function getUsername() : string
   {
     if ($this->getUser() !== NULL) {
       return parent::getUsername();
     }
 
-    return $this->getUserData('email');
+    return $this->getUserDataString('email');
   }
 
   /**
-   * @return string
+   * @return array
    */
-  public function getAffiliations()
+  public function getAffiliations() : array
   {
-    return $this->getUserData('edu_person_affiliations');
+    return $this->getUserDataArray('edu_person_affiliations');
   }
 
   /**
-   * @return string
+   * @return array
    */
-  public function getUids()
+  public function getUids() : array
   {
-    return $this->getUserData('uids');
+    return $this->getUserDataArray('uids');
   }
 
   /**
@@ -112,12 +112,26 @@ class OidcToken extends AbstractToken
    *
    * @return string
    */
-  private function getUserData(string $key): string
+  private function getUserDataString(string $key) : string
   {
     if (array_key_exists($key, $this->userData)) {
       return $this->userData[$key];
     }
 
     return '';
+  }
+
+  /**
+   * @param string $key
+   *
+   * @return array
+   */
+  private function getUserDataArray(string $key) : array
+  {
+    if (array_key_exists($key, $this->userData)){
+      return $this->userData[$key];
+    }
+
+    return [];
   }
 }
