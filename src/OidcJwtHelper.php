@@ -198,7 +198,7 @@ class OidcJwtHelper
 
     $rsa = new RSA();
     $rsa->setHash($hashtype);
-    $rsa->loadKey($public_key_xml, RSA::PUBLIC_FORMAT_XML);
+    $rsa->loadKey($public_key_xml, RSA::PUBLIC_FORMAT_XML); // @phan-suppress-current-line PhanTypeMismatchArgument
     $rsa->signatureMode = RSA::SIGNATURE_PKCS1;
 
     return $rsa->verify($payload, $signature);
