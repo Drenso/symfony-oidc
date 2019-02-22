@@ -35,7 +35,7 @@ You will need to register the `OidcClient` in your `services.yaml` to pass the r
 parameters:
   oidc.well_known_url: '%env(OIDC_WELL_KNOWN)%'
   oidc.client_id: '%env(OIDC_CLIENT_ID)%'
-  oidc.client_secret: '%env(file:OIDC_SECRET_FILE)%'
+  oidc.client_secret: "%env(string:key:oidc:json:file:resolve:SECRETS_FILE)%"
 
 services:
   Drenso\OidcBundle\OidcClient:
