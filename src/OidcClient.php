@@ -6,6 +6,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
+use Exception;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -372,14 +373,15 @@ class OidcClient
     // Check whether the configuration is already available
     if ($this->configuration !== NULL) return;
 
-    // Retrieve the configuration data
-    if (($response = file_get_contents($this->wellKnownUrl)) === false) {
+    try {
+      $wellKnown = $this->urlFetcher->fetchUrl($this->wellKnownUrl);
+    } catch (Exception $e) {
       throw new OidcConfigurationResolveException(sprintf('Could not retrieve OIDC configuration from "%s".', $this->wellKnownUrl));
     }
 
     // Parse the configuration
-    if (($config = json_decode($response, true)) === NULL) {
-      throw new OidcConfigurationResolveException(sprintf('Could not parse OIDC configuration. Response data: "%s"', $response));
+    if (($config = json_decode($wellKnown, true)) === NULL) {
+      throw new OidcConfigurationResolveException(sprintf('Could not parse OIDC configuration. Response data: "%s"', $wellKnown));
     }
 
     // Set the configuration

@@ -67,7 +67,7 @@ class OidcUrlFetcher
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 
     // Timeout in seconds
-    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
     // Download the given URL, and return output
     $output = curl_exec($ch);
