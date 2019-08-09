@@ -6,6 +6,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -77,7 +78,7 @@ class OidcClient
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA')) {
-      throw new \RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
+      throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
     }
 
     $this->session      = $session;

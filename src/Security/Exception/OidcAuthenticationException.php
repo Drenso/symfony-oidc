@@ -4,6 +4,7 @@ namespace Drenso\OidcBundle\Security\Exception;
 
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Throwable;
 
 class OidcAuthenticationException extends AuthenticationException
 {
@@ -14,9 +15,9 @@ class OidcAuthenticationException extends AuthenticationException
    *
    * @param string              $message
    * @param TokenInterface|NULL $token
-   * @param \Throwable|NULL     $previous
+   * @param Throwable|NULL      $previous
    */
-  public function __construct(string $message = "", TokenInterface $token = NULL, \Throwable $previous = NULL)
+  public function __construct(string $message = "", TokenInterface $token = NULL, Throwable $previous = NULL)
   {
     parent::__construct($message, 0, $previous);
 

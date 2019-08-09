@@ -3,6 +3,7 @@
 namespace Drenso\OidcBundle;
 
 use Drenso\OidcBundle\Exception\OidcException;
+use stdClass;
 
 /**
  * Class OidcTokens
@@ -26,11 +27,11 @@ class OidcTokens
   /**
    * OidcTokens constructor.
    *
-   * @param \stdClass $tokens
+   * @param stdClass $tokens
    *
    * @throws OidcException
    */
-  public function __construct(\stdClass $tokens)
+  public function __construct(stdClass $tokens)
   {
     if (!isset($tokens->id_token) || !isset($tokens->access_token)) {
       throw new OidcException("Invalid token object.");
