@@ -8,7 +8,7 @@
   ],
   "type": "symfony-bundle",
   "homepage": "https://gitlab.drenso.nl/intern/symfony-oidc",
-  "license": "proprietary",
+  "license": "Apache-2.0",
   "authors": [
     {
       "name": "Bob van de Vijver",
