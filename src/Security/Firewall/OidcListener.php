@@ -6,6 +6,7 @@ use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\OidcClient;
 use Drenso\OidcBundle\Security\Authentication\Token\OidcToken;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
+use InvalidArgumentException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -41,10 +42,18 @@ class OidcListener extends AbstractAuthenticationListener
    * @param LoggerInterface|NULL                   $logger
    * @param OidcClient                             $oidcClient
    */
-  public function __construct(TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager, SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, string $providerKey, AuthenticationSuccessHandlerInterface $successHandler, AuthenticationFailureHandlerInterface $failureHandler, array $options = array(), LoggerInterface $logger = NULL, OidcClient $oidcClient)
+  public function __construct(
+      TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager,
+      SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, string $providerKey,
+      AuthenticationSuccessHandlerInterface $successHandler, AuthenticationFailureHandlerInterface $failureHandler,
+      array $options = array(), LoggerInterface $logger = NULL, OidcClient $oidcClient = NULL)
   {
     parent::__construct($tokenStorage, $authenticationManager, $sessionStrategy, $httpUtils,
         $providerKey, $successHandler, $failureHandler, $options, $logger);
+
+    if (!$oidcClient) {
+      throw new InvalidArgumentException("OIDC client must be set!");
+    }
 
     $this->OidcClient = $oidcClient;
   }
@@ -54,7 +63,8 @@ class OidcListener extends AbstractAuthenticationListener
    *
    * @param Request $request
    *
-   * @return TokenInterface|Response|null The authenticated token, null if full authentication is not possible, or a Response
+   * @return TokenInterface|Response|null The authenticated token, null if full authentication
+   *                                      is not possible, or a Response
    *
    * @throws AuthenticationException if the authentication fails
    */
