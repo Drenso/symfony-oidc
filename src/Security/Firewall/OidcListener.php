@@ -40,7 +40,7 @@ class OidcListener extends AbstractAuthenticationListener
    * @param AuthenticationFailureHandlerInterface  $failureHandler
    * @param array                                  $options
    * @param LoggerInterface|NULL                   $logger
-   * @param OidcClient                             $oidcClient
+   * @param OidcClient|NULL                        $oidcClient
    */
   public function __construct(
       TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager,
