@@ -346,7 +346,7 @@ class OidcClient
     // Use basic auth if offered
     $headers = [];
     if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods())) {
-      $headers = ['Authorization: Basic ' . base64_encode($this->clientId . ':' . $this->clientSecret)];
+      $headers = ['Authorization: Basic ' . base64_encode(urlencode($this->clientId) . ':' . urlencode($this->clientSecret))];
       unset($params['client_secret']);
     }
 
