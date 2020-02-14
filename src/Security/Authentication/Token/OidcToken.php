@@ -36,41 +36,62 @@ class OidcToken extends AbstractToken
   }
 
   /**
+   * Get the OIDC sub claim
+   *
    * @return string
    */
-  public function getDisplayName() : string
+  public function getSub(): string
+  {
+    return $this->getUserDataString('sub');
+  }
+
+  /**
+   * Get the OIDC preferred_username claim
+   *
+   * @return string
+   */
+  public function getDisplayName(): string
   {
     return $this->getUserDataString('preferred_username');
   }
 
   /**
+   * Get the OIDC family_name claim
+   *
    * @return string
    */
-  public function getFamilyName() : string
+  public function getFamilyName(): string
   {
     return $this->getUserDataString('family_name');
   }
 
   /**
+   * Get the OIDC name claim
+   *
    * @return string
    */
-  public function getFullName() : string
+  public function getFullName(): string
   {
     return $this->getUserDataString('name');
   }
 
   /**
+   * Get the OIDC given_name claim
+   *
    * @return string
    */
-  public function getGivenName() : string
+  public function getGivenName(): string
   {
     return $this->getUserDataString('given_name');
   }
 
   /**
+   * Get the OIDC email claim, when the user is not available in the token.
+   * When the user is available, get the username from the user object.
+   *
    * @return string
    */
-  public function getUsername() : string
+  public function getUsername(): string
   {
     if ($this->getUser() !== NULL) {
       return parent::getUsername();
@@ -80,22 +101,48 @@ class OidcToken extends AbstractToken
   }
 
   /**
+   * Get the OIDC email claim
+   *
+   * @return string
+   */
+  public function getEmail(): string
+  {
+    return $this->getUserDataString('email');
+  }
+
+  /**
+   * Get the OIDC schac_home_organization claim
+   *
+   * @return string
+   */
+  public function getOrganisation(): string
+  {
+    return $this->getUserDataString('schac_home_organization');
+  }
+
+  /**
+   * Get the OIDC edu_person_affiliations claim
+   *
    * @return array
    */
-  public function getAffiliations() : array
+  public function getAffiliations(): array
   {
     return $this->getUserDataArray('edu_person_affiliations');
   }
 
   /**
+   * Get the OIDC uids claim
+   *
    * @return array
    */
-  public function getUids() : array
+  public function getUids(): array
   {
     return $this->getUserDataArray('uids');
   }
 
   /**
+   * Set the user data from the OIDC response
+   *
    * @param $userData
    *
    * @return OidcToken
@@ -112,7 +159,7 @@ class OidcToken extends AbstractToken
    *
    * @return string
    */
-  private function getUserDataString(string $key) : string
+  private function getUserDataString(string $key): string
   {
     if (array_key_exists($key, $this->userData)) {
       return $this->userData[$key];
@@ -126,9 +173,9 @@ class OidcToken extends AbstractToken
    *
    * @return array
    */
-  private function getUserDataArray(string $key) : array
+  private function getUserDataArray(string $key): array
   {
-    if (array_key_exists($key, $this->userData)){
+    if (array_key_exists($key, $this->userData)) {
       return $this->userData[$key];
     }
 
