@@ -127,7 +127,7 @@ class OidcToken extends AbstractToken
    */
   public function getAffiliations(): array
   {
-    return $this->getUserDataArray('edu_person_affiliations');
+    return $this->getUserDataArray('eduperson_affiliations');
   }
 
   /**
