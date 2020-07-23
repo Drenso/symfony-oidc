@@ -7,6 +7,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
+use InvalidArgumentException;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -148,11 +149,14 @@ class OidcClient
   /**
    * Create the redirect that should be followed in order to authorize
    *
+   * @param string|null $prompt One of 'none', 'login', 'consent' or 'select_account'.
+   *                            If null or not supplied, the parameter will be omitted from the request
+   *
    * @return RedirectResponse
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  public function generateAuthorizationRedirect(): RedirectResponse
+  public function generateAuthorizationRedirect(?string $prompt = NULL): RedirectResponse
   {
     $data = [
         'client_id'     => $this->clientId,
@@ -162,6 +166,17 @@ class OidcClient
         'state'         => $this->generateState(),
         'nonce'         => $this->generateNonce(),
     ];
+
+    if ($prompt) {
+      if (!in_array($prompt, ['none', 'login', 'consent', 'select_account'])) {
+        throw new InvalidArgumentException(sprintf(
+            'The prompt parameter need to be one of "none", "login", "consent" or "select_account", but "%s" given',
+            $prompt
+        ));
+      }
+
+      $data['prompt'] = $prompt;
+    }
 
     return new RedirectResponse(sprintf('%s?%s', $this->getAuthorizationEndpoint(), http_build_query($data)));
   }
