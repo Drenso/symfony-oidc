@@ -89,6 +89,8 @@ Use the controller below to forward an user to the OIDC service:
   }
 ```
 
+> It is possible to supply the prompt parameter to the `generateAuthorizationRedirect` method.
+
 Enable the `oidc` listener in the `security.yml`:
 ```yaml
 security:
