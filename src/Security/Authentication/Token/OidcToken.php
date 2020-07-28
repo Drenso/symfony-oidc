@@ -159,7 +159,7 @@ class OidcToken extends AbstractToken
    *
    * @return string
    */
-  private function getUserDataString(string $key): string
+  public function getUserDataString(string $key): string
   {
     if (array_key_exists($key, $this->userData)) {
       return $this->userData[$key];
@@ -173,7 +173,7 @@ class OidcToken extends AbstractToken
    *
    * @return array
    */
-  private function getUserDataArray(string $key): array
+  public function getUserDataArray(string $key): array
   {
     if (array_key_exists($key, $this->userData)) {
       return $this->userData[$key];
