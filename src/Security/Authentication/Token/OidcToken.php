@@ -111,6 +111,14 @@ class OidcToken extends AbstractToken
   }
 
   /**
+   * @return bool
+   */
+  public function getEmailVerified(): bool
+  {
+    return $this->getUserDataBoolean('email_verified');
+  }
+
+  /**
    * Get the OIDC schac_home_organization claim
    *
    * @return string
@@ -155,30 +163,52 @@ class OidcToken extends AbstractToken
   }
 
   /**
+   * Get a boolean property from the user data
+   *
+   * @param string $key
+   *
+   * @return bool
+   */
+  public function getUserDataBoolean(string $key): bool
+  {
+    return $this->getUserData($key) ?: false;
+  }
+
+  /**
+   * Get a string property from the user data
+   *
    * @param string $key
    *
    * @return string
    */
   public function getUserDataString(string $key): string
   {
-    if (array_key_exists($key, $this->userData)) {
-      return $this->userData[$key];
-    }
-
-    return '';
+    return $this->getUserData($key) ?: '';
   }
 
   /**
+   * Get an array property from the user data
+   *
    * @param string $key
    *
    * @return array
    */
   public function getUserDataArray(string $key): array
   {
+    return $this->getUserData($key) ?: [];
+  }
+
+  /**
+   * @param string $key
+   *
+   * @return mixed|null
+   */
+  public function getUserData(string $key)
+  {
     if (array_key_exists($key, $this->userData)) {
       return $this->userData[$key];
     }
 
-    return [];
+    return NULL;
   }
 }
