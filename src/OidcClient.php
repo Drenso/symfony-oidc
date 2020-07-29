@@ -151,18 +151,20 @@ class OidcClient
    *
    * @param string|null $prompt One of 'none', 'login', 'consent' or 'select_account'.
    *                            If null or not supplied, the parameter will be omitted from the request
+   * @param string[]    $scopes An array of scopes to request
+   *                            If not supplied it will default to openid
    *
    * @return RedirectResponse
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  public function generateAuthorizationRedirect(?string $prompt = NULL): RedirectResponse
+  public function generateAuthorizationRedirect(?string $prompt = NULL, array $scopes = ['openid']): RedirectResponse
   {
     $data = [
         'client_id'     => $this->clientId,
         'response_type' => 'code',
         'redirect_uri'  => $this->getRedirectUrl(),
-        'scope'         => 'openid',
+        'scope'         => implode(' ', $scopes),
         'state'         => $this->generateState(),
         'nonce'         => $this->generateNonce(),
     ];
