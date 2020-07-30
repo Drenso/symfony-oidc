@@ -45,10 +45,12 @@ class OidcUrlFetcher
       $headers[] = 'Content-Length: ' . strlen($params);
     }
 
-    // Include headers (if set)
-    if (count($headers) > 0) {
-      curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
-    }
+    // Add a User-Agent header to prevent firewall blocks
+    $curlVersion = curl_version()['version'];
+    $headers[] = "User-Agent: curl/$curlVersion drenso/symfony-oidc";
+
+    // Include headers
+    curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
 
     // Set URL to download
     curl_setopt($ch, CURLOPT_URL, $url);
