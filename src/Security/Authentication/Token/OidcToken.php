@@ -2,6 +2,7 @@
 
 namespace Drenso\OidcBundle\Security\Authentication\Token;
 
+use Drenso\OidcBundle\OidcTokens;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 
 class OidcToken extends AbstractToken
@@ -151,13 +152,25 @@ class OidcToken extends AbstractToken
   /**
    * Set the user data from the OIDC response
    *
-   * @param $userData
+   * @param array $userData
    *
    * @return OidcToken
    */
-  public function setUserData(array $userData)
+  public function setUserData(array $userData): self
   {
     $this->userData = $userData;
+
+    return $this;
+  }
+
+  /**
+   * Set the auth data from the OIDC response.
+   *
+   * @return OidcToken
+   */
+  public function setAuthData(OidcTokens $authData): self
+  {
+    $this->setAttribute('authData', $authData);
 
     return $this;
   }
@@ -210,5 +223,13 @@ class OidcToken extends AbstractToken
     }
 
     return NULL;
+  }
+
+  /**
+   * Get auth data - OIDC tokens, scope and expiry.
+   */
+  public function getAuthData(): OidcTokens
+  {
+    return $this->getAttribute('authData');
   }
 }
