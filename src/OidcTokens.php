@@ -20,9 +20,24 @@ class OidcTokens
   private $accessToken;
 
   /**
+   * @var \DateTime
+   */
+  private $expiry;
+
+  /**
    * @var string
    */
   private $idToken;
+
+  /**
+   * @var string
+   */
+  private $refreshToken;
+
+  /**
+   * @var string[]
+   */
+  private $scope;
 
   /**
    * OidcTokens constructor.
@@ -33,11 +48,18 @@ class OidcTokens
    */
   public function __construct(stdClass $tokens)
   {
-    if (!isset($tokens->id_token) || !isset($tokens->access_token)) {
-      throw new OidcException("Invalid token object.");
+    if (!isset($tokens->id_token) || !isset($tokens->access_token) || !isset($tokens->expires_in)) {
+      throw new OidcException('Invalid token object.');
     }
-    $this->accessToken = $tokens->access_token;
-    $this->idToken     = $tokens->id_token;
+
+    $expiry = \DateTime::createFromFormat('U', (string) time() + $tokens->expires_in);
+    assert($expiry instanceof \DateTime);
+
+    $this->accessToken  = $tokens->access_token;
+    $this->idToken      = $tokens->id_token;
+    $this->expiry       = $expiry;
+    $this->refreshToken = $tokens->refresh_token;
+    $this->scope        = explode(' ', $tokens->scope);
   }
 
   /**
@@ -48,11 +70,23 @@ class OidcTokens
     return $this->accessToken;
   }
 
-  /**
-   * @return string
-   */
+  public function getExpiry(): \DateTime
+  {
+    return $this->expiry;
+  }
+
   public function getIdToken(): string
   {
     return $this->idToken;
+  }
+
+  public function getRefreshToken(): string
+  {
+    return $this->refreshToken;
+  }
+
+  public function getScope(): array
+  {
+    return $this->scope;
   }
 }

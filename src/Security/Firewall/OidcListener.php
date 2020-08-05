@@ -85,7 +85,9 @@ class OidcListener extends AbstractAuthenticationListener
 
       // Create token
       $token = new OidcToken();
-      $token->setUserData($userData);
+      $token
+        ->setUserData($userData)
+        ->setAuthData($authData);
 
       // Try to authenticate this against the Symfony authentication backend
       return $this->authenticationManager->authenticate($token);
