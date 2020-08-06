@@ -149,7 +149,7 @@ class OidcClient
   /**
    * Create the redirect that should be followed in order to authorize
    *
-   * @param string|null $prompt One of 'none', 'login', 'consent' or 'select_account'.
+   * @param string|null $prompt One of 'none', 'login', 'consent', 'select_account' or 'create'
    *                            If null or not supplied, the parameter will be omitted from the request
    * @param string[]    $scopes An array of scopes to request
    *                            If not supplied it will default to openid
@@ -170,9 +170,11 @@ class OidcClient
     ];
 
     if ($prompt) {
-      if (!in_array($prompt, ['none', 'login', 'consent', 'select_account'])) {
+      $validPrompts = ['none', 'login', 'consent', 'select_account', 'create'];
+      if (!in_array($prompt, $validPrompts)) {
         throw new InvalidArgumentException(sprintf(
-            'The prompt parameter need to be one of "none", "login", "consent" or "select_account", but "%s" given',
+            'The prompt parameter need to be one of ("%s"), but "%s" given',
+            implode('", "', $validPrompts),
             $prompt
         ));
       }
