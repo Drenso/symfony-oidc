@@ -151,6 +151,7 @@ class OidcClient
    *
    * @param string|null $prompt One of 'none', 'login', 'consent', 'select_account' or 'create'
    *                            If null or not supplied, the parameter will be omitted from the request
+   *                            Note thate 'create' is currently in draft and might not be supported by every implementation
    * @param string[]    $scopes An array of scopes to request
    *                            If not supplied it will default to openid
    *
