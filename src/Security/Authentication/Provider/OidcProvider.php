@@ -80,11 +80,8 @@ class OidcProvider implements AuthenticationProviderInterface
     $this->userChecker->checkPostAuth($user);
 
     // Create the authenticated token
-    $authData = $token->getAuthData();
-    $token = new OidcToken($user->getRoles());
-    $token
-      ->setAuthData($authData)
-      ->setUser($user);
+    $token = new OidcToken($user->getRoles(), $token);
+    $token->setUser($user);
 
     return $token;
   }

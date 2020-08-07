@@ -2,6 +2,7 @@
 
 namespace Drenso\OidcBundle;
 
+use DateTimeImmutable;
 use Drenso\OidcBundle\Exception\OidcException;
 use stdClass;
 
@@ -20,7 +21,7 @@ class OidcTokens
   private $accessToken;
 
   /**
-   * @var \DateTime
+   * @var DateTimeImmutable|null
    */
   private $expiry;
 
@@ -30,12 +31,12 @@ class OidcTokens
   private $idToken;
 
   /**
-   * @var string
+   * @var string|null
    */
   private $refreshToken;
 
   /**
-   * @var string[]
+   * @var string[]|null
    */
   private $scope;
 
@@ -48,29 +49,34 @@ class OidcTokens
    */
   public function __construct(stdClass $tokens)
   {
-    if (!isset($tokens->id_token) || !isset($tokens->access_token) || !isset($tokens->expires_in)) {
+    // These are the only required parameters per https://tools.ietf.org/html/rfc6749#section-4.2.2
+    if (!isset($tokens->id_token) || !isset($tokens->access_token)) {
       throw new OidcException('Invalid token object.');
     }
 
-    $expiry = \DateTime::createFromFormat('U', (string) time() + $tokens->expires_in);
-    assert($expiry instanceof \DateTime);
+    $this->accessToken = $tokens->access_token;
+    $this->idToken     = $tokens->id_token;
 
-    $this->accessToken  = $tokens->access_token;
-    $this->idToken      = $tokens->id_token;
-    $this->expiry       = $expiry;
-    $this->refreshToken = $tokens->refresh_token;
-    $this->scope        = explode(' ', $tokens->scope);
+    if (isset($tokens->expires_in)) {
+      $expiry       = DateTimeImmutable::createFromFormat('U', (string)(time() + $tokens->expires_in));
+      $this->expiry = $expiry;
+    }
+
+    if (isset($tokens->refresh_tokens)) {
+      $this->refreshToken = $tokens->refresh_tokens;
+    }
+
+    if (isset($tokens->scope)) {
+      $this->scope = explode(' ', $tokens->scope);
+    }
   }
 
-  /**
-   * @return string
-   */
   public function getAccessToken(): string
   {
     return $this->accessToken;
   }
 
-  public function getExpiry(): \DateTime
+  public function getExpiry(): ?DateTimeImmutable
   {
     return $this->expiry;
   }
@@ -80,12 +86,15 @@ class OidcTokens
     return $this->idToken;
   }
 
-  public function getRefreshToken(): string
+  public function getRefreshToken(): ?string
   {
     return $this->refreshToken;
   }
 
-  public function getScope(): array
+  /**
+   * @return string[]|null
+   */
+  public function getScope(): ?array
   {
     return $this->scope;
   }

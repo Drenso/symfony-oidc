@@ -7,22 +7,28 @@ use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 
 class OidcToken extends AbstractToken
 {
-
-  /**
-   * @var array
-   */
-  private $userData;
+  private const USER_DATA_ATTR = 'user_data';
+  private const AUTH_DATA_ATTR = 'auth_data';
 
   /**
    * OidcToken constructor.
    *
-   * @param array $roles
+   * @param array          $roles
+   * @param OidcToken|null $other Supply another token to duplicate user/auth data from
    */
-  public function __construct(array $roles = array())
+  public function __construct(array $roles = [], self $other = NULL)
   {
     parent::__construct($roles);
 
     $this->setAuthenticated(count($roles) > 0);
+
+    if ($other) {
+      $this->setAttribute(self::USER_DATA_ATTR, $other->getAttribute(self::USER_DATA_ATTR));
+      $this->setAttribute(self::AUTH_DATA_ATTR, $other->getAttribute(self::AUTH_DATA_ATTR));
+    } else {
+      $this->setAttribute(self::USER_DATA_ATTR, []);
+      $this->setAttribute(self::AUTH_DATA_ATTR, NULL);
+    }
   }
 
   /**
@@ -158,19 +164,7 @@ class OidcToken extends AbstractToken
    */
   public function setUserData(array $userData): self
   {
-    $this->userData = $userData;
-
-    return $this;
-  }
-
-  /**
-   * Set the auth data from the OIDC response.
-   *
-   * @return OidcToken
-   */
-  public function setAuthData(OidcTokens $authData): self
-  {
-    $this->setAttribute('authData', $authData);
+    $this->setAttribute(self::USER_DATA_ATTR, $userData);
 
     return $this;
   }
@@ -218,18 +212,34 @@ class OidcToken extends AbstractToken
    */
   public function getUserData(string $key)
   {
-    if (array_key_exists($key, $this->userData)) {
-      return $this->userData[$key];
+    $userData = $this->getAttribute(self::USER_DATA_ATTR);
+    if (array_key_exists($key, $userData)) {
+      return $userData[$key];
     }
 
     return NULL;
   }
 
   /**
-   * Get auth data - OIDC tokens, scope and expiry.
+   * Set the auth data from the OIDC response.
+   *
+   * @param OidcTokens|null $authData
+   *
+   * @return OidcToken
    */
-  public function getAuthData(): OidcTokens
+  public function setAuthData(?OidcTokens $authData): self
   {
-    return $this->getAttribute('authData');
+    $this->setAttribute(self::AUTH_DATA_ATTR, $authData);
+
+    return $this;
+  }
+
+  /**
+   * Get auth data - OIDC tokens, scope and expiry.
+   * Might not be set if you created this token yourself
+   */
+  public function getAuthData(): ?OidcTokens
+  {
+    return $this->getAttribute(self::AUTH_DATA_ATTR);
   }
 }

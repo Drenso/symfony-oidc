@@ -46,7 +46,7 @@ class OidcListener extends AbstractAuthenticationListener
       TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager,
       SessionAuthenticationStrategyInterface $sessionStrategy, HttpUtils $httpUtils, string $providerKey,
       AuthenticationSuccessHandlerInterface $successHandler, AuthenticationFailureHandlerInterface $failureHandler,
-      array $options = array(), LoggerInterface $logger = NULL, OidcClient $oidcClient = NULL)
+      array $options = [], LoggerInterface $logger = NULL, OidcClient $oidcClient = NULL)
   {
     parent::__construct($tokenStorage, $authenticationManager, $sessionStrategy, $httpUtils,
         $providerKey, $successHandler, $failureHandler, $options, $logger);
@@ -84,10 +84,9 @@ class OidcListener extends AbstractAuthenticationListener
       $userData = $this->OidcClient->retrieveUserInfo($authData);
 
       // Create token
-      $token = new OidcToken();
-      $token
-        ->setUserData($userData)
-        ->setAuthData($authData);
+      $token = (new OidcToken())
+          ->setUserData($userData)
+          ->setAuthData($authData);
 
       // Try to authenticate this against the Symfony authentication backend
       return $this->authenticationManager->authenticate($token);
