@@ -2,9 +2,11 @@
 
 namespace Drenso\OidcBundle\Security\Factory;
 
+use Drenso\OidcBundle\Security\EntryPoint\OidcEntryPoint;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AbstractFactory;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 class OidcFactory extends AbstractFactory
@@ -79,5 +81,26 @@ class OidcFactory extends AbstractFactory
   protected function getProviderKey()
   {
     return 'security.authentication.provider.oidc';
+  }
+
+  /**
+   * Creates an entry point for this authentication. Can be disabled by clearing the login_path route.
+   *
+   * @inheritDoc
+   */
+  protected function createEntryPoint($container, $id, $config, $defaultEntryPointId)
+  {
+    if (!$defaultEntryPointId && !empty($config['login_path'])) {
+      $entryPointId = 'security.authentication.entry_point.oidc.' . $id;
+      $container
+          ->setDefinition($entryPointId, new Definition(OidcEntryPoint::class))
+          ->addArgument(new Reference('security.http_utils'))
+          ->addArgument($config['login_path']);
+
+      return $entryPointId;
+    }
+
+    // Fall back to default behavior
+    return parent::createEntryPoint($container, $id, $config, $defaultEntryPointId);
   }
 }
