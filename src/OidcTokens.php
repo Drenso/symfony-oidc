@@ -58,8 +58,7 @@ class OidcTokens
     $this->idToken     = $tokens->id_token;
 
     if (isset($tokens->expires_in)) {
-      $expiry       = DateTimeImmutable::createFromFormat('U', (string)(time() + $tokens->expires_in));
-      $this->expiry = $expiry;
+      $this->expiry = DateTimeImmutable::createFromFormat('U', (string)(time() + $tokens->expires_in));
     }
 
     if (isset($tokens->refresh_tokens)) {
