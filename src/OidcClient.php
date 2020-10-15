@@ -66,6 +66,10 @@ class OidcClient
    * @var string
    */
   private $clientSecret;
+  /**
+   * @var string|null
+   */
+  private $redirectRoute;
 
   /**
    * OidcClient constructor.
@@ -75,19 +79,23 @@ class OidcClient
    * @param string           $wellKnownUrl
    * @param string           $clientId
    * @param string           $clientSecret
+   * @param string|null      $redirectRoute
    */
-  public function __construct(SessionInterface $session, RouterInterface $router, string $wellKnownUrl, string $clientId, string $clientSecret)
+  public function __construct(
+      SessionInterface $session, RouterInterface $router, string $wellKnownUrl, string $clientId, string $clientSecret,
+      ?string $redirectRoute = 'login_check')
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA')) {
       throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
     }
 
-    $this->session      = $session;
-    $this->router       = $router;
-    $this->wellKnownUrl = $wellKnownUrl;
-    $this->clientId     = $clientId;
-    $this->clientSecret = $clientSecret;
+    $this->session       = $session;
+    $this->router        = $router;
+    $this->wellKnownUrl  = $wellKnownUrl;
+    $this->clientId      = $clientId;
+    $this->clientSecret  = $clientSecret;
+    $this->redirectRoute = $redirectRoute;
 
     $this->urlFetcher = new OidcUrlFetcher();
     $this->jwtHelper  = new OidcJwtHelper($this->session, $this->urlFetcher, $clientId);
@@ -151,7 +159,7 @@ class OidcClient
    *
    * @param string|null $prompt One of 'none', 'login', 'consent', 'select_account' or 'create'
    *                            If null or not supplied, the parameter will be omitted from the request
-   *                            Note thate 'create' is currently in draft and might not be supported by every implementation
+   *                            Note that 'create' is currently in draft and might not be supported by every implementation
    * @param string[]    $scopes An array of scopes to request
    *                            If not supplied it will default to openid
    *
@@ -251,7 +259,7 @@ class OidcClient
    */
   protected function getRedirectUrl()
   {
-    return $this->router->generate('login_check', [], RouterInterface::ABSOLUTE_URL);
+    return $this->router->generate($this->redirectRoute, [], RouterInterface::ABSOLUTE_URL);
   }
 
   /**
