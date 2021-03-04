@@ -25,7 +25,7 @@ install-dependencies:
 php-analysis:
   stage: static
   image:
-    name: kickin/phan:0.12.13
+    name: kickin/phan:2.7.2
     entrypoint: [ "" ]
   dependencies:
     - install-dependencies
