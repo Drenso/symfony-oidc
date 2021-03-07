@@ -3,7 +3,7 @@
 namespace Drenso\OidcBundle;
 
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
-use phpseclib\Crypt\RSA;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
@@ -196,11 +196,25 @@ class OidcJwtHelper
         "  <Exponent>" . self::b64url2b64($key->e) . "</Exponent>\r\n" .
         "</RSAKeyValue>";
 
-    $rsa = new RSA();
-    $rsa->setHash($hashtype);
-    $rsa->loadKey($public_key_xml, RSA::PUBLIC_FORMAT_XML); // @phan-suppress-current-line PhanTypeMismatchArgument
-    $rsa->signatureMode = RSA::SIGNATURE_PKCS1;
+    if (class_exists('\phpseclib3\Crypt\RSA')){
+        /** @phan-suppress-next-line PhanUndeclaredMethod */
+        $rsa = \phpseclib3\Crypt\RSA::load($public_key_xml)
+            ->withPadding(\phpseclib3\Crypt\RSA::ENCRYPTION_PKCS1 | \phpseclib3\Crypt\RSA::SIGNATURE_PKCS1)
+            ->withHash($hashtype);
+    } else if (class_exists('\phpseclib\Crypt\RSA')) {
+        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+        $rsa = new \phpseclib\Crypt\RSA();
+        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+        $rsa->setHash($hashtype);
+        /** @phan-suppress-next-line PhanTypeMismatchArgument,PhanUndeclaredClassConstant,PhanUndeclaredClassMethod */
+        $rsa->loadKey($public_key_xml, \phpseclib\Crypt\RSA::PUBLIC_FORMAT_XML);
+        /** @phan-suppress-next-line PhanUndeclaredClassConstant,PhanUndeclaredClassProperty */
+        $rsa->signatureMode = \phpseclib\Crypt\RSA::SIGNATURE_PKCS1;
+    } else {
+        throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
+    }
 
+    /** @phan-suppress-next-line PhanUndeclaredClassMethod */
     return $rsa->verify($payload, $signature);
   }
 

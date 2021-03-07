@@ -86,7 +86,7 @@ class OidcClient
       ?string $redirectRoute = 'login_check')
   {
     // Check for required phpseclib classes
-    if (!class_exists('\phpseclib\Crypt\RSA')) {
+    if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
       throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
     }
 
