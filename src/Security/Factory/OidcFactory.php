@@ -44,7 +44,7 @@ class OidcFactory extends AbstractFactory
    *
    * @return string never null, the id of the authentication provider
    */
-  protected function createAuthProvider(ContainerBuilder $container, $id, $config, $userProviderId)
+  protected function createAuthProvider(ContainerBuilder $container, string $id, array $config, string $userProviderId)
   {
     $providerId = sprintf("%s.%s", $this->getProviderKey(), $id);
 
@@ -88,7 +88,7 @@ class OidcFactory extends AbstractFactory
    *
    * @inheritDoc
    */
-  protected function createEntryPoint($container, $id, $config, $defaultEntryPointId)
+  protected function createEntryPoint(ContainerBuilder $container, string $id, array $config, ?string $defaultEntryPointId)
   {
     if (!$defaultEntryPointId && !empty($config['login_path'])) {
       $entryPointId = 'security.authentication.entry_point.oidc.' . $id;
