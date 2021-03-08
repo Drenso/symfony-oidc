@@ -43,6 +43,8 @@ class OidcFactory extends AbstractFactory
    * @param string           $userProviderId The id of the user provider
    *
    * @return string never null, the id of the authentication provider
+   *
+   * @suppress PhanParamSignatureRealMismatchHasNoParamType
    */
   protected function createAuthProvider(ContainerBuilder $container, $id, $config, $userProviderId)
   {
@@ -87,6 +89,7 @@ class OidcFactory extends AbstractFactory
    * Creates an entry point for this authentication. Can be disabled by clearing the login_path route.
    *
    * @inheritDoc
+   * @suppress PhanParamSignatureRealMismatchHasNoParamType
    */
   protected function createEntryPoint($container, $id, $config, $defaultEntryPointId)
   {
