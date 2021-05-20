@@ -145,7 +145,6 @@ class OidcClient
     }
 
     // If this is a valid claim
-    /** @noinspection PhpUndefinedFieldInspection */
     if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens)) {
       return $tokens;
     } else {
