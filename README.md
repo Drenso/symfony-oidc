@@ -117,3 +117,10 @@ Add the ListenerFactory to the `Kernel.php`:
 ```
 
 Lastly, make sure that the your custom UserProvider implements the `OidcUserProviderInterface`.
+
+
+# FAQ
+
+- **I'm missing the `login_check` route?**
+
+  See https://github.com/Drenso/symfony-oidc/issues/5 for a solution.
