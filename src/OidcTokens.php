@@ -61,8 +61,8 @@ class OidcTokens
       $this->expiry = DateTimeImmutable::createFromFormat('U', (string)(time() + $tokens->expires_in));
     }
 
-    if (isset($tokens->refresh_tokens)) {
-      $this->refreshToken = $tokens->refresh_tokens;
+    if (isset($tokens->refresh_token)) {
+      $this->refreshToken = $tokens->refresh_token;
     }
 
     if (isset($tokens->scope)) {
