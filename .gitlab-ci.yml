@@ -27,6 +27,9 @@ install-dependencies:
     - tags
 
 composer-require-checker:
+  image: drenso/php:8.0-d1
+  before_script:
+    - curl -JOL https://github.com/maglnet/ComposerRequireChecker/releases/download/3.2.0/composer-require-checker.phar
   except:
     - master
     - tags
