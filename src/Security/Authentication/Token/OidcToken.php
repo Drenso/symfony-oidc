@@ -97,6 +97,8 @@ class OidcToken extends AbstractToken
    * When the user is available, get the username from the user object.
    *
    * @return string
+   *
+   * @phan-suppress PhanParamSignatureMismatch
    */
   public function getUsername(): string
   {

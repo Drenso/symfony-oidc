@@ -4,6 +4,9 @@ namespace Drenso\OidcBundle\Security\Exception;
 
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 
+/**
+ * @phan-suppress PhanDeprecatedClass
+ */
 class OidcUsernameNotFoundException extends UsernameNotFoundException
 {
   /**

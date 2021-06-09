@@ -20,6 +20,9 @@ use Symfony\Component\Security\Http\Firewall\AbstractAuthenticationListener;
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\Security\Http\Session\SessionAuthenticationStrategyInterface;
 
+/**
+ * @phan-suppress PhanDeprecatedClass
+ */
 class OidcListener extends AbstractAuthenticationListener
 {
 
@@ -89,6 +92,7 @@ class OidcListener extends AbstractAuthenticationListener
           ->setAuthData($authData);
 
       // Try to authenticate this against the Symfony authentication backend
+      /** @phan-suppress-next-line PhanAccessMethodInternal */
       return $this->authenticationManager->authenticate($token);
 
     } catch (OidcException $e) {

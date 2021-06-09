@@ -14,6 +14,9 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
 use Symfony\Component\Security\Core\User\UserCheckerInterface;
 
+/**
+ * @phan-suppress PhanDeprecatedInterface
+ */
 class OidcProvider implements AuthenticationProviderInterface
 {
 
