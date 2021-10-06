@@ -5,18 +5,18 @@ stages:
 include:
   # Prepare
   - project: 'intern/runner-templates'
-    ref: "3.5"
+    ref: "3.11"
     file: '/symfony/install-dependencies.yml'
 
   # Lint
   - project: 'intern/runner-templates'
-    ref: "3.5"
+    ref: "3.11"
     file: '/php/phan.yml'
   - project: 'intern/runner-templates'
-    ref: "3.5"
+    ref: "3.11"
     file: '/php/composer-require-checker.yml'
   - project: 'intern/runner-templates'
-    ref: "3.5"
+    ref: "3.11"
     file: '/php/composer-unused.yml'
 
 install-dependencies:
