@@ -12,6 +12,23 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
  */
 class OidcUrlFetcher
 {
+    
+  /**
+   * @var string
+   */
+  private $customHeaders;
+  
+  /**
+   * OidcUrlFetcher constructor.
+   *
+   * @param string           $customHeaders
+   */
+  public function __construct(?string $customHeaders='')
+  {   
+    $this->customHeaders   = $customHeaders;
+    
+     
+  }
   /**
    * Retrieve the content from the specified url
    *
@@ -48,6 +65,12 @@ class OidcUrlFetcher
     // Add a User-Agent header to prevent firewall blocks
     $curlVersion = curl_version()['version'];
     $headers[] = "User-Agent: curl/$curlVersion drenso/symfony-oidc";
+    
+    //Add additional headers to Headers
+    if(!empty($this->customHeaders)){
+        $customHeaderArray = explode(';', $this->customHeaders);
+        $headers = array_merge($headers,$customHeaderArray);
+    }
 
     // Include headers
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
