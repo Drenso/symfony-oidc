@@ -68,12 +68,6 @@ class OidcClient
   private $clientSecret;
 
   /**
-   * OIDC Custom headers
-   * @var string
-   */
-  private $customHeaders;
-
-  /**
    * @var string|null
    */
   private $redirectRoute;
@@ -91,7 +85,7 @@ class OidcClient
    */
   public function __construct(
       SessionInterface $session, RouterInterface $router, string $wellKnownUrl, string $clientId, string $clientSecret,
-      ?string $redirectRoute = 'login_check', ?string $customHeaders = '')
+      ?string $redirectRoute = 'login_check', array $customHeaders = [])
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
@@ -103,10 +97,9 @@ class OidcClient
     $this->wellKnownUrl  = $wellKnownUrl;
     $this->clientId      = $clientId;
     $this->clientSecret  = $clientSecret;
-    $this->customHeaders =  $customHeaders;
     $this->redirectRoute = $redirectRoute;
 
-    $this->urlFetcher = new OidcUrlFetcher($this->customHeaders);
+    $this->urlFetcher = new OidcUrlFetcher($customHeaders);
     $this->jwtHelper  = new OidcJwtHelper($this->session, $this->urlFetcher, $clientId);
   }
 

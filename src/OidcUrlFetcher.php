@@ -14,16 +14,16 @@ class OidcUrlFetcher
 {
     
   /**
-   * @var string
+   * @var array
    */
   private $customHeaders;
   
   /**
    * OidcUrlFetcher constructor.
    *
-   * @param string           $customHeaders
+   * @param array           $customHeaders
    */
-  public function __construct(?string $customHeaders='')
+  public function __construct(array $customHeaders = [])
   {   
     $this->customHeaders   = $customHeaders;
     
@@ -66,10 +66,9 @@ class OidcUrlFetcher
     $curlVersion = curl_version()['version'];
     $headers[] = "User-Agent: curl/$curlVersion drenso/symfony-oidc";
     
-    //Add additional headers to Headers
-    if(!empty($this->customHeaders)){
-        $customHeaderArray = explode(';', $this->customHeaders);
-        $headers = array_merge($headers,$customHeaderArray);
+    // Add custom headers to a existing headers
+    if(!empty($this->customHeaders) && is_array($this->customHeaders)){        
+        $headers = array_merge($headers,$this->customHeaders);        
     }
 
     // Include headers
