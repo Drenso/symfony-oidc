@@ -66,9 +66,7 @@ class OidcUrlFetcher
     $headers[] = "User-Agent: curl/$curlVersion drenso/symfony-oidc";
     
     // Add custom headers to a existing headers
-    if(!empty($this->customHeaders) && is_array($this->customHeaders)){        
-        $headers = array_merge($headers,$this->customHeaders);        
-    }
+    $headers = array_merge($headers, $this->customHeaders);
 
     // Include headers
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
