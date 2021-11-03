@@ -80,8 +80,8 @@ class OidcClient
    * @param string           $wellKnownUrl
    * @param string           $clientId
    * @param string           $clientSecret
-   * @param string           $customHeaders
    * @param string|null      $redirectRoute
+   * @param string[]         $customHeaders
    */
   public function __construct(
       SessionInterface $session, RouterInterface $router, string $wellKnownUrl, string $clientId, string $clientSecret,
