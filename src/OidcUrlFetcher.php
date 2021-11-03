@@ -21,14 +21,13 @@ class OidcUrlFetcher
   /**
    * OidcUrlFetcher constructor.
    *
-   * @param array           $customHeaders
+   * @param string[] $customHeaders
    */
   public function __construct(array $customHeaders = [])
   {   
     $this->customHeaders   = $customHeaders;
-    
-     
   }
+
   /**
    * Retrieve the content from the specified url
    *
