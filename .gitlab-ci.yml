@@ -1,6 +1,7 @@
 stages:
   - prepare
   - lint
+  - deploy
 
 include:
   # Prepare
@@ -18,6 +19,12 @@ include:
   - project: 'intern/runner-templates'
     ref: "4.0"
     file: '/php/composer-unused.yml'
+  - project: 'intern/runner-templates'
+    file: '/yaml/yamllint.yml'
+    ref: "4.0"
+  - project: 'intern/runner-templates'
+    file: '/deploy/deploy.yml'
+    ref: "4.0"
 
 install-dependencies:
   before_script:
@@ -41,4 +48,18 @@ composer-unused:
 php-analysis:
   except:
     - master
+    - tags
+
+yaml-analysis:
+  except:
+    - tags
+    - master
+
+deploy-staging:
+  only:
+    - master
+    - branches
+
+deploy-production:
+  only:
     - tags
