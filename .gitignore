@@ -1,4 +1,12 @@
+# PhpStorm
 .idea
+
+# Composer
 composer.lock
 composer.phar
-vendor
+
+# Ignore composer
+composer.phar
+
+# Vendor
+/vendor
