@@ -20,20 +20,21 @@
     }
   ],
   "require": {
-    "php": "^7.3 || ^8.0",
+    "php": ">=8.0.2",
     "ext-curl": "*",
     "ext-hash": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-openssl": "*",
-    "symfony/http-foundation": "^3.4.35 || ^4.2.12 || ^5.0.7",
-    "symfony/routing": "^3.4 || ^4.0 || ^5.0",
-    "psr/log": "^1.1",
-    "phpseclib/phpseclib": "^2.0.31 || ^3.0.7",
-    "symfony/dependency-injection": "^3.4.26 || ^4.1.12 || ^5.0",
-    "symfony/security-bundle": "^3.4 || ^4.0 || ^5.0",
-    "symfony/security-core": "^3.4 || ^4.0 || ^5.0",
-    "symfony/security-http": "^3.4.26 || ^4.1.12 || ^5.0.7"
+    "psr/log": "^1.1|^2|^3",
+    "phpseclib/phpseclib": "^2.0.31|^3.0.7",
+    "symfony/config": "^5.3|^6.0",
+    "symfony/dependency-injection": "^5.3|^6.0",
+    "symfony/http-foundation": "^5.3|^6.0",
+    "symfony/routing": "^5.3|^6.0",
+    "symfony/security-bundle": "^5.3|^6.0",
+    "symfony/security-core": "^5.3|^6.0",
+    "symfony/security-http": "^5.3|^6.0"
   },
   "require-dev": {
     "drenso/phan-extensions": "^3.0"

@@ -5,18 +5,18 @@ stages:
 include:
   # Prepare
   - project: 'intern/runner-templates'
-    ref: "3.11"
+    ref: "4.0"
     file: '/symfony/install-dependencies.yml'
 
   # Lint
   - project: 'intern/runner-templates'
-    ref: "3.11"
+    ref: "4.0"
     file: '/php/phan.yml'
   - project: 'intern/runner-templates'
-    ref: "3.11"
+    ref: "4.0"
     file: '/php/composer-require-checker.yml'
   - project: 'intern/runner-templates'
-    ref: "3.11"
+    ref: "4.0"
     file: '/php/composer-unused.yml'
 
 install-dependencies:
@@ -27,9 +27,6 @@ install-dependencies:
     - tags
 
 composer-require-checker:
-  image: drenso/php:8.0-d1
-  before_script:
-    - curl -JOL https://github.com/maglnet/ComposerRequireChecker/releases/download/3.2.0/composer-require-checker.phar
   except:
     - master
     - tags
