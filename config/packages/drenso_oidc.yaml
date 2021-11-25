@@ -1,0 +1,9 @@
+drenso_oidc:
+  # Required OIDC client configuration
+  well_known_url: '%env(OIDC_WELL_KNOWN_URL)%'
+  client_id: '%env(OIDC_CLIENT_ID)%'
+  client_secret: '%env(OIDC_CLIENT_SECRET)%'
+
+  # Extra configuration options
+  #redirect_route: 'login_check'
+  #custom_client_headers: []

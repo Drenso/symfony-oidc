@@ -1,43 +1,26 @@
 <?php
 
+
 namespace Drenso\OidcBundle;
 
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 
 /**
- * Class OidcUrlFetcher
  * Helper for resource loading
- *
- * @author BobV
  */
 class OidcUrlFetcher
 {
-    
-  /**
-   * @var array
-   */
-  private $customHeaders;
-  
-  /**
-   * OidcUrlFetcher constructor.
-   *
-   * @param string[] $customHeaders
-   */
-  public function __construct(array $customHeaders = [])
-  {   
-    $this->customHeaders   = $customHeaders;
+  public function __construct(private array $customClientHeaders)
+  {
   }
 
   /**
    * Retrieve the content from the specified url
    *
-   * @param string     $url
    * @param null|array $params  If this is set the request type will be POST.
-   * @param array      $headers Extra headers to be send with the request.
-   *
-   * @return mixed
+   * @param array      $headers Extra headers to be sent with the request.
    */
-  public function fetchUrl(string $url, $params = NULL, $headers = [])
+  public function fetchUrl(string $url, ?array $params = NULL, array $headers = []): string
   {
     // Create a new cURL resource handle
     $ch = curl_init();
@@ -63,10 +46,10 @@ class OidcUrlFetcher
 
     // Add a User-Agent header to prevent firewall blocks
     $curlVersion = curl_version()['version'];
-    $headers[] = "User-Agent: curl/$curlVersion drenso/symfony-oidc";
-    
+    $headers[]   = "User-Agent: curl/$curlVersion drenso/symfony-oidc";
+
     // Add custom headers to a existing headers
-    $headers = array_merge($headers, $this->customHeaders);
+    $headers = array_merge($headers, $this->customClientHeaders);
 
     // Include headers
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
@@ -77,7 +60,7 @@ class OidcUrlFetcher
     // Include header in result? (0 = yes, 1 = no)
     curl_setopt($ch, CURLOPT_HEADER, 0);
 
-    // Allows to follow redirect
+    // Allows following redirects
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
 
     // Setup certificate checking

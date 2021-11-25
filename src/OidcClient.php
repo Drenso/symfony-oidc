@@ -1,10 +1,12 @@
 <?php
 
+
 namespace Drenso\OidcBundle;
 
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
+use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
 use InvalidArgumentException;
@@ -12,106 +14,42 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 
 /**
- * Class OidcClient
- * This class implements the Oidc protocol.Oidc
- *
- * @author BobV
+ * This class implements the Oidc protocol.
  */
 class OidcClient
 {
-
   const OIDC_SESSION_NONCE = 'oidc.session.nonce';
   const OIDC_SESSION_STATE = 'oidc.session.state';
-  /**
-   * OIDC configuration values
-   *
-   * @var array|null
-   */
-  protected $configuration;
-  /**
-   * @var OidcJwtHelper
-   */
-  protected $jwtHelper;
-  /**
-   * @var RouterInterface
-   */
-  protected $router;
-  /**
-   * @var SessionInterface
-   */
-  protected $session;
-  /**
-   * @var OidcUrlFetcher
-   */
-  protected $urlFetcher;
-  /**
-   * OIDC well-known location
-   *
-   * @var string
-   */
-  protected $wellKnownUrl;
-  /**
-   * OIDC Client ID
-   *
-   * @var string
-   */
-  private $clientId;
 
-  /**
-   * OIDC Client secret
-   *
-   * @var string
-   */
-  private $clientSecret;
+  /** OIDC configuration values */
+  protected ?array $configuration = NULL;
 
-  /**
-   * @var string|null
-   */
-  private $redirectRoute;
-
-  /**
-   * OidcClient constructor.
-   *
-   * @param SessionInterface $session
-   * @param RouterInterface  $router
-   * @param string           $wellKnownUrl
-   * @param string           $clientId
-   * @param string           $clientSecret
-   * @param string|null      $redirectRoute
-   * @param string[]         $customHeaders
-   */
   public function __construct(
-      SessionInterface $session, RouterInterface $router, string $wellKnownUrl, string $clientId, string $clientSecret,
-      ?string $redirectRoute = 'login_check', array $customHeaders = [])
+      protected SessionInterface $session,
+      protected RouterInterface  $router,
+      protected OidcUrlFetcher   $urlFetcher,
+      protected OidcJwtHelper    $jwtHelper,
+      protected string           $wellKnownUrl,
+      private string             $clientId,
+      private string             $clientSecret,
+      private string             $redirectRoute)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
       throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
     }
-
-    $this->session       = $session;
-    $this->router        = $router;
-    $this->wellKnownUrl  = $wellKnownUrl;
-    $this->clientId      = $clientId;
-    $this->clientSecret  = $clientSecret;
-    $this->redirectRoute = $redirectRoute;
-
-    $this->urlFetcher = new OidcUrlFetcher($customHeaders);
-    $this->jwtHelper  = new OidcJwtHelper($this->session, $this->urlFetcher, $clientId);
   }
 
   /**
    * Authenticate the incoming request
    *
-   * @param Request $request
-   *
-   * @return OidcTokens|null
    * @throws OidcException
    */
-  public function authenticate(Request $request)
+  public function authenticate(Request $request): ?OidcTokens
   {
     // Check whether the request has an error state
     if ($request->request->has('error')) {
@@ -164,7 +102,6 @@ class OidcClient
    * @param string[]    $scopes An array of scopes to request
    *                            If not supplied it will default to openid
    *
-   * @return RedirectResponse
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
@@ -198,14 +135,9 @@ class OidcClient
   /**
    * Retrieve the user information
    *
-   * @param OidcTokens $tokens
-   *
-   * @return mixed
    * @throws OidcException
-   * @throws OidcConfigurationException
-   * @throws OidcConfigurationResolveException
    */
-  public function retrieveUserInfo(OidcTokens $tokens)
+  public function retrieveUserInfo(OidcTokens $tokens): mixed
   {
     // Set the authorization header
     $headers = ["Authorization: Bearer {$tokens->getAccessToken()}"];
@@ -226,17 +158,15 @@ class OidcClient
   }
 
   /**
-   * @return mixed
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getAuthorizationEndpoint()
+  protected function getAuthorizationEndpoint(): mixed
   {
     return $this->getConfigurationValue('authorization_endpoint');
   }
 
   /**
-   * @return mixed
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
@@ -246,57 +176,48 @@ class OidcClient
   }
 
   /**
-   * @return mixed
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getJwktUri()
+  protected function getJwktUri(): mixed
   {
     return $this->getConfigurationValue('jwks_uri');
   }
 
-  /**
-   * @return string
-   */
-  protected function getRedirectUrl()
+  protected function getRedirectUrl(): string
   {
-    return $this->router->generate($this->redirectRoute, [], RouterInterface::ABSOLUTE_URL);
+    return $this->router->generate($this->redirectRoute, [], UrlGeneratorInterface::ABSOLUTE_URL);
   }
 
   /**
-   * @return mixed
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getTokenEndpoint()
+  protected function getTokenEndpoint(): mixed
   {
     return $this->getConfigurationValue('token_endpoint');
   }
 
   /**
-   * @return mixed
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getTokenEndpointAuthMethods()
+  protected function getTokenEndpointAuthMethods(): mixed
   {
     return $this->getConfigurationValue('token_endpoint_auth_methods_supported');
   }
 
   /**
-   * @return mixed
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getUserinfoEndpoint()
+  protected function getUserinfoEndpoint(): mixed
   {
     return $this->getConfigurationValue('userinfo_endpoint');
   }
 
   /**
    * Generate a nonce to verify the response
-   *
-   * @return string
    */
   private function generateNonce(): string
   {
@@ -309,8 +230,6 @@ class OidcClient
 
   /**
    * Generate a secure random string for usage as state
-   *
-   * @return string
    */
   private function generateRandomString(): string
   {
@@ -319,8 +238,6 @@ class OidcClient
 
   /**
    * Generate a state to identify the request
-   *
-   * @return string
    */
   private function generateState(): string
   {
@@ -333,13 +250,10 @@ class OidcClient
   /**
    * Retrieve a configuration value from the provider well-known configuration
    *
-   * @param string $key
-   *
-   * @return mixed
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  private function getConfigurationValue(string $key)
+  private function getConfigurationValue(string $key): mixed
   {
     // Resolve the configuration
     $this->resolveConfiguration();
@@ -354,15 +268,9 @@ class OidcClient
   /**
    * Request the tokens from the OIDC provider
    *
-   * @param $code
-   *
-   * @return OidcTokens
-   *
-   * @throws OidcConfigurationException
-   * @throws OidcConfigurationResolveException
    * @throws OidcException
    */
-  private function requestTokens($code)
+  private function requestTokens(string $code): OidcTokens
   {
     $params = [
         'grant_type'    => 'authorization_code',
@@ -397,7 +305,7 @@ class OidcClient
    *
    * @throws OidcConfigurationResolveException
    */
-  private function resolveConfiguration()
+  private function resolveConfiguration(): void
   {
     // Check whether the configuration is already available
     if ($this->configuration !== NULL) return;
@@ -405,7 +313,7 @@ class OidcClient
     try {
       $wellKnown = $this->urlFetcher->fetchUrl($this->wellKnownUrl);
     } catch (Exception $e) {
-      throw new OidcConfigurationResolveException(sprintf('Could not retrieve OIDC configuration from "%s".', $this->wellKnownUrl));
+      throw new OidcConfigurationResolveException(sprintf('Could not retrieve OIDC configuration from "%s".', $this->wellKnownUrl), 0, $e);
     }
 
     // Parse the configuration

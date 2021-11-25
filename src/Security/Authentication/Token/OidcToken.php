@@ -2,7 +2,7 @@
 
 namespace Drenso\OidcBundle\Security\Authentication\Token;
 
-use Drenso\OidcBundle\OidcTokens;
+use Drenso\OidcBundle\Model\OidcTokens;
 use Symfony\Component\Security\Core\Authentication\Token\AbstractToken;
 
 class OidcToken extends AbstractToken

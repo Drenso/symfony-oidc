@@ -1,50 +1,25 @@
 <?php
 
-namespace Drenso\OidcBundle;
+
+namespace Drenso\OidcBundle\Model;
 
 use DateTimeImmutable;
 use Drenso\OidcBundle\Exception\OidcException;
 use stdClass;
 
 /**
- * Class OidcTokens
  * Contains the access and id tokens retrieved from OpenID authentication
- *
- * @author BobV
  */
 class OidcTokens
 {
+  private string $accessToken;
+  private string $idToken;
+  private ?DateTimeImmutable $expiry = NULL;
+  private ?string $refreshToken = NULL;
+  /**  @var string[]|null */
+  private ?array $scope = NULL;
 
   /**
-   * @var string
-   */
-  private $accessToken;
-
-  /**
-   * @var DateTimeImmutable|null
-   */
-  private $expiry;
-
-  /**
-   * @var string
-   */
-  private $idToken;
-
-  /**
-   * @var string|null
-   */
-  private $refreshToken;
-
-  /**
-   * @var string[]|null
-   */
-  private $scope;
-
-  /**
-   * OidcTokens constructor.
-   *
-   * @param stdClass $tokens
-   *
    * @throws OidcException
    */
   public function __construct(stdClass $tokens)
@@ -90,9 +65,7 @@ class OidcTokens
     return $this->refreshToken;
   }
 
-  /**
-   * @return string[]|null
-   */
+  /**  @return string[]|null */
   public function getScope(): ?array
   {
     return $this->scope;

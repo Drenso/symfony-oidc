@@ -22,12 +22,13 @@
   "require": {
     "php": ">=8.0.2",
     "ext-curl": "*",
+    "ext-filter": "*",
     "ext-hash": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
     "ext-openssl": "*",
-    "psr/log": "^1.1|^2|^3",
     "phpseclib/phpseclib": "^2.0.31|^3.0.7",
+    "psr/log": "^1.1|^2|^3",
     "symfony/config": "^5.3|^6.0",
     "symfony/dependency-injection": "^5.3|^6.0",
     "symfony/http-foundation": "^5.3|^6.0",
@@ -43,5 +44,8 @@
     "psr-4": {
       "Drenso\\OidcBundle\\": "src"
     }
+  },
+  "config": {
+    "sort-packages": true
   }
 }

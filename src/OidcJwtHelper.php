@@ -1,47 +1,23 @@
 <?php
 
+
 namespace Drenso\OidcBundle;
 
+use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 /**
- * Class OidcJwtHelper
  * Contains helper functions to decode/verify JWT data
- *
- * @author BobV
  */
 class OidcJwtHelper
 {
-
-  /**
-   * @var SessionInterface
-   */
-  protected $session;
-
-  /**
-   * @var OidcUrlFetcher
-   */
-  protected $urlFetcher;
-
-  /**
-   * @var string
-   */
-  private $clientId;
-
-  /**
-   * OidcJwtHelper constructor.
-   *
-   * @param SessionInterface $session
-   * @param OidcUrlFetcher   $urlFetcher
-   * @param string           $clientId
-   */
-  public function __construct(SessionInterface $session, OidcUrlFetcher $urlFetcher, string $clientId)
+  public function __construct(
+      protected SessionInterface $session,
+      protected OidcUrlFetcher $urlFetcher,
+      private string $clientId)
   {
-    $this->session    = $session;
-    $this->urlFetcher = $urlFetcher;
-    $this->clientId   = $clientId;
   }
 
   /**
@@ -49,12 +25,8 @@ class OidcJwtHelper
    * alphabet".  This just replaces characters 62 and 63.  None of the
    * reference implementations seem to restore the padding if necessary,
    * but we'll do it anyway.
-   *
-   * @param $base64url
-   *
-   * @return string
    */
-  private static function b64url2b64($base64url)
+  private static function b64url2b64(string $base64url): string
   {
     // "Shouldn't" be necessary, but why not
     $padding = strlen($base64url) % 4;
@@ -68,51 +40,32 @@ class OidcJwtHelper
   /**
    * A wrapper around base64_decode which decodes Base64URL-encoded data,
    * which is not the same alphabet as base64.
-   *
-   * @param $base64url
-   *
-   * @return bool|string
    */
-  private static function base64url_decode($base64url)
+  private static function base64url_decode(string $base64url): string|false
   {
     return base64_decode(self::b64url2b64($base64url));
   }
 
-  /**
-   * @param string $str
-   *
-   * @return string
-   */
-  private static function urlEncode($str)
+  private static function urlEncode(string $str): string
   {
     $enc = base64_encode($str);
     $enc = rtrim($enc, "=");
-    $enc = strtr($enc, "+/", "-_");
 
-    return $enc;
+    return strtr($enc, "+/", "-_");
   }
 
   /**
    * @param string $jwt     string encoded JWT
    * @param int    $section the section we would like to decode
-   *
-   * @return object
    */
-  public function decodeJwt(string $jwt, $section = 0)
+  public function decodeJwt(string $jwt, int $section = 0): object
   {
     $parts = explode(".", $jwt);
 
     return json_decode(self::base64url_decode($parts[$section]));
   }
 
-  /**
-   * @param                 $issuer
-   * @param                 $claims
-   * @param OidcTokens|null $tokens
-   *
-   * @return bool
-   */
-  public function verifyJwtClaims($issuer, $claims, OidcTokens $tokens = NULL)
+  public function verifyJwtClaims($issuer, $claims, ?OidcTokens $tokens = NULL): bool
   {
     if (isset($claims->at_hash) && $tokens->getAccessToken() !== NULL) {
       $accessTokenHeader = $this->getAccessTokenHeader($tokens);
@@ -141,13 +94,7 @@ class OidcJwtHelper
     );
   }
 
-  /**
-   * @param            $jwksUri
-   * @param OidcTokens $tokens encoded JWT
-   *
-   * @return bool
-   */
-  public function verifyJwtSignature($jwksUri, OidcTokens $tokens)
+  public function verifyJwtSignature(string $jwksUri, OidcTokens $tokens): bool
   {
     // Check JWT information
     if (!$jwksUri) {
@@ -173,15 +120,7 @@ class OidcJwtHelper
     return $this->verifyRsaJwtSignature($hashType, $this->getKeyForHeader($jwks->keys, $header), $payload, $signature);
   }
 
-  /**
-   * @param string $hashtype
-   * @param object $key
-   * @param        $payload
-   * @param        $signature
-   *
-   * @return bool
-   */
-  public function verifyRsaJwtSignature($hashtype, $key, $payload, $signature)
+  public function verifyRsaJwtSignature(string $hashtype, object $key, $payload, $signature): bool
   {
     if (!(property_exists($key, 'n') and property_exists($key, 'e'))) {
       throw new OidcAuthenticationException('Malformed key object');
@@ -196,45 +135,34 @@ class OidcJwtHelper
         "  <Exponent>" . self::b64url2b64($key->e) . "</Exponent>\r\n" .
         "</RSAKeyValue>";
 
-    if (class_exists('\phpseclib3\Crypt\RSA')){
-        /** @phan-suppress-next-line PhanUndeclaredMethod */
-        $rsa = \phpseclib3\Crypt\RSA::load($public_key_xml)
-            ->withPadding(\phpseclib3\Crypt\RSA::ENCRYPTION_PKCS1 | \phpseclib3\Crypt\RSA::SIGNATURE_PKCS1)
-            ->withHash($hashtype);
+    if (class_exists('\phpseclib3\Crypt\RSA')) {
+      /** @phan-suppress-next-line PhanUndeclaredMethod */
+      $rsa = \phpseclib3\Crypt\RSA::load($public_key_xml)
+          ->withPadding(\phpseclib3\Crypt\RSA::ENCRYPTION_PKCS1 | \phpseclib3\Crypt\RSA::SIGNATURE_PKCS1)
+          ->withHash($hashtype);
     } else if (class_exists('\phpseclib\Crypt\RSA')) {
-        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-        $rsa = new \phpseclib\Crypt\RSA();
-        /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-        $rsa->setHash($hashtype);
-        /** @phan-suppress-next-line PhanTypeMismatchArgument,PhanUndeclaredClassConstant,PhanUndeclaredClassMethod */
-        $rsa->loadKey($public_key_xml, \phpseclib\Crypt\RSA::PUBLIC_FORMAT_XML);
-        /** @phan-suppress-next-line PhanUndeclaredClassConstant,PhanUndeclaredClassProperty */
-        $rsa->signatureMode = \phpseclib\Crypt\RSA::SIGNATURE_PKCS1;
+      /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+      $rsa = new \phpseclib\Crypt\RSA();
+      /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+      $rsa->setHash($hashtype);
+      /** @phan-suppress-next-line PhanTypeMismatchArgument,PhanUndeclaredClassConstant,PhanUndeclaredClassMethod */
+      $rsa->loadKey($public_key_xml, \phpseclib\Crypt\RSA::PUBLIC_FORMAT_XML);
+      /** @phan-suppress-next-line PhanUndeclaredClassConstant,PhanUndeclaredClassProperty */
+      $rsa->signatureMode = \phpseclib\Crypt\RSA::SIGNATURE_PKCS1;
     } else {
-        throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
+      throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
     }
 
     /** @phan-suppress-next-line PhanUndeclaredClassMethod */
     return $rsa->verify($payload, $signature);
   }
 
-  /**
-   * @param OidcTokens $tokens
-   *
-   * @return object
-   */
-  private function getAccessTokenHeader(OidcTokens $tokens)
+  private function getAccessTokenHeader(OidcTokens $tokens): object
   {
     return $this->decodeJwt($tokens->getAccessToken(), 0);
   }
 
-  /**
-   * @param $keys
-   * @param $header
-   *
-   * @return mixed
-   */
-  private function getKeyForHeader($keys, $header)
+  private function getKeyForHeader($keys, $header): mixed
   {
     foreach ($keys as $key) {
       if ($key->kty == 'RSA') {
