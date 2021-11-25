@@ -10,6 +10,7 @@ use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
 use InvalidArgumentException;
+use LogicException;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -41,6 +42,10 @@ class OidcClient
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
       throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
+    }
+
+    if (!$this->wellKnownUrl || filter_var($this->wellKnownUrl, FILTER_VALIDATE_URL) === false) {
+      throw new LogicException(sprintf('Invalid well known url (%s) for OIDC', $this->wellKnownUrl));
     }
   }
 
