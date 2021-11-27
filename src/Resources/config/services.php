@@ -9,7 +9,7 @@ use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\RouterInterface;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
-return function (ContainerConfigurator $configurator) {
+return function (ContainerConfigurator $configurator): void {
   $configurator->services()
       ->set(DrensoOidcExtension::URL_FETCHER_ID, OidcUrlFetcher::class)
         ->abstract()

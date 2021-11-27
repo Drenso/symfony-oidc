@@ -17,7 +17,7 @@ class DrensoOidcExtension extends Extension
   const JWT_HELPER_ID = self::BASE_ID . 'jwt_helper';
   const CLIENT_ID = self::BASE_ID . 'client';
 
-  public function load(array $configs, ContainerBuilder $container)
+  public function load(array $configs, ContainerBuilder $container): void
   {
     // Autoload configured services
     $loader = new Loader\PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
