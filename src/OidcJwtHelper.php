@@ -6,7 +6,7 @@ namespace Drenso\OidcBundle;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use RuntimeException;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 
 /**
  * Contains helper functions to decode/verify JWT data
@@ -14,7 +14,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 class OidcJwtHelper
 {
   public function __construct(
-      protected SessionInterface $session,
+      protected RequestStack $requestStack,
       protected OidcUrlFetcher $urlFetcher,
       private string $clientId)
   {
@@ -81,8 +81,8 @@ class OidcJwtHelper
     }
 
     // Get and remove nonce from session
-    $nonce = $this->session->get(OidcClient::OIDC_SESSION_NONCE);
-    $this->session->remove(OidcClient::OIDC_SESSION_NONCE);
+    $nonce = $this->requestStack->getSession()->get(OidcClient::OIDC_SESSION_NONCE);
+    $this->requestStack->getSession()->remove(OidcClient::OIDC_SESSION_NONCE);
 
     /** @noinspection PhpUndefinedVariableInspection */
     return (($claims->iss == $issuer)

@@ -14,7 +14,7 @@ use LogicException;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
+use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Routing\RouterInterface;
 
@@ -30,14 +30,14 @@ class OidcClient implements OidcClientInterface
   protected ?array $configuration = NULL;
 
   public function __construct(
-      protected SessionInterface $session,
-      protected RouterInterface  $router,
-      protected OidcUrlFetcher   $urlFetcher,
-      protected OidcJwtHelper    $jwtHelper,
-      protected string           $wellKnownUrl,
-      private string             $clientId,
-      private string             $clientSecret,
-      private string             $redirectRoute)
+      protected RequestStack    $requestStack,
+      protected RouterInterface $router,
+      protected OidcUrlFetcher  $urlFetcher,
+      protected OidcJwtHelper   $jwtHelper,
+      protected string          $wellKnownUrl,
+      private string            $clientId,
+      private string            $clientSecret,
+      private string            $redirectRoute)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
@@ -215,7 +215,7 @@ class OidcClient implements OidcClientInterface
   {
     $value = $this->generateRandomString();
 
-    $this->session->set(self::OIDC_SESSION_NONCE, $value);
+    $this->requestStack->getSession()->set(self::OIDC_SESSION_NONCE, $value);
 
     return $value;
   }
@@ -234,7 +234,7 @@ class OidcClient implements OidcClientInterface
   private function generateState(): string
   {
     $value = $this->generateRandomString();
-    $this->session->set(self::OIDC_SESSION_STATE, $value);
+    $this->requestStack->getSession()->set(self::OIDC_SESSION_STATE, $value);
 
     return $value;
   }
