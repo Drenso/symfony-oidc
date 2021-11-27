@@ -2,13 +2,21 @@
 
 namespace Drenso\OidcBundle\DependencyInjection;
 
+use Drenso\OidcBundle\OidcClientInterface;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\DependencyInjection\Reference;
 
 class DrensoOidcExtension extends Extension
 {
+  const BASE_ID = 'drenso.oidc.';
+  const URL_FETCHER_ID = self::BASE_ID . 'url_fetcher';
+  const JWT_HELPER_ID = self::BASE_ID . 'jwt_helper';
+  const CLIENT_ID = self::BASE_ID . 'client';
+
   public function load(array $configs, ContainerBuilder $container)
   {
     // Autoload configured services
@@ -19,11 +27,40 @@ class DrensoOidcExtension extends Extension
     $configuration = new Configuration();
     $config        = $this->processConfiguration($configuration, $configs);
 
-    // Load configuration values into parameters
-    $container->setParameter('drenso.oidc.well_known_url', $config['well_known_url']);
-    $container->setParameter('drenso.oidc.client_id', $config['client_id']);
-    $container->setParameter('drenso.oidc.client_secret', $config['client_secret']);
-    $container->setParameter('drenso.oidc.redirect_route', $config['redirect_route']);
-    $container->setParameter('drenso.oidc.custom_client_headers', $config['custom_client_headers']);
+    // Load the configured clients
+    foreach ($config['clients'] as $clientName => $clientConfig) {
+      $this->registerClient($container, $clientName, $clientConfig);
+    }
+
+    // Setup default alias
+    $container
+        ->setAlias(OidcClientInterface::class, sprintf('drenso.oidc.client.%s', $config['default_client']));
+  }
+
+  private function registerClient(ContainerBuilder $container, string $name, array $config): void
+  {
+    $urlFetcherId = sprintf('%s.%s', self::URL_FETCHER_ID, $name);
+    $container
+        ->setDefinition($urlFetcherId, new ChildDefinition(self::URL_FETCHER_ID))
+        ->addArgument($config['custom_client_headers']);
+
+    $jwtHelperId = sprintf('%s.%s', self::JWT_HELPER_ID, $name);
+    $container
+        ->setDefinition($jwtHelperId, new ChildDefinition(self::JWT_HELPER_ID))
+        ->addArgument(new Reference($urlFetcherId))
+        ->addArgument($config['client_id']);
+
+    $clientId = sprintf('%s.%s', self::CLIENT_ID, $name);
+    $container
+        ->setDefinition($clientId, new ChildDefinition(self::CLIENT_ID))
+        ->addArgument(new Reference($urlFetcherId))
+        ->addArgument(new Reference($jwtHelperId))
+        ->addArgument($config['well_known_url'])
+        ->addArgument($config['client_id'])
+        ->addArgument($config['client_secret'])
+        ->addArgument($config['redirect_route']);
+
+    $container
+        ->registerAliasForArgument($clientId, OidcClientInterface::class, sprintf('%sOidcClient', $name));
   }
 }

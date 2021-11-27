@@ -21,7 +21,7 @@ use Symfony\Component\Routing\RouterInterface;
 /**
  * This class implements the Oidc protocol.
  */
-class OidcClient
+class OidcClient implements OidcClientInterface
 {
   const OIDC_SESSION_NONCE = 'oidc.session.nonce';
   const OIDC_SESSION_STATE = 'oidc.session.state';
@@ -50,9 +50,7 @@ class OidcClient
   }
 
   /**
-   * Authenticate the incoming request
-   *
-   * @throws OidcException
+   * @inheritDoc
    */
   public function authenticate(Request $request): ?OidcTokens
   {
@@ -99,16 +97,7 @@ class OidcClient
   }
 
   /**
-   * Create the redirect that should be followed in order to authorize
-   *
-   * @param string|null $prompt One of 'none', 'login', 'consent', 'select_account' or 'create'
-   *                            If null or not supplied, the parameter will be omitted from the request
-   *                            Note that 'create' is currently in draft and might not be supported by every implementation
-   * @param string[]    $scopes An array of scopes to request
-   *                            If not supplied it will default to openid
-   *
-   * @throws OidcConfigurationException
-   * @throws OidcConfigurationResolveException
+   * @inheritDoc
    */
   public function generateAuthorizationRedirect(?string $prompt = NULL, array $scopes = ['openid']): RedirectResponse
   {
@@ -138,9 +127,7 @@ class OidcClient
   }
 
   /**
-   * Retrieve the user information
-   *
-   * @throws OidcException
+   * @inheritDoc
    */
   public function retrieveUserInfo(OidcTokens $tokens): mixed
   {
