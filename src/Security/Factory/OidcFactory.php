@@ -2,108 +2,80 @@
 
 namespace Drenso\OidcBundle\Security\Factory;
 
-use Drenso\OidcBundle\Security\EntryPoint\OidcEntryPoint;
+use Drenso\OidcBundle\DependencyInjection\DrensoOidcExtension;
+use Drenso\OidcBundle\Security\Exception\UnsupportedManagerException;
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AbstractFactory;
+use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AuthenticatorFactoryInterface;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
-class OidcFactory extends AbstractFactory
+class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterface
 {
-  /**
-   * Defines the configuration key used to reference the provider
-   * in the firewall configuration.
-   *
-   * @return string
-   */
-  public function getKey()
+  public const PRIORITY = -5;
+
+  public function __construct()
+  {
+    // Remove unused options
+    unset($this->options['use_forward']);
+    unset($this->options['require_previous_session']);
+
+    // Set extra options
+    $this->addOption('client', 'default');
+    $this->addOption('user_identifier_property', 'sub');
+  }
+
+  public function getPriority(): int
+  {
+    return self::PRIORITY;
+  }
+
+  public function getKey(): string
   {
     return 'oidc';
   }
 
-  /**
-   * Defines the position at which the provider is called.
-   * Possible values: pre_auth, form, http, and remember_me.
-   *
-   * @return string
-   */
-  public function getPosition()
+  public function createAuthenticator(
+      ContainerBuilder $container,
+      string           $firewallName,
+      array            $config,
+      string           $userProviderId): string
   {
-    return 'http';
-  }
-
-  /**
-   * Subclasses must return the id of a service which implements the
-   * AuthenticationProviderInterface.
-   *
-   * @param ContainerBuilder $container
-   * @param string           $id             The unique id of the firewall
-   * @param array            $config         The options array for this listener
-   * @param string           $userProviderId The id of the user provider
-   *
-   * @return string never null, the id of the authentication provider
-   *
-   * @suppress PhanParamSignatureRealMismatchHasNoParamType
-   */
-  protected function createAuthProvider(ContainerBuilder $container, $id, $config, $userProviderId)
-  {
-    $providerId = sprintf("%s.%s", $this->getProviderKey(), $id);
-
+    $authenticatorId = sprintf('%s.%s', DrensoOidcExtension::AUTHENTICATOR_ID, $firewallName);
     $container
-        ->setDefinition($providerId, new ChildDefinition($this->getProviderKey()))
-        ->replaceArgument(0, new Reference($userProviderId));
+        ->setDefinition($authenticatorId, new ChildDefinition(DrensoOidcExtension::AUTHENTICATOR_ID))
+        ->addArgument(new Reference('security.http_utils'))
+        ->addArgument(new Reference(sprintf('%s.%s', DrensoOidcExtension::CLIENT_ID, $config['client'])))
+        ->addArgument(new Reference($userProviderId))
+        ->addArgument(new Reference($this->createAuthenticationSuccessHandler($container, $firewallName, $config)))
+        ->addArgument(new Reference($this->createAuthenticationFailureHandler($container, $firewallName, $config)))
+        ->addArgument($config['login_path'])
+        ->addArgument($config['user_identifier_property']);
 
-    return $providerId;
+    return $authenticatorId;
   }
 
   /**
-   * Subclasses must return the id of the listener template.
-   *
-   * Listener definitions should inherit from the AbstractAuthenticationListener
-   * like this:
-   *
-   *    <service id="my.listener.id"
-   *             class="My\Concrete\Classname"
-   *             parent="security.authentication.listener.abstract"
-   *             abstract="true" />
-   *
-   * In the above case, this method would return "my.listener.id".
-   *
-   * @return string
+   * The following methods are required for Symfony 5.4 compatibility, but are not used
+   * @todo: Remove when dropping support for Symfony 5.4
    */
-  protected function getListenerId()
+
+  protected function createAuthProvider(
+      ContainerBuilder $container,
+      string           $id,
+      array            $config,
+      string           $userProviderId): string
   {
-    return 'security.authentication.listener.oidc';
+    throw new UnsupportedManagerException();
   }
 
-  /**
-   * @return string
-   */
-  protected function getProviderKey()
+  protected function getListenerId(): string
   {
-    return 'security.authentication.provider.oidc';
+    throw new UnsupportedManagerException();
   }
 
-  /**
-   * Creates an entry point for this authentication. Can be disabled by clearing the login_path route.
-   *
-   * @inheritDoc
-   * @suppress PhanParamSignatureRealMismatchHasNoParamType
-   */
-  protected function createEntryPoint($container, $id, $config, $defaultEntryPointId)
+  public function getPosition(): string
   {
-    if (!$defaultEntryPointId && !empty($config['login_path'])) {
-      $entryPointId = 'security.authentication.entry_point.oidc.' . $id;
-      $container
-          ->setDefinition($entryPointId, new Definition(OidcEntryPoint::class))
-          ->addArgument(new Reference('security.http_utils'))
-          ->addArgument($config['login_path']);
-
-      return $entryPointId;
-    }
-
-    // Fall back to default behavior
-    return parent::createEntryPoint($container, $id, $config, $defaultEntryPointId);
+    throw new UnsupportedManagerException();
   }
 }

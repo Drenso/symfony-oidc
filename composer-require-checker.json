@@ -3,7 +3,8 @@
     "null", "true", "false",
     "static", "self", "parent",
     "array", "string", "int", "float", "bool", "iterable", "callable", "void", "object", "mixed",
-    "phpseclib\\Crypt\\RSA"
+    "phpseclib\\Crypt\\RSA",
+    "Symfony\\Component\\Security\\Http\\Authenticator\\Passport\\PassportInterface"
   ],
   "php-core-extensions" : [
     "Core",

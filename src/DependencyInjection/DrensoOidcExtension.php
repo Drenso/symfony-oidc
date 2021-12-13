@@ -13,6 +13,7 @@ use Symfony\Component\DependencyInjection\Reference;
 class DrensoOidcExtension extends Extension
 {
   const BASE_ID = 'drenso.oidc.';
+  const AUTHENTICATOR_ID = self::BASE_ID . 'authenticator';
   const URL_FETCHER_ID = self::BASE_ID . 'url_fetcher';
   const JWT_HELPER_ID = self::BASE_ID . 'jwt_helper';
   const CLIENT_ID = self::BASE_ID . 'client';

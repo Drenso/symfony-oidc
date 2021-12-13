@@ -2,22 +2,20 @@
 
 namespace Drenso\OidcBundle\Security\UserProvider;
 
-use Drenso\OidcBundle\Security\Authentication\Token\OidcToken;
+use Drenso\OidcBundle\Exception\OidcException;
+use Drenso\OidcBundle\Model\OidcUserData;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 interface OidcUserProviderInterface extends UserProviderInterface
 {
+  /**
+   * @throws OidcException Can be thrown when the user cannot be created
+   */
+  public function ensureUserExists(string $userIdentifier, OidcUserData $userData);
 
   /**
-   * Call this method to create a new user from the data available in the token,
-   * but only if the user does not exists yet.
-   * If it does exist, return that user.
-   *
-   * @param OidcToken $token
-   *
-   * @return UserInterface
+   * Custom user loader method to be able to distinguish oidc authentications
    */
-  public function loadUserByToken(OidcToken $token);
-
+  public function loadOidcUser(string $userIdentifier): UserInterface;
 }

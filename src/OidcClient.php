@@ -7,6 +7,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
+use Drenso\OidcBundle\Model\OidcUserData;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
 use InvalidArgumentException;
@@ -52,7 +53,7 @@ class OidcClient implements OidcClientInterface
   /**
    * @inheritDoc
    */
-  public function authenticate(Request $request): ?OidcTokens
+  public function authenticate(Request $request): OidcTokens
   {
     // Check whether the request has an error state
     if ($request->request->has('error')) {
@@ -61,16 +62,17 @@ class OidcClient implements OidcClientInterface
     }
 
     // Check whether the request contains the required state and code keys
-    $code  = $request->query->get('code');
-    $state = $request->query->get('state');
-    if ($code == NULL || $state == NULL) {
-      return NULL;
+    if (!$code = $request->query->get('code')) {
+      throw new OidcAuthenticationException ('Missing code in query');
+    }
+    if (!$state = $request->query->get('state')) {
+      throw new OidcAuthenticationException ('Missing state in query');
     }
 
     // Do a session check
     if ($state != $request->getSession()->get(self::OIDC_SESSION_STATE)) {
       // Fail silently
-      return NULL;
+      throw new OidcAuthenticationException ('Invalid session state');
     }
 
     // Clear session after check
@@ -84,14 +86,14 @@ class OidcClient implements OidcClientInterface
 
     // Verify the token
     if (!$this->jwtHelper->verifyJwtSignature($this->getJwktUri(), $tokens)) {
-      throw new OidcAuthenticationException ("Unable to verify signature");
+      throw new OidcAuthenticationException ('Unable to verify signature');
     }
 
     // If this is a valid claim
     if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens)) {
       return $tokens;
     } else {
-      throw new OidcAuthenticationException("Unable to verify JWT claims");
+      throw new OidcAuthenticationException('Unable to verify JWT claims');
     }
 
   }
@@ -129,7 +131,7 @@ class OidcClient implements OidcClientInterface
   /**
    * @inheritDoc
    */
-  public function retrieveUserInfo(OidcTokens $tokens): mixed
+  public function retrieveUserInfo(OidcTokens $tokens): OidcUserData
   {
     // Set the authorization header
     $headers = ["Authorization: Bearer {$tokens->getAccessToken()}"];
@@ -142,11 +144,11 @@ class OidcClient implements OidcClientInterface
     $data = json_decode($jsonData, true);
 
     // Check data due
-    if ($data === NULL) {
+    if (!is_array($data)) {
       throw new OidcException("Error retrieving the user info from the endpoint.");
     }
 
-    return $data;
+    return new OidcUserData($data);
   }
 
   /**

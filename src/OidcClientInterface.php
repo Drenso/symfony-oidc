@@ -7,6 +7,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
+use Drenso\OidcBundle\Model\OidcUserData;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -20,7 +21,7 @@ interface OidcClientInterface
    *
    * @throws OidcException
    */
-  public function authenticate(Request $request): ?OidcTokens;
+  public function authenticate(Request $request): OidcTokens;
 
   /**
    * Create the redirect that should be followed in order to authorize
@@ -41,5 +42,5 @@ interface OidcClientInterface
    *
    * @throws OidcException
    */
-  public function retrieveUserInfo(OidcTokens $tokens): mixed;
+  public function retrieveUserInfo(OidcTokens $tokens): OidcUserData;
 }
