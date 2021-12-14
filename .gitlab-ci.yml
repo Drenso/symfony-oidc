@@ -20,9 +20,6 @@ include:
     ref: "4.0"
     file: '/php/composer-unused.yml'
   - project: 'intern/runner-templates'
-    file: '/yaml/yamllint.yml'
-    ref: "4.0"
-  - project: 'intern/runner-templates'
     file: '/deploy/deploy.yml'
     ref: "4.0"
 
@@ -49,11 +46,6 @@ php-analysis:
   except:
     - master
     - tags
-
-yaml-analysis:
-  except:
-    - tags
-    - master
 
 deploy-staging:
   only:
