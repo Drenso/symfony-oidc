@@ -16,6 +16,7 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
+use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\HttpUtils;
 
 /**
@@ -123,6 +124,11 @@ class OidcClient implements OidcClientInterface
 
       $data['prompt'] = $prompt;
     }
+
+    // Remove security session state
+    $session = $this->requestStack->getSession();
+    $session->remove(Security::AUTHENTICATION_ERROR);
+    $session->remove(Security::LAST_USERNAME);
 
     return new RedirectResponse(sprintf('%s?%s', $this->getAuthorizationEndpoint(), http_build_query($data)));
   }
