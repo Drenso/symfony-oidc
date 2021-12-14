@@ -1,14 +1,29 @@
 # Symfony OIDC bundle
 
-This bundle can be used to add OIDC support to any application. Currently it has only been tested with SURFconext OIDC.
+This bundle can be used to add OIDC support to any Symfony application. We have only tested it with
+SURFconext OIDC, but it should work with any OIDC provider!
 
-Many thanks to https://github.com/jumbojett/OpenID-Connect-PHP for the implementation which this bundle uses 
-although adjusted to be more object oriented.
+Many thanks to https://github.com/jumbojett/OpenID-Connect-PHP for the implementation which this bundle uses although it has been modified to fix within an object oriented approach.
 
-> Note that this repository is automatically mirrored from our own Gitlab instance. 
+> Note that this repository is automatically mirrored from our own Gitlab instance.
 > We will accept issues and merge requests here though!
 
-### Composer
+### Version notes
+
+Version 2 of this bundle only supports Symfony's new authentication manager, introduced in Symfony 5.3. As the security
+manager matured in Symfony 5.4, that is the first version this bundle supports. Using the new authentication manager is
+required for Symfony 6!
+
+We also require the use op PHP8, as that significantly reduces the maintenance complexity.
+
+Do you need this bundle, but you cannot enable the new authentication manager or use PHP8? Check out
+the [v1.x](https://github.com/Drenso/symfony-oidc/tree/v1.x) branch and its documentation!
+
+### Migrate from v1.x
+
+Take a look at [UPGRADE.md](https://github.com/Drenso/symfony-oidc/blob/master/UPGRADE.md)!
+
+### Installation
 
 You can add this bundle by simply requiring it with composer:
 
@@ -16,82 +31,67 @@ You can add this bundle by simply requiring it with composer:
 composer require drenso/symfony-oidc-bundle
 ```
 
-### Usage
+If you're using Symfony Flex, your `.env` file should have been appended with some environment variables and
+a `drenso_oidc.yaml` file should have been created in your configuration directory!
 
-You will need to register the `OidcClient` in your `services.yaml` to pass the required text parameters:
+### Setup
+
+##### OIDC Clients
+
+Make sure to configure at least the default OIDC client in the `drenso_oidc.yaml` in your `config/packages` directory.
+This can be done using the environment variables already added to your application by Symfony flex, or by updating the
+configuration file. You can configure more client, they will be available under the `drenso.oidc.client.{name}`, and are
+autowirable by using `OidcClientInterface ${name}OidcClient`, for example `OidcClientInterface $defaultOidcClient`. If
+the name does not match with one of the configured clients, the default client will be autowired.
+
+Configuration example:
 
 ```yaml
-parameters:
-  oidc.well_known_url: '%env(OIDC_WELL_KNOWN)%'
-  oidc.client_id: '%env(OIDC_CLIENT_ID)%'
-  oidc.client_secret: "%env(string:key:oidc:json:file:resolve:SECRETS_FILE)%"
+drenso_oidc:
+    #default_client: default # The default client, will be aliased to OidcClientInterface
+    clients:
+        default: # The client name, each client will be aliased to its name (for example, $defaultOidcClient)
+            # Required OIDC client configuration
+            well_known_url: '%env(OIDC_WELL_KNOWN_URL)%'
+            client_id: '%env(OIDC_CLIENT_ID)%'
+            client_secret: '%env(OIDC_CLIENT_SECRET)%'
 
-services:
-  Drenso\OidcBundle\OidcClient:
-    arguments:
-      $wellKnownUrl: '%oidc.well_known_url%'
-      $clientId: '%oidc.client_id%'
-      $clientSecret: '%oidc.client_secret%'
+            # Extra configuration options
+            #redirect_route: '/login_check'
+            #custom_client_headers: []
+
+        # Add any extra client
+        #link: # Will be accessible using $linkOidcClient
+            #well_known_url: '%env(LINK_WELL_KNOWN_URL)%'
+            #client_id: '%env(LINK_CLIENT_ID)%'
+            #client_secret: '%env(LINK_CLIENT_SECRET)%'
 ```
 
-Also, register the security listeners:
+##### User provider
 
-```php
-services:
-  security.authentication.provider.oidc:
-    class: Drenso\OidcBundle\Security\Authentication\Provider\OidcProvider
-    arguments:
-      - ''
-      - '@security.user_checker'
-      - '@security.token_storage'
-      - '@logger'
+You will need to update your User Provider to implement the methods from the `OidcUserProviderInterface`. Two methods
+need to be implemented:
 
-  security.authentication.listener.oidc:
-    class: Drenso\OidcBundle\Security\Firewall\OidcListener
-    arguments:
-      - '@security.token_storage'
-      - '@security.authentication.manager'
-      - '@security.authentication.session_strategy'
-      - '@security.http_utils'
-      - ''
-      - ''
-      - ''
-      - { }
-      - '@logger'
-      - '@Drenso\OidcBundle\OidcClient'
+- `ensureUserExists(string $userIdentifier, OidcUserData $userData)`: Implement this method to bootstrap a new account
+  using the data available from the passed `OidcUserData` object. The identifier is a configurable property from the
+  user data, which defaults to `sub`. If the account cannot be bootstrapped, authentication will be impossible as the
+  User Provider will not be capable of retrieving the user.
+- `loadOidcUser(string $userIdentifier): UserInterface`: Implement this method to retrieve the user based on the
+  identifier. We use a dedicated method instead of Symfony's default `loadUserByIdentifier` to allow you to detect where
+  the login is coming from, without the need of creating a dedicated user provider. If the OIDC user identifiers are
+  unique, a forward to the `loadUserByIdentifier` should be sufficient.
+
+##### Firewall configuration
+
+If you are using Symfony <6, make sure to enable the new authentication manager in the `security.yaml`:
+
+```yaml
+security:
+  enable_authenticator_manager: true
 ```
 
-Use the controller below to forward an user to the OIDC service:
+Enable the `oidc` listener in the `security.yml` for your firewall:
 
-```php
-  /**
-   * This controller forward the user to the SURFconext login
-   *
-   * @Route("/login_surf", name="login_surf")
-   * @IsGranted("IS_AUTHENTICATED_ANONYMOUSLY")
-   *
-   * @param SessionInterface $session
-   * @param OidcClient       $oidc
-   *
-   * @return RedirectResponse
-   *
-   * @throws \Drenso\OidcBundle\Exception\OidcConfigurationException
-   * @throws \Drenso\OidcBundle\Exception\OidcConfigurationResolveException
-   */
-  public function surfconext(SessionInterface $session, OidcClient $oidc)
-  {
-    // Remove errors from state
-    $session->remove(Security::AUTHENTICATION_ERROR);
-    $session->remove(Security::LAST_USERNAME);
-
-    // Redirect to authorization @ surfconext
-    return $oidc->generateAuthorizationRedirect();
-  }
-```
-
-> It is possible to supply the prompt parameter to the `generateAuthorizationRedirect` method.
-
-Enable the `oidc` listener in the `security.yml`:
 ```yaml
 security:
   firewalls:
@@ -100,27 +100,51 @@ security:
       oidc: ~
 ```
 
-Add the ListenerFactory to the `Kernel.php`:
+There are a couple of options available for the `oidc` listener.
+
+| Option                           | Default         | Description                                                                                                                                   |
+|----------------------------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
+| `check_path`                     | `/login_check`  | Only on this path the authenticator will accept authentication. Note that this should match with the redirect configured for the OIDC client. |
+| `login_path`                     | `/login`        | The path to forward to when authentication is required                                                                                        | 
+| `client`                         | `default`       | The configured OIDC client to use                                                                                                             |
+| `user_identifier_property`       | `sub`           | The OidcUserData property to use as unique user identifier                                                                                    |
+| `always_use_default_target_path` | `false`         | Used for the success handler                                                                                                                  |
+| `default_target_path`            | `/`             | Used for the success handler                                                                                                                  |
+| `target_path_parameter`          | `_target_path`  | Used for the success handler                                                                                                                  |
+| `use_referer`                    | `false`         | Used for the success handler                                                                                                                  |
+| `failure_path`                   | `null`          | Used for the failure handler                                                                                                                  |
+| `failure_forward`                | `false`         | Used for the failure handler                                                                                                                  |
+| `failure_path_parameter`         | `_failure_path` | Used for the failure handler                                                                                                                  |
+
+You can configure them directly under the `oidc` listener in your firewall, for example the `user_identifier_property`:
+
+```yaml
+security:
+  firewalls:
+    main:
+      oidc:
+        user_identifier_property: email
+```
+
+##### Start the authentication
+
+Use the controller example below to forward a user to the OIDC service:
 
 ```php
   /**
-   * @param ContainerBuilder $container
+   * This controller forward the user to the OIDC login
+   *
+   * @throws \Drenso\OidcBundle\Exception\OidcException
    */
-  protected function build(ContainerBuilder $container)
+  #[Route('/login_oidc', name: 'login_oidc')]
+  #[IsGranted('PUBLIC_ACCESS')]
+  public function surfconext(SessionInterface $session, OidcClientInterface $oidcClient): RedirectResponse
   {
-
-    // Register the Oidc factory
-    $extension = $container->getExtension('security');
-    assert($extension instanceof SecurityExtension);
-    $extension->addSecurityListenerFactory(new OidcFactory());
+    // Redirect to authorization @ OIDC provider
+    return $oidcClient->generateAuthorizationRedirect();
   }
 ```
 
-Lastly, make sure that the your custom UserProvider implements the `OidcUserProviderInterface`.
+> It is possible to supply prompt and scope parameters to the `generateAuthorizationRedirect` method.
 
-
-# FAQ
-
-- **I'm missing the `login_check` route?**
-
-  See https://github.com/Drenso/symfony-oidc/issues/5 for a solution.
+That should be all!
