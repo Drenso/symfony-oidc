@@ -49,6 +49,7 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
         ->addArgument(new Reference($userProviderId))
         ->addArgument(new Reference($this->createAuthenticationSuccessHandler($container, $firewallName, $config)))
         ->addArgument(new Reference($this->createAuthenticationFailureHandler($container, $firewallName, $config)))
+        ->addArgument($config['check_path'])
         ->addArgument($config['login_path'])
         ->addArgument($config['user_identifier_property']);
 

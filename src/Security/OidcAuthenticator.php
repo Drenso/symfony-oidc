@@ -29,6 +29,7 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       private OidcUserProviderInterface             $oidcUserProvider,
       private AuthenticationSuccessHandlerInterface $successHandler,
       private AuthenticationFailureHandlerInterface $failureHandler,
+      private string                                $checkPath,
       private string                                $loginPath,
       private string                                $userIdentifierProperty)
   {
@@ -36,7 +37,9 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
 
   public function supports(Request $request): ?bool
   {
-    return $request->query->has('code')
+    return
+        $this->httpUtils->checkRequestPath($request, $this->checkPath)
+        && $request->query->has('code')
         && $request->query->has('state');
   }
 
