@@ -33,7 +33,7 @@ class Configuration implements ConfigurationInterface
                   ->isRequired()
                 ->end() // client_secret
                 ->scalarNode('redirect_route')
-                  ->defaultValue('login_check')
+                  ->defaultValue('/login_check')
                 ->end() // redirect_route
                 ->arrayNode('custom_client_headers')
                   ->scalarPrototype()->end()

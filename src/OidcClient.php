@@ -16,8 +16,7 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Http\HttpUtils;
 
 /**
  * This class implements the Oidc protocol.
@@ -31,14 +30,14 @@ class OidcClient implements OidcClientInterface
   protected ?array $configuration = NULL;
 
   public function __construct(
-      protected RequestStack    $requestStack,
-      protected RouterInterface $router,
-      protected OidcUrlFetcher  $urlFetcher,
-      protected OidcJwtHelper   $jwtHelper,
-      protected string          $wellKnownUrl,
-      private string            $clientId,
-      private string            $clientSecret,
-      private string            $redirectRoute)
+      protected RequestStack   $requestStack,
+      protected HttpUtils      $httpUtils,
+      protected OidcUrlFetcher $urlFetcher,
+      protected OidcJwtHelper  $jwtHelper,
+      protected string         $wellKnownUrl,
+      private string           $clientId,
+      private string           $clientSecret,
+      private string           $redirectRoute)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
@@ -180,7 +179,7 @@ class OidcClient implements OidcClientInterface
 
   protected function getRedirectUrl(): string
   {
-    return $this->router->generate($this->redirectRoute, [], UrlGeneratorInterface::ABSOLUTE_URL);
+    return $this->httpUtils->generateUri($this->requestStack->getCurrentRequest(), $this->redirectRoute);
   }
 
   /**

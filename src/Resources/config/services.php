@@ -7,7 +7,7 @@ use Drenso\OidcBundle\OidcUrlFetcher;
 use Drenso\OidcBundle\Security\OidcAuthenticator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Routing\RouterInterface;
+use Symfony\Component\Security\Http\HttpUtils;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return function (ContainerConfigurator $configurator): void {
@@ -27,7 +27,7 @@ return function (ContainerConfigurator $configurator): void {
       ->set(DrensoOidcExtension::CLIENT_ID, OidcClient::class)
         ->args([
             service(RequestStack::class),
-            service(RouterInterface::class),
+            service(HttpUtils::class),
         ])
         ->abstract();
 };
