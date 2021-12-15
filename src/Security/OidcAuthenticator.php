@@ -54,14 +54,14 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       // Try to authenticate the request
       $authData = $this->oidcClient->authenticate($request);
 
-      // Retrieve the user date with the authentication data
+      // Retrieve the user data with the authentication data
       $userData = $this->oidcClient->retrieveUserInfo($authData);
 
       // Ensure the user exists
       $userIdentifier = $userData->getUserDataString($this->userIdentifierProperty);
       $this->oidcUserProvider->ensureUserExists($userIdentifier, $userData);
 
-      // Create the password
+      // Create the passport
       $passport = new SelfValidatingPassport(new UserBadge(
           $userIdentifier,
           fn(string $userIdentifier) => $this->oidcUserProvider->loadOidcUser($userIdentifier),

@@ -63,16 +63,16 @@ class OidcClient implements OidcClientInterface
 
     // Check whether the request contains the required state and code keys
     if (!$code = $request->query->get('code')) {
-      throw new OidcAuthenticationException ('Missing code in query');
+      throw new OidcAuthenticationException('Missing code in query');
     }
     if (!$state = $request->query->get('state')) {
-      throw new OidcAuthenticationException ('Missing state in query');
+      throw new OidcAuthenticationException('Missing state in query');
     }
 
     // Do a session check
     if ($state != $request->getSession()->get(self::OIDC_SESSION_STATE)) {
       // Fail silently
-      throw new OidcAuthenticationException ('Invalid session state');
+      throw new OidcAuthenticationException('Invalid session state');
     }
 
     // Clear session after check
@@ -86,7 +86,7 @@ class OidcClient implements OidcClientInterface
 
     // Verify the token
     if (!$this->jwtHelper->verifyJwtSignature($this->getJwktUri(), $tokens)) {
-      throw new OidcAuthenticationException ('Unable to verify signature');
+      throw new OidcAuthenticationException('Unable to verify signature');
     }
 
     // If this is a valid claim

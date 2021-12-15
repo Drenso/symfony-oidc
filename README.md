@@ -14,7 +14,7 @@ Version 2 of this bundle only supports Symfony's new authentication manager, int
 manager matured in Symfony 5.4, that is the first version this bundle supports. Using the new authentication manager is
 required for Symfony 6!
 
-We also require the use op PHP8, as that significantly reduces the maintenance complexity.
+We also require the use of PHP8, as that significantly reduces the maintenance complexity.
 
 Do you need this bundle, but you cannot enable the new authentication manager or use PHP8? Check out
 the [v1.x](https://github.com/Drenso/symfony-oidc/tree/v1.x) branch and its documentation!
@@ -40,7 +40,7 @@ a `drenso_oidc.yaml` file should have been created in your configuration directo
 
 Make sure to configure at least the default OIDC client in the `drenso_oidc.yaml` in your `config/packages` directory.
 This can be done using the environment variables already added to your application by Symfony flex, or by updating the
-configuration file. You can configure more client, they will be available under the `drenso.oidc.client.{name}`, and are
+configuration file. You can configure more clients, they will be available under the `drenso.oidc.client.{name}`, and are
 autowirable by using `OidcClientInterface ${name}OidcClient`, for example `OidcClientInterface $defaultOidcClient`. If
 the name does not match with one of the configured clients, the default client will be autowired.
 
@@ -132,7 +132,7 @@ Use the controller example below to forward a user to the OIDC service:
 
 ```php
   /**
-   * This controller forward the user to the OIDC login
+   * This controller forwards the user to the OIDC login
    *
    * @throws \Drenso\OidcBundle\Exception\OidcException
    */
