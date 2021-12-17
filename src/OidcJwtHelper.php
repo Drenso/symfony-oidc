@@ -3,6 +3,7 @@
 
 namespace Drenso\OidcBundle;
 
+use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use RuntimeException;
@@ -57,10 +58,22 @@ class OidcJwtHelper
   /**
    * @param string $jwt     string encoded JWT
    * @param int    $section the section we would like to decode
+   *
+   * @return object|null Returns null when a non-valid JWT is encountered
+   * @throws OidcException
    */
-  public function decodeJwt(string $jwt, int $section = 0): object
+  public function decodeJwt(string $jwt, int $section = 0): ?object
   {
+    if ($section < 0 || $section > 2) {
+      throw new OidcException('Invalid JWT section requested');
+    }
+
     $parts = explode(".", $jwt);
+
+    if (count($parts) !== 3) {
+      // When there are not exactly three parts, the passed string is not a JWT
+      return NULL;
+    }
 
     return json_decode(self::base64url_decode($parts[$section]));
   }
