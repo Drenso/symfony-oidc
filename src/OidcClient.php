@@ -160,7 +160,7 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getAuthorizationEndpoint(): mixed
+  protected function getAuthorizationEndpoint(): string
   {
     return $this->getConfigurationValue('authorization_endpoint');
   }
@@ -169,7 +169,7 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getIssuer()
+  protected function getIssuer(): string
   {
     return $this->getConfigurationValue('issuer');
   }
@@ -178,7 +178,7 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getJwktUri(): mixed
+  protected function getJwktUri(): string
   {
     return $this->getConfigurationValue('jwks_uri');
   }
@@ -192,7 +192,7 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getTokenEndpoint(): mixed
+  protected function getTokenEndpoint(): string
   {
     return $this->getConfigurationValue('token_endpoint');
   }
@@ -201,7 +201,7 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getTokenEndpointAuthMethods(): mixed
+  protected function getTokenEndpointAuthMethods(): array
   {
     return $this->getConfigurationValue('token_endpoint_auth_methods_supported');
   }
@@ -210,7 +210,7 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getUserinfoEndpoint(): mixed
+  protected function getUserinfoEndpoint(): string
   {
     return $this->getConfigurationValue('userinfo_endpoint');
   }

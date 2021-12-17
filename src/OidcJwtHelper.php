@@ -14,9 +14,9 @@ use Symfony\Component\HttpFoundation\RequestStack;
 class OidcJwtHelper
 {
   public function __construct(
-      protected RequestStack $requestStack,
+      protected RequestStack   $requestStack,
       protected OidcUrlFetcher $urlFetcher,
-      private string $clientId)
+      private string           $clientId)
   {
   }
 
@@ -65,7 +65,7 @@ class OidcJwtHelper
     return json_decode(self::base64url_decode($parts[$section]));
   }
 
-  public function verifyJwtClaims($issuer, $claims, ?OidcTokens $tokens = NULL): bool
+  public function verifyJwtClaims(string $issuer, ?object $claims, ?OidcTokens $tokens = NULL): bool
   {
     if (isset($claims->at_hash) && $tokens->getAccessToken() !== NULL) {
       $accessTokenHeader = $this->getAccessTokenHeader($tokens);
@@ -157,12 +157,12 @@ class OidcJwtHelper
     return $rsa->verify($payload, $signature);
   }
 
-  private function getAccessTokenHeader(OidcTokens $tokens): object
+  private function getAccessTokenHeader(OidcTokens $tokens): ?object
   {
     return $this->decodeJwt($tokens->getAccessToken(), 0);
   }
 
-  private function getKeyForHeader($keys, $header): mixed
+  private function getKeyForHeader($keys, $header): object
   {
     foreach ($keys as $key) {
       if ($key->kty == 'RSA') {
