@@ -57,6 +57,7 @@ class DrensoOidcExtension extends Extension
         ->addArgument(new Reference($urlFetcherId))
         ->addArgument(new Reference($jwtHelperId))
         ->addArgument($config['well_known_url'])
+        ->addArgument($config['well_known_cache_time'])
         ->addArgument($config['client_id'])
         ->addArgument($config['client_secret'])
         ->addArgument($config['redirect_route']);

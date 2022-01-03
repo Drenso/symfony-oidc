@@ -18,6 +18,9 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\HttpUtils;
+use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * This class implements the Oidc protocol.
@@ -29,16 +32,19 @@ class OidcClient implements OidcClientInterface
 
   /** OIDC configuration values */
   protected ?array $configuration = NULL;
+  private ?string $cacheKey = NULL;
 
   public function __construct(
-      protected RequestStack   $requestStack,
-      protected HttpUtils      $httpUtils,
-      protected OidcUrlFetcher $urlFetcher,
-      protected OidcJwtHelper  $jwtHelper,
-      protected string         $wellKnownUrl,
-      private string           $clientId,
-      private string           $clientSecret,
-      private string           $redirectRoute)
+      protected RequestStack    $requestStack,
+      protected HttpUtils       $httpUtils,
+      protected ?CacheInterface $wellKnownCache,
+      protected OidcUrlFetcher  $urlFetcher,
+      protected OidcJwtHelper   $jwtHelper,
+      protected string          $wellKnownUrl,
+      private ?int              $wellKnownCacheTime,
+      private string            $clientId,
+      private string            $clientSecret,
+      private string            $redirectRoute)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
@@ -302,13 +308,36 @@ class OidcClient implements OidcClientInterface
   /**
    * Retrieves the well-known configuration and saves it in the class
    *
-   * @throws OidcConfigurationResolveException
+   * @phan-suppress PhanTypeInvalidThrowsIsInterface
+   * @throws OidcConfigurationResolveException|\Psr\Cache\InvalidArgumentException
    */
   private function resolveConfiguration(): void
   {
     // Check whether the configuration is already available
     if ($this->configuration !== NULL) return;
 
+    if ($this->wellKnownCache && $this->wellKnownCacheTime !== NULL) {
+      $this->cacheKey ??= '_drenso_oidc_client__' . (new AsciiSlugger('en'))->slug($this->wellKnownUrl);
+      $config         = $this->wellKnownCache->get($this->cacheKey, function (ItemInterface $item) {
+        $item->expiresAfter($this->wellKnownCacheTime);
+
+        return $this->retrieveWellKnownConfiguration();
+      });
+    } else {
+      $config = $this->retrieveWellKnownConfiguration();
+    }
+
+    // Set the configuration
+    $this->configuration = $config;
+  }
+
+  /**
+   * Retrieves the well-known configuration from the configured url
+   *
+   * @throws OidcConfigurationResolveException
+   */
+  private function retrieveWellKnownConfiguration(): array
+  {
     try {
       $wellKnown = $this->urlFetcher->fetchUrl($this->wellKnownUrl);
     } catch (Exception $e) {
@@ -320,7 +349,6 @@ class OidcClient implements OidcClientInterface
       throw new OidcConfigurationResolveException(sprintf('Could not parse OIDC configuration. Response data: "%s"', $wellKnown));
     }
 
-    // Set the configuration
-    $this->configuration = $config;
+    return $config;
   }
 }

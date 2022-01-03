@@ -57,6 +57,7 @@ drenso_oidc:
             client_secret: '%env(OIDC_CLIENT_SECRET)%'
 
             # Extra configuration options
+            #well_known_cache_time: 3600 # Time in seconds, will only be used when symfony/cache is available
             #redirect_route: '/login_check'
             #custom_client_headers: []
 
@@ -148,3 +149,9 @@ Use the controller example below to forward a user to the OIDC service:
 > It is possible to supply prompt and scope parameters to the `generateAuthorizationRedirect` method.
 
 That should be all!
+
+### Cache
+
+When you have `symfony/cache` available in your project, this library will automatically cache the well known data. By default, it will be cached for `3600` seconds.
+
+You can disable this cache by passing `null` to the `well_known_cache_time` client option.

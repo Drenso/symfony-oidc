@@ -106,6 +106,10 @@ $session->remove(Security::LAST_USERNAME);
 
 The `login_check` route (see https://github.com/Drenso/symfony-oidc/issues/5) is no longer needed, we now default to the `/login_check` path as is normally used by the Symfony form login method as well.
 
+### Caching
+
+By default, this bundle now caches the well known response for an hour. The cache time is configurable, but note that caching will only work when `symfony/cache` is available in your container.
+
 ### Breaking changes
 
 Most breaking changes are related to classes having been renamed or removed. If you did not rely on any of the

@@ -8,6 +8,7 @@ use Drenso\OidcBundle\Security\OidcAuthenticator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\HttpUtils;
+use Symfony\Contracts\Cache\CacheInterface;
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return function (ContainerConfigurator $configurator): void {
@@ -28,6 +29,7 @@ return function (ContainerConfigurator $configurator): void {
         ->args([
             service(RequestStack::class),
             service(HttpUtils::class),
+            service(CacheInterface::class)->nullOnInvalid()
         ])
         ->abstract();
 };
