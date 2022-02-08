@@ -4,6 +4,7 @@ namespace Drenso\OidcBundle\Security;
 
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\OidcClientInterface;
+use Drenso\OidcBundle\OidcSessionStorage;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Drenso\OidcBundle\Security\Exception\UnsupportedManagerException;
 use Drenso\OidcBundle\Security\Token\OidcToken;
@@ -15,6 +16,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
+use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
@@ -26,12 +28,14 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
   public function __construct(
       private HttpUtils                             $httpUtils,
       private OidcClientInterface                   $oidcClient,
+      private OidcSessionStorage                    $sessionStorage,
       private OidcUserProviderInterface             $oidcUserProvider,
       private AuthenticationSuccessHandlerInterface $successHandler,
       private AuthenticationFailureHandlerInterface $failureHandler,
       private string                                $checkPath,
       private string                                $loginPath,
-      private string                                $userIdentifierProperty)
+      private string                                $userIdentifierProperty,
+      private bool                                  $enableRememberMe)
   {
   }
 
@@ -68,6 +72,12 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       ));
       $passport->setAttribute('auth_data', OidcToken::AUTH_DATA_ATTR);
       $passport->setAttribute('user_data', OidcToken::USER_DATA_ATTR);
+
+      if ($this->enableRememberMe && $this->sessionStorage->getRememberMe()) {
+        // Add remember me badge when enabled
+        $passport->addBadge((new RememberMeBadge())->enable());
+        $this->sessionStorage->clearRememberMe();
+      }
 
       return $passport;
     } catch (OidcException $e) {

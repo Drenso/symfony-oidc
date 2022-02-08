@@ -16,6 +16,7 @@ class DrensoOidcExtension extends Extension
   const AUTHENTICATOR_ID = self::BASE_ID . 'authenticator';
   const URL_FETCHER_ID = self::BASE_ID . 'url_fetcher';
   const JWT_HELPER_ID = self::BASE_ID . 'jwt_helper';
+  const SESSION_STORAGE_ID = self::BASE_ID . 'session_storage';
   const CLIENT_ID = self::BASE_ID . 'client';
 
   public function load(array $configs, ContainerBuilder $container): void
@@ -45,22 +46,30 @@ class DrensoOidcExtension extends Extension
         ->setDefinition($urlFetcherId, new ChildDefinition(self::URL_FETCHER_ID))
         ->addArgument($config['custom_client_headers']);
 
+    $sessionStorageId = sprintf('%s.%s', self::SESSION_STORAGE_ID, $name);
+    $container
+        ->setDefinition($sessionStorageId, new ChildDefinition(self::SESSION_STORAGE_ID))
+        ->addArgument($name);
+
     $jwtHelperId = sprintf('%s.%s', self::JWT_HELPER_ID, $name);
     $container
         ->setDefinition($jwtHelperId, new ChildDefinition(self::JWT_HELPER_ID))
         ->addArgument(new Reference($urlFetcherId))
+        ->addArgument(new Reference($sessionStorageId))
         ->addArgument($config['client_id']);
 
     $clientId = sprintf('%s.%s', self::CLIENT_ID, $name);
     $container
         ->setDefinition($clientId, new ChildDefinition(self::CLIENT_ID))
         ->addArgument(new Reference($urlFetcherId))
+        ->addArgument(new Reference($sessionStorageId))
         ->addArgument(new Reference($jwtHelperId))
         ->addArgument($config['well_known_url'])
         ->addArgument($config['well_known_cache_time'])
         ->addArgument($config['client_id'])
         ->addArgument($config['client_secret'])
-        ->addArgument($config['redirect_route']);
+        ->addArgument($config['redirect_route'])
+        ->addArgument($config['remember_me_parameter']);
 
     $container
         ->registerAliasForArgument($clientId, OidcClientInterface::class, sprintf('%sOidcClient', $name));

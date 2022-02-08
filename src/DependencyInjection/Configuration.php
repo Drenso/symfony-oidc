@@ -45,6 +45,9 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('custom_client_headers')
                   ->scalarPrototype()->end()
                 ->end() // custom_client_headers
+                ->scalarNode('remember_me_parameter')
+                  ->defaultValue('_remember_me')
+                ->end() // remember_me_parameter
               ->end() // array prototype children
             ->end() // array prototype
           ->end() // clients

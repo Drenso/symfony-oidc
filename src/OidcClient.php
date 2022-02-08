@@ -27,24 +27,23 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class OidcClient implements OidcClientInterface
 {
-  const OIDC_SESSION_NONCE = 'oidc.session.nonce';
-  const OIDC_SESSION_STATE = 'oidc.session.state';
-
   /** OIDC configuration values */
   protected ?array $configuration = NULL;
   private ?string $cacheKey = NULL;
 
   public function __construct(
-      protected RequestStack    $requestStack,
-      protected HttpUtils       $httpUtils,
-      protected ?CacheInterface $wellKnownCache,
-      protected OidcUrlFetcher  $urlFetcher,
-      protected OidcJwtHelper   $jwtHelper,
-      protected string          $wellKnownUrl,
-      private ?int              $wellKnownCacheTime,
-      private string            $clientId,
-      private string            $clientSecret,
-      private string            $redirectRoute)
+      protected RequestStack       $requestStack,
+      protected HttpUtils          $httpUtils,
+      protected ?CacheInterface    $wellKnownCache,
+      protected OidcUrlFetcher     $urlFetcher,
+      protected OidcSessionStorage $sessionStorage,
+      protected OidcJwtHelper      $jwtHelper,
+      protected string             $wellKnownUrl,
+      private ?int                 $wellKnownCacheTime,
+      private string               $clientId,
+      private string               $clientSecret,
+      private string               $redirectRoute,
+      private string               $rememberMeParameter)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
@@ -76,13 +75,13 @@ class OidcClient implements OidcClientInterface
     }
 
     // Do a session check
-    if ($state != $request->getSession()->get(self::OIDC_SESSION_STATE)) {
+    if ($state != $this->sessionStorage->getState()) {
       // Fail silently
       throw new OidcAuthenticationException('Invalid session state');
     }
 
     // Clear session after check
-    $request->getSession()->remove(self::OIDC_SESSION_STATE);
+    $this->sessionStorage->clearState();
 
     // Request the tokens
     $tokens = $this->requestTokens($code);
@@ -107,7 +106,8 @@ class OidcClient implements OidcClientInterface
   /**
    * @inheritDoc
    */
-  public function generateAuthorizationRedirect(?string $prompt = NULL, array $scopes = ['openid']): RedirectResponse
+  public function generateAuthorizationRedirect(
+      ?string $prompt = NULL, array $scopes = ['openid'], bool $forceRememberMe = false): RedirectResponse
   {
     $data = [
         'client_id'     => $this->clientId,
@@ -130,6 +130,11 @@ class OidcClient implements OidcClientInterface
 
       $data['prompt'] = $prompt;
     }
+
+    // Store remember me state
+    /** @phan-suppress-next-line PhanAccessMethodInternal */
+    $parameter = $this->requestStack->getCurrentRequest()->get($this->rememberMeParameter);
+    $this->sessionStorage->storeRememberMe($forceRememberMe || 'true' === $parameter || 'on' === $parameter || '1' === $parameter || 'yes' === $parameter || true === $parameter);
 
     // Remove security session state
     $session = $this->requestStack->getSession();
@@ -228,7 +233,7 @@ class OidcClient implements OidcClientInterface
   {
     $value = $this->generateRandomString();
 
-    $this->requestStack->getSession()->set(self::OIDC_SESSION_NONCE, $value);
+    $this->sessionStorage->storeNonce($value);
 
     return $value;
   }
@@ -247,7 +252,7 @@ class OidcClient implements OidcClientInterface
   private function generateState(): string
   {
     $value = $this->generateRandomString();
-    $this->requestStack->getSession()->set(self::OIDC_SESSION_STATE, $value);
+    $this->sessionStorage->storeState($value);
 
     return $value;
   }

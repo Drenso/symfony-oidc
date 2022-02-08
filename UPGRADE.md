@@ -1,5 +1,16 @@
 This file describes the steps you will need to make when upgrading this bundle.
 
+# From 2.0 to 2.1
+
+The following has changed:
+
+  - Constructor parameters of a couple of classes (should all be managed by the bundle dependency injection)
+    - Drenso\OidcBundle\OidcClient
+    - Drenso\OidcBundle\OidcJwtHelper
+    - Drenso\OidcBundle\Security\OidcAuthenticator
+  - Session information is now stored per configured client, using a dedicated class
+  - Remember me support has been added (disabled by default)
+
 # From 1.x to 2.x
 
 As 2.x is a major rewrite which actually leverages the Symfony configuration component, you will need to remove most of

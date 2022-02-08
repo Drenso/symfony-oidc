@@ -109,6 +109,7 @@ There are a couple of options available for the `oidc` listener.
 | `login_path`                     | `/login`        | The path to forward to when authentication is required                                                                                        | 
 | `client`                         | `default`       | The configured OIDC client to use                                                                                                             |
 | `user_identifier_property`       | `sub`           | The OidcUserData property to use as unique user identifier                                                                                    |
+| `enable_remember_me`             | `false`         | Enable "remember me" functionality for authenticator                                                                                          |
 | `always_use_default_target_path` | `false`         | Used for the success handler                                                                                                                  |
 | `default_target_path`            | `/`             | Used for the success handler                                                                                                                  |
 | `target_path_parameter`          | `_target_path`  | Used for the success handler                                                                                                                  |
@@ -148,7 +149,19 @@ Use the controller example below to forward a user to the OIDC service:
 
 > It is possible to supply prompt and scope parameters to the `generateAuthorizationRedirect` method.
 
+> It is also possible to force remember me mode for the redirect.
+
 That should be all!
+
+### Remember me
+
+If you want to enable remember me functionality make sure that you add the `_remember_me=1` query parameter to the route being used to generate the redirect forward (the one that calls `generateAuthorizationRedirect`).
+
+You can override the `_remember_me` parameter per OIDC client. Just update the `remember_me_parameter` value in the client configuration.
+
+Lastly, make sure the Symfony remember me authenticator is enabled, and that you set the `enable_remember_me` option to true for the `oidc` authenticator in `security.yaml`.
+
+When a user is authenticated, you will see the `REMEMBERME` cookie. You can remove the `PHPSESSID` cookie to check whether remember me is working.
 
 ### Cache
 

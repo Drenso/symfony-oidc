@@ -3,6 +3,7 @@
 use Drenso\OidcBundle\DependencyInjection\DrensoOidcExtension;
 use Drenso\OidcBundle\OidcClient;
 use Drenso\OidcBundle\OidcJwtHelper;
+use Drenso\OidcBundle\OidcSessionStorage;
 use Drenso\OidcBundle\OidcUrlFetcher;
 use Drenso\OidcBundle\Security\OidcAuthenticator;
 use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigurator;
@@ -19,10 +20,13 @@ return function (ContainerConfigurator $configurator): void {
       ->set(DrensoOidcExtension::URL_FETCHER_ID, OidcUrlFetcher::class)
         ->abstract()
 
+      ->set(DrensoOidcExtension::SESSION_STORAGE_ID, OidcSessionStorage::class)
+      ->args([
+          service(RequestStack::class),
+      ])
+      ->abstract()
+
       ->set(DrensoOidcExtension::JWT_HELPER_ID, OidcJwtHelper::class)
-        ->args([
-            service(RequestStack::class),
-        ])
         ->abstract()
 
       ->set(DrensoOidcExtension::CLIENT_ID, OidcClient::class)
