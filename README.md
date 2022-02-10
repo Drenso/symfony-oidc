@@ -153,6 +153,12 @@ Use the controller example below to forward a user to the OIDC service:
 
 That should be all!
 
+### User identifier
+
+By default, this bundle uses the `sub` property as user identifier, but any property from the retrieved user data can be used. Just configure the `user_identifier_property` with an property path string compatible with the [Symfony Property Accessor](https://symfony.com/doc/current/components/property_access.html) to retrieve the value you need.
+
+> Note that the object based access method is used to retrieve the properties from the user data.
+
 ### Remember me
 
 If you want to enable remember me functionality make sure that you add the `_remember_me=1` query parameter to the route being used to generate the redirect forward (the one that calls `generateAuthorizationRedirect`).

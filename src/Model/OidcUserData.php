@@ -2,10 +2,19 @@
 
 namespace Drenso\OidcBundle\Model;
 
+use stdClass;
+use Symfony\Component\PropertyAccess\PropertyAccess;
+use Symfony\Component\PropertyAccess\PropertyAccessor;
+
 class OidcUserData
 {
-  public function __construct(private array $userData)
+  private static ?PropertyAccessor $accessor = NULL;
+  private stdClass $userData;
+
+  public function __construct(array $userData)
   {
+    // Cast the array data to a stdClass for easy access
+    $this->userData = (object)$userData;
   }
 
   /**
@@ -93,7 +102,7 @@ class OidcUserData
    */
   public function getUserDataBoolean(string $key): bool
   {
-    return $this->userData[$key] ?: false;
+    return $this->getUserData($key) ?: false;
   }
 
   /**
@@ -101,7 +110,7 @@ class OidcUserData
    */
   public function getUserDataString(string $key): string
   {
-    return $this->userData[$key] ?: '';
+    return $this->getUserData($key) ?: '';
   }
 
   /**
@@ -109,6 +118,17 @@ class OidcUserData
    */
   public function getUserDataArray(string $key): array
   {
-    return $this->userData[$key] ?: [];
+    return $this->getUserData($key) ?: [];
+  }
+
+  public function getUserData(string $propertyPath): mixed
+  {
+    self::$accessor ??= PropertyAccess::createPropertyAccessorBuilder()
+        ->disableExceptionOnInvalidIndex()
+        ->disableExceptionOnInvalidPropertyPath()
+        ->getPropertyAccessor();
+
+    // Cast the user data to a stdClass
+    return self::$accessor->getValue($this->userData, $propertyPath);
   }
 }
