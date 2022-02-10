@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
@@ -62,7 +63,10 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       $userData = $this->oidcClient->retrieveUserInfo($authData);
 
       // Ensure the user exists
-      $userIdentifier = $userData->getUserDataString($this->userIdentifierProperty);
+      if (!$userIdentifier = $userData->getUserDataString($this->userIdentifierProperty)) {
+        throw new UserNotFoundException(
+            sprintf('User identifier property (%s) yielded empty user identifier', $this->userIdentifierProperty));
+      }
       $this->oidcUserProvider->ensureUserExists($userIdentifier, $userData);
 
       // Create the passport
