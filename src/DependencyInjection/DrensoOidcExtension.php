@@ -8,7 +8,7 @@ use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
-use Symfony\Component\DependencyInjection\Loader;
+use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
 
 class DrensoOidcExtension extends Extension
@@ -24,7 +24,7 @@ class DrensoOidcExtension extends Extension
   public function load(array $configs, ContainerBuilder $container): void
   {
     // Autoload configured services
-    $loader = new Loader\PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+    $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
     $loader->load('services.php');
 
     // Parse configuration

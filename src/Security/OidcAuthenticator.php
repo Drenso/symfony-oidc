@@ -20,6 +20,7 @@ use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
+use Symfony\Component\Security\Http\Authenticator\Passport\PassportInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPassport;
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 use Symfony\Component\Security\Http\HttpUtils;
@@ -110,7 +111,7 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
    * @phan-suppress PhanUndeclaredTypeParameter
    */
   public function createAuthenticatedToken(
-      \Symfony\Component\Security\Http\Authenticator\Passport\PassportInterface $passport,
+      PassportInterface $passport,
       string $firewallName): TokenInterface
   {
     throw new UnsupportedManagerException();

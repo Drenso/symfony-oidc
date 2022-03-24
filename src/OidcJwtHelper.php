@@ -5,6 +5,7 @@ namespace Drenso\OidcBundle;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
+use phpseclib3\Crypt\RSA;
 use RuntimeException;
 
 /**
@@ -149,8 +150,8 @@ class OidcJwtHelper
 
     if (class_exists('\phpseclib3\Crypt\RSA')) {
       /** @phan-suppress-next-line PhanUndeclaredMethod */
-      $rsa = \phpseclib3\Crypt\RSA::load($public_key_xml)
-          ->withPadding(\phpseclib3\Crypt\RSA::ENCRYPTION_PKCS1|\phpseclib3\Crypt\RSA::SIGNATURE_PKCS1)
+      $rsa = RSA::load($public_key_xml)
+          ->withPadding(RSA::ENCRYPTION_PKCS1|RSA::SIGNATURE_PKCS1)
           ->withHash($hashtype);
     } elseif (class_exists('\phpseclib\Crypt\RSA')) {
       /** @phan-suppress-next-line PhanUndeclaredClassMethod */
