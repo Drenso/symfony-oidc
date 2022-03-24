@@ -2,7 +2,6 @@
 
 namespace Drenso\OidcBundle;
 
-
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
@@ -17,14 +16,14 @@ use Symfony\Component\HttpFoundation\Request;
 interface OidcClientInterface
 {
   /**
-   * Authenticate the incoming request
+   * Authenticate the incoming request.
    *
    * @throws OidcException
    */
   public function authenticate(Request $request): OidcTokens;
 
   /**
-   * Create the redirect that should be followed in order to authorize
+   * Create the redirect that should be followed in order to authorize.
    *
    * @param string|null $prompt One of 'none', 'login', 'consent', 'select_account' or 'create'
    *                            If null or not supplied, the parameter will be omitted from the request
@@ -35,10 +34,10 @@ interface OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  public function generateAuthorizationRedirect(?string $prompt = NULL, array $scopes = ['openid']): RedirectResponse;
+  public function generateAuthorizationRedirect(?string $prompt = null, array $scopes = ['openid']): RedirectResponse;
 
   /**
-   * Retrieve the user information
+   * Retrieve the user information.
    *
    * @throws OidcException
    */

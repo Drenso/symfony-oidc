@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drenso\OidcBundle;
 
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
@@ -28,22 +27,22 @@ use Symfony\Contracts\Cache\ItemInterface;
 class OidcClient implements OidcClientInterface
 {
   /** OIDC configuration values */
-  protected ?array $configuration = NULL;
-  private ?string $cacheKey = NULL;
+  protected ?array $configuration = null;
+  private ?string $cacheKey       = null;
 
   public function __construct(
-      protected RequestStack       $requestStack,
-      protected HttpUtils          $httpUtils,
-      protected ?CacheInterface    $wellKnownCache,
-      protected OidcUrlFetcher     $urlFetcher,
+      protected RequestStack $requestStack,
+      protected HttpUtils $httpUtils,
+      protected ?CacheInterface $wellKnownCache,
+      protected OidcUrlFetcher $urlFetcher,
       protected OidcSessionStorage $sessionStorage,
-      protected OidcJwtHelper      $jwtHelper,
-      protected string             $wellKnownUrl,
-      private ?int                 $wellKnownCacheTime,
-      private string               $clientId,
-      private string               $clientSecret,
-      private string               $redirectRoute,
-      private string               $rememberMeParameter)
+      protected OidcJwtHelper $jwtHelper,
+      protected string $wellKnownUrl,
+      private ?int $wellKnownCacheTime,
+      private string $clientId,
+      private string $clientSecret,
+      private string $redirectRoute,
+      private string $rememberMeParameter)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists('\phpseclib3\Crypt\RSA')) {
@@ -55,14 +54,12 @@ class OidcClient implements OidcClientInterface
     }
   }
 
-  /**
-   * @inheritDoc
-   */
+  /** {@inheritDoc} */
   public function authenticate(Request $request): OidcTokens
   {
     // Check whether the request has an error state
     if ($request->request->has('error')) {
-      throw new OidcAuthenticationException(sprintf("OIDC error: %s. Description: %s.",
+      throw new OidcAuthenticationException(sprintf('OIDC error: %s. Description: %s.',
           $request->request->get('error', ''), $request->request->get('error_description', '')));
     }
 
@@ -100,14 +97,11 @@ class OidcClient implements OidcClientInterface
     } else {
       throw new OidcAuthenticationException('Unable to verify JWT claims');
     }
-
   }
 
-  /**
-   * @inheritDoc
-   */
+  /** {@inheritDoc} */
   public function generateAuthorizationRedirect(
-      ?string $prompt = NULL, array $scopes = ['openid'], bool $forceRememberMe = false): RedirectResponse
+      ?string $prompt = null, array $scopes = ['openid'], bool $forceRememberMe = false): RedirectResponse
   {
     $data = [
         'client_id'     => $this->clientId,
@@ -144,16 +138,14 @@ class OidcClient implements OidcClientInterface
     return new RedirectResponse(sprintf('%s?%s', $this->getAuthorizationEndpoint(), http_build_query($data)));
   }
 
-  /**
-   * @inheritDoc
-   */
+  /** {@inheritDoc} */
   public function retrieveUserInfo(OidcTokens $tokens): OidcUserData
   {
     // Set the authorization header
     $headers = ["Authorization: Bearer {$tokens->getAccessToken()}"];
 
     // Retrieve the user information and convert the encoding to UTF-8 to harden for surfconext UTF-8 bug
-    $jsonData = $this->urlFetcher->fetchUrl($this->getUserinfoEndpoint(), NULL, $headers);
+    $jsonData = $this->urlFetcher->fetchUrl($this->getUserinfoEndpoint(), null, $headers);
     $jsonData = mb_convert_encoding($jsonData, 'UTF-8');
 
     // Read the data
@@ -161,7 +153,7 @@ class OidcClient implements OidcClientInterface
 
     // Check data due
     if (!is_array($data)) {
-      throw new OidcException("Error retrieving the user info from the endpoint.");
+      throw new OidcException('Error retrieving the user info from the endpoint.');
     }
 
     return new OidcUserData($data);
@@ -226,9 +218,7 @@ class OidcClient implements OidcClientInterface
     return $this->getConfigurationValue('userinfo_endpoint');
   }
 
-  /**
-   * Generate a nonce to verify the response
-   */
+  /** Generate a nonce to verify the response */
   private function generateNonce(): string
   {
     $value = $this->generateRandomString();
@@ -238,17 +228,13 @@ class OidcClient implements OidcClientInterface
     return $value;
   }
 
-  /**
-   * Generate a secure random string for usage as state
-   */
+  /** Generate a secure random string for usage as state */
   private function generateRandomString(): string
   {
     return md5(openssl_random_pseudo_bytes(25));
   }
 
-  /**
-   * Generate a state to identify the request
-   */
+  /** Generate a state to identify the request */
   private function generateState(): string
   {
     $value = $this->generateRandomString();
@@ -258,7 +244,7 @@ class OidcClient implements OidcClientInterface
   }
 
   /**
-   * Retrieve a configuration value from the provider well-known configuration
+   * Retrieve a configuration value from the provider well-known configuration.
    *
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
@@ -276,7 +262,7 @@ class OidcClient implements OidcClientInterface
   }
 
   /**
-   * Request the tokens from the OIDC provider
+   * Request the tokens from the OIDC provider.
    *
    * @throws OidcException
    */
@@ -311,17 +297,20 @@ class OidcClient implements OidcClientInterface
   }
 
   /**
-   * Retrieves the well-known configuration and saves it in the class
+   * Retrieves the well-known configuration and saves it in the class.
    *
    * @phan-suppress PhanTypeInvalidThrowsIsInterface
+   *
    * @throws OidcConfigurationResolveException|\Psr\Cache\InvalidArgumentException
    */
   private function resolveConfiguration(): void
   {
     // Check whether the configuration is already available
-    if ($this->configuration !== NULL) return;
+    if ($this->configuration !== null) {
+      return;
+    }
 
-    if ($this->wellKnownCache && $this->wellKnownCacheTime !== NULL) {
+    if ($this->wellKnownCache && $this->wellKnownCacheTime !== null) {
       $this->cacheKey ??= '_drenso_oidc_client__' . (new AsciiSlugger('en'))->slug($this->wellKnownUrl);
       $config         = $this->wellKnownCache->get($this->cacheKey, function (ItemInterface $item) {
         $item->expiresAfter($this->wellKnownCacheTime);
@@ -337,7 +326,7 @@ class OidcClient implements OidcClientInterface
   }
 
   /**
-   * Retrieves the well-known configuration from the configured url
+   * Retrieves the well-known configuration from the configured url.
    *
    * @throws OidcConfigurationResolveException
    */
@@ -350,7 +339,7 @@ class OidcClient implements OidcClientInterface
     }
 
     // Parse the configuration
-    if (($config = json_decode($wellKnown, true)) === NULL) {
+    if (($config = json_decode($wellKnown, true)) === null) {
       throw new OidcConfigurationResolveException(sprintf('Could not parse OIDC configuration. Response data: "%s"', $wellKnown));
     }
 

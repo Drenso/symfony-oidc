@@ -27,16 +27,16 @@ use Symfony\Component\Security\Http\HttpUtils;
 class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPointInterface
 {
   public function __construct(
-      private HttpUtils                             $httpUtils,
-      private OidcClientInterface                   $oidcClient,
-      private OidcSessionStorage                    $sessionStorage,
-      private OidcUserProviderInterface             $oidcUserProvider,
+      private HttpUtils $httpUtils,
+      private OidcClientInterface $oidcClient,
+      private OidcSessionStorage $sessionStorage,
+      private OidcUserProviderInterface $oidcUserProvider,
       private AuthenticationSuccessHandlerInterface $successHandler,
       private AuthenticationFailureHandlerInterface $failureHandler,
-      private string                                $checkPath,
-      private string                                $loginPath,
-      private string                                $userIdentifierProperty,
-      private bool                                  $enableRememberMe)
+      private string $checkPath,
+      private string $loginPath,
+      private string $userIdentifierProperty,
+      private bool $enableRememberMe)
   {
   }
 
@@ -48,7 +48,7 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
         && $request->query->has('state');
   }
 
-  public function start(Request $request, AuthenticationException $authException = NULL): Response
+  public function start(Request $request, AuthenticationException $authException = null): Response
   {
     return $this->httpUtils->createRedirectResponse($request, $this->loginPath);
   }
@@ -72,7 +72,7 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       // Create the passport
       $passport = new SelfValidatingPassport(new UserBadge(
           $userIdentifier,
-          fn(string $userIdentifier) => $this->oidcUserProvider->loadOidcUser($userIdentifier),
+          fn (string $userIdentifier) => $this->oidcUserProvider->loadOidcUser($userIdentifier),
       ));
       $passport->setAttribute('auth_data', OidcToken::AUTH_DATA_ATTR);
       $passport->setAttribute('user_data', OidcToken::USER_DATA_ATTR);
@@ -111,9 +111,8 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
    */
   public function createAuthenticatedToken(
       \Symfony\Component\Security\Http\Authenticator\Passport\PassportInterface $passport,
-      string                                                                    $firewallName): TokenInterface
+      string $firewallName): TokenInterface
   {
     throw new UnsupportedManagerException();
   }
-
 }

@@ -13,13 +13,13 @@ use Symfony\Component\DependencyInjection\Reference;
 
 class DrensoOidcExtension extends Extension
 {
-  const BASE_ID = 'drenso.oidc.';
-  const AUTHENTICATOR_ID = self::BASE_ID . 'authenticator';
-  const URL_FETCHER_ID = self::BASE_ID . 'url_fetcher';
-  const JWT_HELPER_ID = self::BASE_ID . 'jwt_helper';
-  const SESSION_STORAGE_ID = self::BASE_ID . 'session_storage';
-  const CLIENT_ID = self::BASE_ID . 'client';
-  const CLIENT_LOCATOR_ID = self::BASE_ID . 'client_locator';
+  public const BASE_ID            = 'drenso.oidc.';
+  public const AUTHENTICATOR_ID   = self::BASE_ID . 'authenticator';
+  public const URL_FETCHER_ID     = self::BASE_ID . 'url_fetcher';
+  public const JWT_HELPER_ID      = self::BASE_ID . 'jwt_helper';
+  public const SESSION_STORAGE_ID = self::BASE_ID . 'session_storage';
+  public const CLIENT_ID          = self::BASE_ID . 'client';
+  public const CLIENT_LOCATOR_ID  = self::BASE_ID . 'client_locator';
 
   public function load(array $configs, ContainerBuilder $container): void
   {

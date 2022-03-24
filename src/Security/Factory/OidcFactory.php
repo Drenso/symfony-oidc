@@ -38,9 +38,9 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
 
   public function createAuthenticator(
       ContainerBuilder $container,
-      string           $firewallName,
-      array            $config,
-      string           $userProviderId): string
+      string $firewallName,
+      array $config,
+      string $userProviderId): string
   {
     $authenticatorId = sprintf('%s.%s', DrensoOidcExtension::AUTHENTICATOR_ID, $firewallName);
     $container
@@ -60,15 +60,15 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
   }
 
   /**
-   * The following methods are required for Symfony 5.4 compatibility, but are not used
+   * The following methods are required for Symfony 5.4 compatibility, but are not used.
+   *
    * @todo: Remove when dropping support for Symfony 5.4
    */
-
   protected function createAuthProvider(
       ContainerBuilder $container,
-      string           $id,
-      array            $config,
-      string           $userProviderId): string
+      string $id,
+      array $config,
+      string $userProviderId): string
   {
     throw new UnsupportedManagerException();
   }

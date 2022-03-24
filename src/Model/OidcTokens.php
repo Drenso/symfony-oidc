@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drenso\OidcBundle\Model;
 
 use DateTimeImmutable;
@@ -8,20 +7,18 @@ use Drenso\OidcBundle\Exception\OidcException;
 use stdClass;
 
 /**
- * Contains the access and id tokens retrieved from OpenID authentication
+ * Contains the access and id tokens retrieved from OpenID authentication.
  */
 class OidcTokens
 {
   private string $accessToken;
   private string $idToken;
-  private ?DateTimeImmutable $expiry = NULL;
-  private ?string $refreshToken = NULL;
-  /**  @var string[]|null */
-  private ?array $scope = NULL;
+  private ?DateTimeImmutable $expiry = null;
+  private ?string $refreshToken      = null;
+  /** @var string[]|null */
+  private ?array $scope = null;
 
-  /**
-   * @throws OidcException
-   */
+  /** @throws OidcException */
   public function __construct(stdClass $tokens)
   {
     // These are the only required parameters per https://tools.ietf.org/html/rfc6749#section-4.2.2

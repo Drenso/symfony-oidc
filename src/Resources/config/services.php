@@ -34,7 +34,7 @@ return function (ContainerConfigurator $configurator): void {
         ->args([
             service(RequestStack::class),
             service(HttpUtils::class),
-            service(CacheInterface::class)->nullOnInvalid()
+            service(CacheInterface::class)->nullOnInvalid(),
         ])
         ->abstract()
 

@@ -29,7 +29,7 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('well_known_cache_time')
                   ->defaultValue(3600)
                   ->validate()
-                    ->ifTrue(fn($value) => $value !== null && !is_int($value))
+                    ->ifTrue(fn ($value) => $value !== null && !is_int($value))
                     ->thenInvalid('Must be either null or an integer value')
                   ->end()
                 ->end() // well_known_cache_time

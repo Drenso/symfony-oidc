@@ -1,12 +1,11 @@
 <?php
 
-
 namespace Drenso\OidcBundle;
 
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 
 /**
- * Helper for resource loading
+ * Helper for resource loading.
  */
 class OidcUrlFetcher
 {
@@ -15,32 +14,31 @@ class OidcUrlFetcher
   }
 
   /**
-   * Retrieve the content from the specified url
+   * Retrieve the content from the specified url.
    *
-   * @param null|array $params  If this is set the request type will be POST.
-   * @param array      $headers Extra headers to be sent with the request.
+   * @param array|null $params  if this is set the request type will be POST
+   * @param array      $headers extra headers to be sent with the request
    */
-  public function fetchUrl(string $url, ?array $params = NULL, array $headers = []): string
+  public function fetchUrl(string $url, ?array $params = null, array $headers = []): string
   {
     // Create a new cURL resource handle
     $ch = curl_init();
 
     // Determine whether this is a GET or POST
-    if ($params != NULL) {
-
+    if ($params != null) {
       // Check params
       if (!is_array($params)) {
-        throw new OidcAuthenticationException("The parameters should be specified as array!");
+        throw new OidcAuthenticationException('The parameters should be specified as array!');
       }
 
       $params = http_build_query($params);
 
       // Allows to keep the POST method even after redirect
-      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
+      curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
       curl_setopt($ch, CURLOPT_POSTFIELDS, $params);
 
       // Add POST-specific headers
-      $headers[] = "Content-Type: application/x-www-form-urlencoded";
+      $headers[] = 'Content-Type: application/x-www-form-urlencoded';
       $headers[] = 'Content-Length: ' . strlen($params);
     }
 

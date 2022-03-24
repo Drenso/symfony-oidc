@@ -1,6 +1,5 @@
 <?php
 
-
 namespace Drenso\OidcBundle;
 
 use Drenso\OidcBundle\Exception\OidcException;
@@ -9,14 +8,14 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use RuntimeException;
 
 /**
- * Contains helper functions to decode/verify JWT data
+ * Contains helper functions to decode/verify JWT data.
  */
 class OidcJwtHelper
 {
   public function __construct(
-      protected OidcUrlFetcher     $urlFetcher,
+      protected OidcUrlFetcher $urlFetcher,
       protected OidcSessionStorage $sessionStorage,
-      private string               $clientId)
+      private string $clientId)
   {
   }
 
@@ -31,7 +30,7 @@ class OidcJwtHelper
     // "Shouldn't" be necessary, but why not
     $padding = strlen($base64url) % 4;
     if ($padding > 0) {
-      $base64url .= str_repeat("=", 4 - $padding);
+      $base64url .= str_repeat('=', 4 - $padding);
     }
 
     return strtr($base64url, '-_', '+/');
@@ -49,17 +48,18 @@ class OidcJwtHelper
   private static function urlEncode(string $str): string
   {
     $enc = base64_encode($str);
-    $enc = rtrim($enc, "=");
+    $enc = rtrim($enc, '=');
 
-    return strtr($enc, "+/", "-_");
+    return strtr($enc, '+/', '-_');
   }
 
   /**
    * @param string $jwt     string encoded JWT
    * @param int    $section the section we would like to decode
    *
-   * @return object|null Returns null when a non-valid JWT is encountered
    * @throws OidcException
+   *
+   * @return object|null Returns null when a non-valid JWT is encountered
    */
   public function decodeJwt(string $jwt, int $section = 0): ?object
   {
@@ -67,19 +67,19 @@ class OidcJwtHelper
       throw new OidcException('Invalid JWT section requested');
     }
 
-    $parts = explode(".", $jwt);
+    $parts = explode('.', $jwt);
 
     if (count($parts) !== 3) {
       // When there are not exactly three parts, the passed string is not a JWT
-      return NULL;
+      return null;
     }
 
     return json_decode(self::base64url_decode($parts[$section]));
   }
 
-  public function verifyJwtClaims(string $issuer, ?object $claims, ?OidcTokens $tokens = NULL): bool
+  public function verifyJwtClaims(string $issuer, ?object $claims, ?OidcTokens $tokens = null): bool
   {
-    if (isset($claims->at_hash) && $tokens->getAccessToken() !== NULL) {
+    if (isset($claims->at_hash) && $tokens->getAccessToken() !== null) {
       $accessTokenHeader = $this->getAccessTokenHeader($tokens);
       if (isset($accessTokenHeader->alg) && $accessTokenHeader->alg != 'none') {
         $bit = substr($accessTokenHeader->alg, 2, 3);
@@ -96,29 +96,29 @@ class OidcJwtHelper
     $nonce = $this->sessionStorage->getNonce();
     $this->sessionStorage->clearNonce();
 
-    /** @noinspection PhpUndefinedVariableInspection */
-    return (($claims->iss == $issuer)
+    /* @noinspection PhpUndefinedVariableInspection */
+    return ($claims->iss == $issuer)
         && (($claims->aud == $this->clientId) || (in_array($this->clientId, $claims->aud)))
         && ($claims->nonce == $nonce)
         && (!isset($claims->exp) || $claims->exp >= time())
         && (!isset($claims->nbf) || $claims->nbf <= time())
         && (!isset($claims->at_hash) || $claims->at_hash == $expectedAtHash)
-    );
+    ;
   }
 
   public function verifyJwtSignature(string $jwksUri, OidcTokens $tokens): bool
   {
     // Check JWT information
     if (!$jwksUri) {
-      throw new OidcAuthenticationException("Unable to verify signature due to no jwks_uri being defined");
+      throw new OidcAuthenticationException('Unable to verify signature due to no jwks_uri being defined');
     }
 
-    $parts     = explode(".", $tokens->getIdToken());
+    $parts     = explode('.', $tokens->getIdToken());
     $signature = self::base64url_decode(array_pop($parts));
     $header    = json_decode(self::base64url_decode($parts[0]));
-    $payload   = implode(".", $parts);
+    $payload   = implode('.', $parts);
     $jwks      = json_decode($this->urlFetcher->fetchUrl($jwksUri));
-    if ($jwks === NULL) {
+    if ($jwks === null) {
       throw new OidcAuthenticationException('Error decoding JSON from jwks_uri');
     }
 
@@ -143,29 +143,29 @@ class OidcJwtHelper
      * regular base64 and use the XML key format for simplicity.
      */
     $public_key_xml = "<RSAKeyValue>\r\n" .
-        "  <Modulus>" . self::b64url2b64($key->n) . "</Modulus>\r\n" .
-        "  <Exponent>" . self::b64url2b64($key->e) . "</Exponent>\r\n" .
-        "</RSAKeyValue>";
+        '  <Modulus>' . self::b64url2b64($key->n) . "</Modulus>\r\n" .
+        '  <Exponent>' . self::b64url2b64($key->e) . "</Exponent>\r\n" .
+        '</RSAKeyValue>';
 
     if (class_exists('\phpseclib3\Crypt\RSA')) {
       /** @phan-suppress-next-line PhanUndeclaredMethod */
       $rsa = \phpseclib3\Crypt\RSA::load($public_key_xml)
-          ->withPadding(\phpseclib3\Crypt\RSA::ENCRYPTION_PKCS1 | \phpseclib3\Crypt\RSA::SIGNATURE_PKCS1)
+          ->withPadding(\phpseclib3\Crypt\RSA::ENCRYPTION_PKCS1|\phpseclib3\Crypt\RSA::SIGNATURE_PKCS1)
           ->withHash($hashtype);
-    } else if (class_exists('\phpseclib\Crypt\RSA')) {
+    } elseif (class_exists('\phpseclib\Crypt\RSA')) {
       /** @phan-suppress-next-line PhanUndeclaredClassMethod */
       $rsa = new \phpseclib\Crypt\RSA();
-      /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+      /* @phan-suppress-next-line PhanUndeclaredClassMethod */
       $rsa->setHash($hashtype);
-      /** @phan-suppress-next-line PhanTypeMismatchArgument,PhanUndeclaredClassConstant,PhanUndeclaredClassMethod */
+      /* @phan-suppress-next-line PhanTypeMismatchArgument,PhanUndeclaredClassConstant,PhanUndeclaredClassMethod */
       $rsa->loadKey($public_key_xml, \phpseclib\Crypt\RSA::PUBLIC_FORMAT_XML);
-      /** @phan-suppress-next-line PhanUndeclaredClassConstant,PhanUndeclaredClassProperty */
+      /* @phan-suppress-next-line PhanUndeclaredClassConstant,PhanUndeclaredClassProperty */
       $rsa->signatureMode = \phpseclib\Crypt\RSA::SIGNATURE_PKCS1;
     } else {
       throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
     }
 
-    /** @phan-suppress-next-line PhanUndeclaredClassMethod */
+    /* @phan-suppress-next-line PhanUndeclaredClassMethod */
     return $rsa->verify($payload, $signature);
   }
 
