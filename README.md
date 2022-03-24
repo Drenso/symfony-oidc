@@ -140,7 +140,7 @@ Use the controller example below to forward a user to the OIDC service:
    */
   #[Route('/login_oidc', name: 'login_oidc')]
   #[IsGranted('PUBLIC_ACCESS')]
-  public function surfconext(SessionInterface $session, OidcClientInterface $oidcClient): RedirectResponse
+  public function surfconext(OidcClientInterface $oidcClient): RedirectResponse
   {
     // Redirect to authorization @ OIDC provider
     return $oidcClient->generateAuthorizationRedirect();
@@ -168,6 +168,19 @@ You can override the `_remember_me` parameter per OIDC client. Just update the `
 Lastly, make sure the Symfony remember me authenticator is enabled, and that you set the `enable_remember_me` option to true for the `oidc` authenticator in `security.yaml`.
 
 When a user is authenticated, you will see the `REMEMBERME` cookie. You can remove the `PHPSESSID` cookie to check whether remember me is working.
+
+### Client locator
+
+If for some reason you have several OIDC clients configured and need to retrieve them dynamically, you can use the `OidcClientLocator`.
+
+```php
+  public function surfconext(OidcClientLocator $clientLocator): RedirectResponse
+  {
+    return $clientLocator->getClient('your_client_id')->generateAuthorizationRedirect();
+  }
+```
+
+The locator will throw an OidcClientNotFoundException when the requested client is not found. When called without an argument, it will return the configured default client.
 
 ### Cache
 

@@ -5,6 +5,7 @@ namespace Drenso\OidcBundle\DependencyInjection;
 use Drenso\OidcBundle\OidcClientInterface;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
+use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader;
@@ -18,6 +19,7 @@ class DrensoOidcExtension extends Extension
   const JWT_HELPER_ID = self::BASE_ID . 'jwt_helper';
   const SESSION_STORAGE_ID = self::BASE_ID . 'session_storage';
   const CLIENT_ID = self::BASE_ID . 'client';
+  const CLIENT_LOCATOR_ID = self::BASE_ID . 'client_locator';
 
   public function load(array $configs, ContainerBuilder $container): void
   {
@@ -30,16 +32,23 @@ class DrensoOidcExtension extends Extension
     $config        = $this->processConfiguration($configuration, $configs);
 
     // Load the configured clients
+    $clientServices = [];
     foreach ($config['clients'] as $clientName => $clientConfig) {
-      $this->registerClient($container, $clientName, $clientConfig);
+      $clientServices[$clientName] = $this->registerClient($container, $clientName, $clientConfig);
     }
 
     // Setup default alias
     $container
         ->setAlias(OidcClientInterface::class, sprintf('drenso.oidc.client.%s', $config['default_client']));
+
+    // Configure client locator
+    $container
+        ->getDefinition(self::CLIENT_LOCATOR_ID)
+        ->addArgument(ServiceLocatorTagPass::register($container, $clientServices))
+        ->addArgument($config['default_client']);
   }
 
-  private function registerClient(ContainerBuilder $container, string $name, array $config): void
+  private function registerClient(ContainerBuilder $container, string $name, array $config): Reference
   {
     $urlFetcherId = sprintf('%s.%s', self::URL_FETCHER_ID, $name);
     $container
@@ -73,5 +82,7 @@ class DrensoOidcExtension extends Extension
 
     $container
         ->registerAliasForArgument($clientId, OidcClientInterface::class, sprintf('%sOidcClient', $name));
+
+    return new Reference($clientId);
   }
 }
