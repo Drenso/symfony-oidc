@@ -1,5 +1,6 @@
 stages:
   - prepare
+  - cs-fix
   - lint
   - deploy
 
@@ -8,6 +9,11 @@ include:
   - project: 'intern/runner-templates'
     ref: "4.0"
     file: '/symfony/install-dependencies.yml'
+
+  # CS fix
+  - project: 'intern/runner-templates'
+    ref: "5.1"
+    file: '/php/code-style-fixer.yml'
 
   # Lint
   - project: 'intern/runner-templates'
