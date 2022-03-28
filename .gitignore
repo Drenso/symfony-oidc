@@ -2,7 +2,7 @@
 .idea
 
 # Composer
-composer.lock
+/composer.lock
 composer.phar
 
 # Ignore composer
