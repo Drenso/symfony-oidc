@@ -1,6 +1,6 @@
 {
     "require": {
         "friendsofphp/php-cs-fixer": "3.8.0",
-        "rector/rector": "0.12.18"
+        "rector/rector": "0.12.19"
     }
 }
