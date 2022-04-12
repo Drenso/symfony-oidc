@@ -7,11 +7,11 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Extension\Extension;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
-class DrensoOidcExtension extends Extension
+class DrensoOidcExtension extends ConfigurableExtension
 {
   public const BASE_ID            = 'drenso.oidc.';
   public const AUTHENTICATOR_ID   = self::BASE_ID . 'authenticator';
@@ -21,31 +21,27 @@ class DrensoOidcExtension extends Extension
   public const CLIENT_ID          = self::BASE_ID . 'client';
   public const CLIENT_LOCATOR_ID  = self::BASE_ID . 'client_locator';
 
-  public function load(array $configs, ContainerBuilder $container): void
+  public function loadInternal(array $mergedConfig, ContainerBuilder $container): void
   {
     // Autoload configured services
     $loader = new PhpFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
     $loader->load('services.php');
 
-    // Parse configuration
-    $configuration = new Configuration();
-    $config        = $this->processConfiguration($configuration, $configs);
-
     // Load the configured clients
     $clientServices = [];
-    foreach ($config['clients'] as $clientName => $clientConfig) {
+    foreach ($mergedConfig['clients'] as $clientName => $clientConfig) {
       $clientServices[$clientName] = $this->registerClient($container, $clientName, $clientConfig);
     }
 
     // Setup default alias
     $container
-        ->setAlias(OidcClientInterface::class, sprintf('drenso.oidc.client.%s', $config['default_client']));
+        ->setAlias(OidcClientInterface::class, sprintf('drenso.oidc.client.%s', $mergedConfig['default_client']));
 
     // Configure client locator
     $container
         ->getDefinition(self::CLIENT_LOCATOR_ID)
         ->addArgument(ServiceLocatorTagPass::register($container, $clientServices))
-        ->addArgument($config['default_client']);
+        ->addArgument($mergedConfig['default_client']);
   }
 
   private function registerClient(ContainerBuilder $container, string $name, array $config): Reference
