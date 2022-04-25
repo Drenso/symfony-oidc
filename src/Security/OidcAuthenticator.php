@@ -75,8 +75,8 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
           $userIdentifier,
           fn (string $userIdentifier) => $this->oidcUserProvider->loadOidcUser($userIdentifier),
       ));
-      $passport->setAttribute('auth_data', OidcToken::AUTH_DATA_ATTR);
-      $passport->setAttribute('user_data', OidcToken::USER_DATA_ATTR);
+      $passport->setAttribute(OidcToken::AUTH_DATA_ATTR, $authData);
+      $passport->setAttribute(OidcToken::USER_DATA_ATTR, $userData);
 
       if ($this->enableRememberMe && $this->sessionStorage->getRememberMe()) {
         // Add remember me badge when enabled
