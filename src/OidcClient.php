@@ -81,7 +81,7 @@ class OidcClient implements OidcClientInterface
     $this->sessionStorage->clearState();
 
     // Request the tokens
-    $tokens = $this->requestTokens($code);
+    $tokens = $this->requestTokens('authorization_code', $code, $this->getRedirectUrl());
 
     // Retrieve the claims
     $claims = $this->jwtHelper->decodeJwt($tokens->getIdToken(), 1);
@@ -93,6 +93,30 @@ class OidcClient implements OidcClientInterface
 
     // If this is a valid claim
     if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens)) {
+      return $tokens;
+    } else {
+      throw new OidcAuthenticationException('Unable to verify JWT claims');
+    }
+  }
+
+  public function refreshTokens(string $refreshToken): OidcTokens
+  {
+    // Clear session after check
+    $this->sessionStorage->clearState();
+
+    // Request the tokens
+    $tokens = $this->requestTokens('refresh_token', null, null, $refreshToken);
+
+    // Retrieve the claims
+    $claims = $this->jwtHelper->decodeJwt($tokens->getIdToken(), 1);
+
+    // Verify the token
+    if (!$this->jwtHelper->verifyJwtSignature($this->getJwktUri(), $tokens)) {
+      throw new OidcAuthenticationException('Unable to verify signature');
+    }
+
+    // If this is a valid claim
+    if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens, false)) {
       return $tokens;
     } else {
       throw new OidcAuthenticationException('Unable to verify JWT claims');
@@ -266,15 +290,25 @@ class OidcClient implements OidcClientInterface
    *
    * @throws OidcException
    */
-  private function requestTokens(string $code): OidcTokens
+  private function requestTokens(string $grantType, string $code = null, string $redirectUrl = null, string $refreshToken = null): OidcTokens
   {
     $params = [
-        'grant_type'    => 'authorization_code',
-        'code'          => $code,
-        'redirect_uri'  => $this->getRedirectUrl(),
+        'grant_type'    => $grantType,
         'client_id'     => $this->clientId,
         'client_secret' => $this->clientSecret,
     ];
+
+    if (null !== $code) {
+      $params['code'] = $code;
+    }
+
+    if (null !== $redirectUrl) {
+      $params['redirect_uri'] = $redirectUrl;
+    }
+
+    if (null !== $refreshToken) {
+      $params['refresh_token'] = $refreshToken;
+    }
 
     // Use basic auth if offered
     $headers = [];
