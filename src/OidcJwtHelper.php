@@ -78,7 +78,7 @@ class OidcJwtHelper
     return json_decode(self::base64url_decode($parts[$section]));
   }
 
-  public function verifyJwtClaims(string $issuer, ?object $claims, ?OidcTokens $tokens = null): bool
+  public function verifyJwtClaims(string $issuer, ?object $claims, ?OidcTokens $tokens = null, bool $verifyNonce = true): bool
   {
     if (isset($claims->at_hash) && $tokens->getAccessToken() !== null) {
       $accessTokenHeader = $this->getAccessTokenHeader($tokens);
@@ -93,14 +93,16 @@ class OidcJwtHelper
           substr(hash('sha' . $bit, $tokens->getAccessToken(), true), 0, $len));
     }
 
+    $nonce = $verifyNonce ? $this->sessionStorage->getNonce() : null;
     // Get and remove nonce from session
-    $nonce = $this->sessionStorage->getNonce();
-    $this->sessionStorage->clearNonce();
+    if (null !== $nonce) {
+      $this->sessionStorage->clearNonce();
+    }
 
     /* @noinspection PhpUndefinedVariableInspection */
     return ($claims->iss == $issuer)
         && (($claims->aud == $this->clientId) || (in_array($this->clientId, $claims->aud)))
-        && ($claims->nonce == $nonce)
+        && (!$verifyNonce || $claims->nonce == $nonce)
         && (!isset($claims->exp) || $claims->exp >= time())
         && (!isset($claims->nbf) || $claims->nbf <= time())
         && (!isset($claims->at_hash) || $claims->at_hash == $expectedAtHash)
