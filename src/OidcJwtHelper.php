@@ -93,8 +93,8 @@ class OidcJwtHelper
           substr(hash('sha' . $bit, $tokens->getAccessToken(), true), 0, $len));
     }
 
-    $nonce = $verifyNonce ? $this->sessionStorage->getNonce() : null;
     // Get and remove nonce from session
+    $nonce = $verifyNonce ? $this->sessionStorage->getNonce() : null;
     if (null !== $nonce) {
       $this->sessionStorage->clearNonce();
     }

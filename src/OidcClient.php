@@ -80,23 +80,10 @@ class OidcClient implements OidcClientInterface
     // Clear session after check
     $this->sessionStorage->clearState();
 
-    // Request the tokens
-    $tokens = $this->requestTokens('authorization_code', $code, $this->getRedirectUrl());
-
-    // Retrieve the claims
-    $claims = $this->jwtHelper->decodeJwt($tokens->getIdToken(), 1);
-
-    // Verify the token
-    if (!$this->jwtHelper->verifyJwtSignature($this->getJwktUri(), $tokens)) {
-      throw new OidcAuthenticationException('Unable to verify signature');
-    }
-
-    // If this is a valid claim
-    if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens)) {
-      return $tokens;
-    } else {
-      throw new OidcAuthenticationException('Unable to verify JWT claims');
-    }
+    // Request and verify the tokens
+    return $this->verifyTokens(
+        $this->requestTokens('authorization_code', $code, $this->getRedirectUrl())
+    );
   }
 
   public function refreshTokens(string $refreshToken): OidcTokens
@@ -104,23 +91,11 @@ class OidcClient implements OidcClientInterface
     // Clear session after check
     $this->sessionStorage->clearState();
 
-    // Request the tokens
-    $tokens = $this->requestTokens('refresh_token', null, null, $refreshToken);
-
-    // Retrieve the claims
-    $claims = $this->jwtHelper->decodeJwt($tokens->getIdToken(), 1);
-
-    // Verify the token
-    if (!$this->jwtHelper->verifyJwtSignature($this->getJwktUri(), $tokens)) {
-      throw new OidcAuthenticationException('Unable to verify signature');
-    }
-
-    // If this is a valid claim
-    if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens, false)) {
-      return $tokens;
-    } else {
-      throw new OidcAuthenticationException('Unable to verify JWT claims');
-    }
+    // Request and verify the tokens
+    return $this->verifyTokens(
+        $this->requestTokens('refresh_token', null, null, $refreshToken),
+        verifyNonce: false
+    );
   }
 
   /** {@inheritDoc} */
@@ -328,6 +303,25 @@ class OidcClient implements OidcClientInterface
     }
 
     return new OidcTokens($jsonToken);
+  }
+
+  /** @throws OidcException */
+  private function verifyTokens(OidcTokens $tokens, $verifyNonce = true): OidcTokens
+  {
+    // Retrieve the claims
+    $claims = $this->jwtHelper->decodeJwt($tokens->getIdToken(), 1);
+
+    // Verify the token
+    if (!$this->jwtHelper->verifyJwtSignature($this->getJwktUri(), $tokens)) {
+      throw new OidcAuthenticationException('Unable to verify signature');
+    }
+
+    // If this is a valid claim
+    if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens, $verifyNonce)) {
+      return $tokens;
+    } else {
+      throw new OidcAuthenticationException('Unable to verify JWT claims');
+    }
   }
 
   /**
