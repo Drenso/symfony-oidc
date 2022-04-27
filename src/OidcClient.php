@@ -86,6 +86,7 @@ class OidcClient implements OidcClientInterface
     );
   }
 
+  /** {@inheritDoc} */
   public function refreshTokens(string $refreshToken): OidcTokens
   {
     // Clear session after check

@@ -23,6 +23,13 @@ interface OidcClientInterface
   public function authenticate(Request $request): OidcTokens;
 
   /**
+   * Use an existing refresh token to retrieve new tokens from the OIDC provider.
+   *
+   * @throws OidcException
+   */
+  public function refreshTokens(string $refreshToken): OidcTokens;
+
+  /**
    * Create the redirect that should be followed in order to authorize.
    *
    * @param string|null $prompt One of 'none', 'login', 'consent', 'select_account' or 'create'
