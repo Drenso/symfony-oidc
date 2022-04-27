@@ -187,3 +187,8 @@ The locator will throw an OidcClientNotFoundException when the requested client 
 When you have `symfony/cache` available in your project, this library will automatically cache the well known data. By default, it will be cached for `3600` seconds.
 
 You can disable this cache by passing `null` to the `well_known_cache_time` client option.
+
+### Refreshing tokens
+
+Currently, the firewall implementation provided by this bundle does not offer refresh tokens (as it should not be necessary).
+However, if you need to refresh the tokens yourself for your implementation, you can use the `refreshTokens` method on the `OidcClientInterface`!
