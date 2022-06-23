@@ -135,7 +135,9 @@ class OidcClient implements OidcClientInterface
     $session->remove(Security::AUTHENTICATION_ERROR);
     $session->remove(Security::LAST_USERNAME);
 
-    return new RedirectResponse(sprintf('%s?%s', $this->getAuthorizationEndpoint(), http_build_query($data)));
+    $endpointHasQuery = parse_url($this->getAuthorizationEndpoint(), PHP_URL_QUERY);
+
+    return new RedirectResponse(sprintf('%s%s%s', $this->getAuthorizationEndpoint(), $endpointHasQuery ? '&' : '?', http_build_query($data)));
   }
 
   /** {@inheritDoc} */
