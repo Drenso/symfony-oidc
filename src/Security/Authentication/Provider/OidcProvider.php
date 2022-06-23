@@ -64,6 +64,7 @@ class OidcProvider implements AuthenticationProviderInterface
     assert($token instanceof OidcToken);
 
     // Check if the token is already authenticated
+    /** @phan-suppress-next-line PhanDeprecatedFunction */
     if ($token->isAuthenticated()) {
       $this->logger->debug("OIDC Provider: Token already authenticated", array('username' => $token->getUsername()));
 
