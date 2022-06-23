@@ -192,8 +192,9 @@ class OidcClient
       $data['prompt'] = $prompt;
     }
 
-    $query = parse_url($this->getAuthorizationEndpoint(), PHP_URL_QUERY);
-    return new RedirectResponse(sprintf('%s%s%s', $this->getAuthorizationEndpoint(), ($query) ? '&' : '?', http_build_query($data)));
+    $endpointHasQuery = parse_url($this->getAuthorizationEndpoint(), PHP_URL_QUERY);
+    
+    return new RedirectResponse(sprintf('%s%s%s', $this->getAuthorizationEndpoint(), $endpointHasQuery ? '&' : '?', http_build_query($data)));
   }
 
   /**
