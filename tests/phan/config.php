@@ -100,10 +100,8 @@ return [
 
   // This is useful for excluding hopelessly unanalyzable
   // files that can't be removed for whatever reason.
-
-  // Added are the show/actions/excel controllers that are not used.
-  // They are however required to generate some of the routes that are used
     'exclude_file_list'               => [
+        'vendor/rector/rector/stubs-rector/Internal/EnumInterfaces.php',
         'vendor/symfony/symfony/src/Symfony/Component/Intl/Resources/stubs/IntlDateFormatter.php',
     ],
 ];

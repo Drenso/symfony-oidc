@@ -1,7 +1,0 @@
-{
-    "require": {
-        "php": ">=8.0.2",
-        "friendsofphp/php-cs-fixer": "3.8.0",
-        "rector/rector": "0.13.6"
-    }
-}

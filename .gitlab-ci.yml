@@ -12,7 +12,7 @@ include:
 
   # CS fix
   - project: 'intern/runner-templates'
-    ref: "5.1"
+    ref: "5.3"
     file: '/php/code-style-fixer.yml'
 
   # Lint
