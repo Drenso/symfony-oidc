@@ -15,7 +15,7 @@ class OidcClientLocator
   /** @throws OidcClientNotFoundException */
   public function getClient(string $name = null): OidcClientInterface
   {
-    $name = $name ?? $this->defaultClient;
+    $name ??= $this->defaultClient;
     if (!$this->locator->has($name)) {
       throw new OidcClientNotFoundException($name);
     }

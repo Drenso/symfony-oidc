@@ -150,7 +150,7 @@ class OidcJwtHelper
         '  <Exponent>' . self::b64url2b64($key->e) . "</Exponent>\r\n" .
         '</RSAKeyValue>';
 
-    if (class_exists('\phpseclib3\Crypt\RSA')) {
+    if (class_exists(RSA::class)) {
       /** @phan-suppress-next-line PhanUndeclaredMethod */
       $rsa = RSA::load($public_key_xml)
           ->withPadding(RSA::ENCRYPTION_PKCS1|RSA::SIGNATURE_PKCS1)
