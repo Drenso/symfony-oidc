@@ -334,7 +334,7 @@ class OidcClient implements OidcClientInterface
    *
    * @phan-suppress PhanTypeInvalidThrowsIsInterface
    *
-   * @throws OidcConfigurationResolveException|\Psr\Cache\InvalidArgumentException
+   * @throws OidcConfigurationResolveException
    */
   private function resolveConfiguration(): void
   {
@@ -344,12 +344,16 @@ class OidcClient implements OidcClientInterface
     }
 
     if ($this->wellKnownCache && $this->wellKnownCacheTime !== null) {
-      $this->cacheKey ??= '_drenso_oidc_client__' . (new AsciiSlugger('en'))->slug($this->wellKnownUrl);
-      $config         = $this->wellKnownCache->get($this->cacheKey, function (ItemInterface $item) {
-        $item->expiresAfter($this->wellKnownCacheTime);
+      try {
+        $this->cacheKey ??= '_drenso_oidc_client__' . (new AsciiSlugger('en'))->slug($this->wellKnownUrl);
+        $config         = $this->wellKnownCache->get($this->cacheKey, function (ItemInterface $item) {
+          $item->expiresAfter($this->wellKnownCacheTime);
 
-        return $this->retrieveWellKnownConfiguration();
-      });
+          return $this->retrieveWellKnownConfiguration();
+        });
+      } catch (\Psr\Cache\InvalidArgumentException $e) {
+        throw new OidcConfigurationResolveException('Cache failed: ' . $e->getMessage(), previous: $e);
+      }
     } else {
       $config = $this->retrieveWellKnownConfiguration();
     }
