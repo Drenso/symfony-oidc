@@ -57,6 +57,7 @@ drenso_oidc:
             client_secret: '%env(OIDC_CLIENT_SECRET)%'
 
             # Extra configuration options
+            #well_known_parser: ~ # Service id for a custom well-known configuration parser
             #well_known_cache_time: 3600 # Time in seconds, will only be used when symfony/cache is available
             #redirect_route: '/login_check'
             #custom_client_headers: []
@@ -192,3 +193,7 @@ You can disable this cache by passing `null` to the `well_known_cache_time` clie
 
 Currently, the firewall implementation provided by this bundle does not offer refresh tokens (as it should not be necessary).
 However, if you need to refresh the tokens yourself for your implementation, you can use the `refreshTokens` method on the `OidcClientInterface`!
+
+### Parsing well-known information
+
+Some providers return incorrect or incomplete well known information. You can configure a custom well-known parser for the `OidcClient` by setting the `well_known_parser` to a service id which implements the `OidcWellKnownParserInterface`.

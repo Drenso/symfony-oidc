@@ -63,7 +63,8 @@ class DrensoOidcExtension extends ConfigurableExtension
         ->addArgument(new Reference($sessionStorageId))
         ->addArgument($config['client_id']);
 
-    $clientId = sprintf('%s.%s', self::CLIENT_ID, $name);
+    $clientId          = sprintf('%s.%s', self::CLIENT_ID, $name);
+    $wellKnownParserId = $config['well_known_parser'];
     $container
         ->setDefinition($clientId, new ChildDefinition(self::CLIENT_ID))
         ->addArgument(new Reference($urlFetcherId))
@@ -74,7 +75,8 @@ class DrensoOidcExtension extends ConfigurableExtension
         ->addArgument($config['client_id'])
         ->addArgument($config['client_secret'])
         ->addArgument($config['redirect_route'])
-        ->addArgument($config['remember_me_parameter']);
+        ->addArgument($config['remember_me_parameter'])
+        ->addArgument($wellKnownParserId ? new Reference($wellKnownParserId) : null);
 
     $container
         ->registerAliasForArgument($clientId, OidcClientInterface::class, sprintf('%sOidcClient', $name));

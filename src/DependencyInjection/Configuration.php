@@ -26,6 +26,9 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('well_known_url')
                   ->isRequired()
                 ->end() // well_known_url
+                ->scalarNode('well_known_parser')
+                  ->defaultNull()
+                ->end() // well_known_parser
                 ->scalarNode('well_known_cache_time')
                   ->defaultValue(3600)
                   ->validate()

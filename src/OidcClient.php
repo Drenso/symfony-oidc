@@ -29,7 +29,7 @@ class OidcClient implements OidcClientInterface
 {
   /** OIDC configuration values */
   protected ?array $configuration = null;
-  private ?string $cacheKey       = null;
+  private ?string  $cacheKey      = null;
 
   public function __construct(
       protected RequestStack $requestStack,
@@ -43,7 +43,8 @@ class OidcClient implements OidcClientInterface
       private string $clientId,
       private string $clientSecret,
       private string $redirectRoute,
-      private string $rememberMeParameter)
+      private string $rememberMeParameter,
+      protected ?OidcWellKnownParserInterface $wellKnownParser = null)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
@@ -375,6 +376,6 @@ class OidcClient implements OidcClientInterface
       throw new OidcConfigurationResolveException(sprintf('Could not parse OIDC configuration. Response data: "%s"', $wellKnown));
     }
 
-    return $config;
+    return $this->wellKnownParser?->parseWellKnown($config) ?? $config;
   }
 }
