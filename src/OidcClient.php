@@ -103,16 +103,19 @@ class OidcClient implements OidcClientInterface
 
   /** {@inheritDoc} */
   public function generateAuthorizationRedirect(
-      ?string $prompt = null, array $scopes = ['openid'], bool $forceRememberMe = false): RedirectResponse
+      ?string $prompt = null,
+      array $scopes = ['openid'],
+      bool $forceRememberMe = false,
+      array $additionalQueryParams = []): RedirectResponse
   {
-    $data = [
+    $data = array_merge($additionalQueryParams, [
         'client_id'     => $this->clientId,
         'response_type' => 'code',
         'redirect_uri'  => $this->getRedirectUrl(),
         'scope'         => implode(' ', $scopes),
         'state'         => $this->generateState(),
         'nonce'         => $this->generateNonce(),
-    ];
+    ]);
 
     if ($prompt) {
       $validPrompts = ['none', 'login', 'consent', 'select_account', 'create'];
