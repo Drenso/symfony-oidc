@@ -148,7 +148,7 @@ Use the controller example below to forward a user to the OIDC service:
   }
 ```
 
-> It is possible to supply prompt and scope parameters to the `generateAuthorizationRedirect` method.
+> It is possible to supply prompt, scopes and additional query parameters to the `generateAuthorizationRedirect` method.
 
 > It is also possible to force remember me mode for the redirect.
 
