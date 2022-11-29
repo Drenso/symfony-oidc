@@ -5,6 +5,7 @@ namespace Drenso\OidcBundle;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
+use Drenso\OidcBundle\Exception\OidcInvalidCodeChallengeMethodException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
@@ -28,8 +29,13 @@ use Symfony\Contracts\Cache\ItemInterface;
 class OidcClient implements OidcClientInterface
 {
   /** OIDC configuration values */
-  protected ?array $configuration = null;
-  private ?string  $cacheKey      = null;
+  protected ?array $configuration       = null;
+  private ?string  $cacheKey            = null;
+  private ?string  $codeChallengeMethod = null;
+  private array    $pkceAlgorithms      = [
+      'S256'  => 'sha256',
+      'plain' => false,
+  ];
 
   public function __construct(
       protected RequestStack $requestStack,
@@ -130,6 +136,21 @@ class OidcClient implements OidcClientInterface
       $data['prompt'] = $prompt;
     }
 
+    try {
+      // Check if code challenge is activated
+      if (null !== $this->codeChallengeMethod) {
+        $codeVerifier  = $this->generateCodeVerifier();
+        $codeChallenge = $this->generateCodeChallenge($codeVerifier);
+
+        $data = array_merge($data, [
+            'code_challenge'        => $codeChallenge,
+            'code_challenge_method' => $this->codeChallengeMethod,
+        ]);
+      }
+    } catch (\Exception $e) {
+      throw new OidcAuthenticationException('An error occurred during code challenge generation', $e);
+    }
+
     // Store remember me state
     /** @phan-suppress-next-line PhanAccessMethodInternal */
     $parameter = $this->requestStack->getCurrentRequest()->get($this->rememberMeParameter);
@@ -220,6 +241,21 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
+  protected function getCodeChallengeMethodsSupported(): array
+  {
+    $value = $this->getConfigurationValue('code_challenge_methods_supported');
+
+    if (!is_array($value)) {
+      return [];
+    }
+
+    return $value;
+  }
+
+  /**
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   */
   protected function getUserinfoEndpoint(): string
   {
     return $this->getConfigurationValue('userinfo_endpoint');
@@ -235,6 +271,46 @@ class OidcClient implements OidcClientInterface
     return $value;
   }
 
+  /** Generate a code verifier to verify the response.
+   *
+   * @throws Exception
+   */
+  private function generateCodeVerifier(): string
+  {
+    $value = bin2hex(random_bytes(64));
+
+    $this->sessionStorage->storeCodeVerifier($value);
+
+    return $value;
+  }
+
+  /**
+   * Generate a code challenge based on the code verifier and PKCE Algorithm.
+   *
+   * @throws OidcException
+   */
+  private function generateCodeChallenge(string $codeVerifier): string
+  {
+    if (null === $this->codeChallengeMethod) {
+      throw new OidcException('Challenge code method is missing.');
+    }
+
+    if (!array_key_exists($this->codeChallengeMethod, $this->pkceAlgorithms)) {
+      throw new OidcException(sprintf('Could not find  PKCE algorithm for code challenge method "%s"', $this->codeChallengeMethod));
+    }
+
+    $pkceAlgorithm = $this->pkceAlgorithms[$this->codeChallengeMethod];
+
+    // if $pkceAlgorithm is false handle it as plain
+    if (!$pkceAlgorithm) {
+      $codeChallenge = $codeVerifier;
+    } else {
+      $codeChallenge = rtrim(strtr(base64_encode(hash($this->pkceAlgorithms[$this->codeChallengeMethod], $codeVerifier, true)), '+/', '-_'), '=');
+    }
+
+    return $codeChallenge;
+  }
+
   /** Generate a secure random string for usage as state */
   private function generateRandomString(): string
   {
@@ -248,6 +324,24 @@ class OidcClient implements OidcClientInterface
     $this->sessionStorage->storeState($value);
 
     return $value;
+  }
+
+  /**
+   * Activate the code challenge method.
+   *
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   * @throws OidcInvalidCodeChallengeMethodException
+   */
+  public function withCodeChallenge(string $method): self
+  {
+    if (!in_array($method, $this->getCodeChallengeMethodsSupported(), true)) {
+      throw new OidcInvalidCodeChallengeMethodException($method);
+    }
+
+    $this->codeChallengeMethod = $method;
+
+    return $this;
   }
 
   /**
@@ -300,6 +394,16 @@ class OidcClient implements OidcClientInterface
       unset($params['client_secret']);
     }
 
+    $codeVerifier = $this->sessionStorage->getCodeVerifier();
+
+    if (null !== $codeVerifier) {
+      unset($params['client_secret']);
+
+      $params = array_merge($params, [
+          'code_verifier' => $codeVerifier,
+      ]);
+    }
+
     $jsonToken = json_decode($this->urlFetcher->fetchUrl($this->getTokenEndpoint(), $params, $headers));
 
     // Throw an error if the server returns one
@@ -309,6 +413,9 @@ class OidcClient implements OidcClientInterface
       }
       throw new OidcAuthenticationException(sprintf('Got response: %s', $jsonToken->error));
     }
+
+    // Clear code verifier from session after check
+    $this->sessionStorage->clearCodeVerifier();
 
     return new OidcTokens($jsonToken);
   }
