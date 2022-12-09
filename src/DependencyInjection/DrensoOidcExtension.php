@@ -76,6 +76,7 @@ class DrensoOidcExtension extends ConfigurableExtension
         ->addArgument($config['client_secret'])
         ->addArgument($config['redirect_route'])
         ->addArgument($config['remember_me_parameter'])
+        ->addArgument($config['code_challenge_method'])
         ->addArgument($wellKnownParserId ? new Reference($wellKnownParserId) : null);
 
     $container

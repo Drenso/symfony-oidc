@@ -41,6 +41,7 @@ interface OidcClientInterface
    *                                                     presence of the "remember me" parameter in the current request
    * @param array<string, string> $additionalQueryParams additional query parameters which will be added to the generated redirect request
    *
+   * @throws OidcException
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */

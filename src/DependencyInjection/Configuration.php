@@ -51,6 +51,9 @@ class Configuration implements ConfigurationInterface
                 ->scalarNode('remember_me_parameter')
                   ->defaultValue('_remember_me')
                 ->end() // remember_me_parameter
+                ->scalarNode('code_challenge_method')
+                  ->defaultNull()
+                ->end() // remember_me_parameter
               ->end() // array prototype children
             ->end() // array prototype
           ->end() // clients

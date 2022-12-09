@@ -2,7 +2,9 @@
 
 namespace Drenso\OidcBundle\Exception;
 
-class OidcInvalidCodeChallengeMethodException extends OidcException
+use LogicException;
+
+class OidcInvalidCodeChallengeMethodException extends LogicException
 {
   public function __construct(string $method)
   {
