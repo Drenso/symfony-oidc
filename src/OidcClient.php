@@ -150,7 +150,7 @@ class OidcClient implements OidcClientInterface
             'code_challenge_method' => $this->codeChallengeMethod,
         ]);
       }
-    } catch (\Exception $e) {
+    } catch (Exception $e) {
       throw new OidcException('An error occurred during code challenge generation', $e);
     }
 
