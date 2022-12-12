@@ -304,7 +304,7 @@ class OidcClient implements OidcClientInterface
   /** Generate a secure random string for usage as state */
   private function generateRandomString(): string
   {
-    return md5(openssl_random_pseudo_bytes(25));
+    return md5(random_bytes(25));
   }
 
   /** Generate a state to identify the request */

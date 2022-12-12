@@ -26,7 +26,6 @@
     "ext-hash": "*",
     "ext-json": "*",
     "ext-mbstring": "*",
-    "ext-openssl": "*",
     "phpseclib/phpseclib": "^2.0.31|^3.0.7",
     "psr/container": "^1.1|^2.0",
     "psr/log": "^1.1|^2.0|^3.0",
