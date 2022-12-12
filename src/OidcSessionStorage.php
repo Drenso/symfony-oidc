@@ -16,6 +16,11 @@ class OidcSessionStorage
     $this->getSession()->remove($this->nonceKey());
   }
 
+  public function clearCodeVerifier(): void
+  {
+    $this->getSession()->remove($this->codeVerifierKey());
+  }
+
   public function clearRememberMe(): void
   {
     $this->getSession()->remove($this->rememberKey());
@@ -29,6 +34,11 @@ class OidcSessionStorage
   public function getNonce(): ?string
   {
     return $this->getSession()->get($this->nonceKey());
+  }
+
+  public function getCodeVerifier(): ?string
+  {
+    return $this->getSession()->get($this->codeVerifierKey());
   }
 
   public function getRememberMe(): bool
@@ -46,6 +56,11 @@ class OidcSessionStorage
     $this->getSession()->set($this->nonceKey(), $value);
   }
 
+  public function storeCodeVerifier(string $value): void
+  {
+    $this->getSession()->set($this->codeVerifierKey(), $value);
+  }
+
   public function storeRememberMe(bool $value): void
   {
     $this->getSession()->set($this->rememberKey(), $value);
@@ -59,6 +74,11 @@ class OidcSessionStorage
   private function getSession(): SessionInterface
   {
     return $this->requestStack->getSession();
+  }
+
+  private function codeVerifierKey(): string
+  {
+    return 'drenso.oidc.session.code_verifier.' . $this->clientName;
   }
 
   private function nonceKey(): string
