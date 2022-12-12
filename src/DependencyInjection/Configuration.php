@@ -53,7 +53,7 @@ class Configuration implements ConfigurationInterface
                 ->end() // remember_me_parameter
                 ->scalarNode('code_challenge_method')
                   ->defaultNull()
-                ->end() // remember_me_parameter
+                ->end() // code_challenge_method
               ->end() // array prototype children
             ->end() // array prototype
           ->end() // clients

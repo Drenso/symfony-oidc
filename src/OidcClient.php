@@ -49,9 +49,9 @@ class OidcClient implements OidcClientInterface
       private string $clientSecret,
       private string $redirectRoute,
       private string $rememberMeParameter,
-      private ?string $codeChallengeMethod,
       protected ?OidcWellKnownParserInterface $wellKnownParser = null,
-  ) {
+      private ?string $codeChallengeMethod = null)
+  {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
       throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
@@ -369,9 +369,7 @@ class OidcClient implements OidcClientInterface
       unset($params['client_secret']);
     }
 
-    $codeVerifier = $this->sessionStorage->getCodeVerifier();
-
-    if (null !== $codeVerifier) {
+    if ($codeVerifier = $this->sessionStorage->getCodeVerifier()) {
       unset($params['client_secret']);
 
       $params = array_merge($params, [
