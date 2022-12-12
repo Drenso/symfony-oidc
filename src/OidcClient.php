@@ -29,9 +29,9 @@ use Symfony\Contracts\Cache\ItemInterface;
 class OidcClient implements OidcClientInterface
 {
   /** OIDC configuration values */
-  protected ?array $configuration       = null;
-  private ?string  $cacheKey            = null;
-  private const PKCE_ALGORITHMS         = [
+  protected ?array $configuration = null;
+  private ?string  $cacheKey      = null;
+  private const PKCE_ALGORITHMS   = [
       'S256'  => 'sha256',
       'plain' => false,
   ];
@@ -339,7 +339,11 @@ class OidcClient implements OidcClientInterface
    *
    * @throws OidcException
    */
-  private function requestTokens(string $grantType, string $code = null, string $redirectUrl = null, string $refreshToken = null): OidcTokens
+  private function requestTokens(
+      string $grantType,
+      string $code = null,
+      string $redirectUrl = null,
+      string $refreshToken = null): OidcTokens
   {
     $params = [
         'grant_type'    => $grantType,
