@@ -61,6 +61,7 @@ drenso_oidc:
             #well_known_cache_time: 3600 # Time in seconds, will only be used when symfony/cache is available
             #redirect_route: '/login_check'
             #custom_client_headers: []
+            #code_challenge_method: ~ # Code challenge method, can be null, 'S256' or 'plain'
 
         # Add any extra client
         #link: # Will be accessible using $linkOidcClient
