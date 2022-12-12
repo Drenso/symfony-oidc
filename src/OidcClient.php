@@ -143,10 +143,8 @@ class OidcClient implements OidcClientInterface
     try {
       // Check if code challenge is activated
       if (null !== $this->codeChallengeMethod) {
-        $codeChallenge = $this->generateCodeChallenge();
-
         $data = array_merge($data, [
-            'code_challenge'        => $codeChallenge,
+            'code_challenge'        => $this->generateCodeChallenge(),
             'code_challenge_method' => $this->codeChallengeMethod,
         ]);
       }
