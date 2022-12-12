@@ -5,7 +5,7 @@ namespace Drenso\OidcBundle;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
-use Drenso\OidcBundle\Exception\OidcInvalidCodeChallengeMethodException;
+use Drenso\OidcBundle\Exception\OidcCodeChallengeMethodNotSupportedException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
@@ -57,12 +57,12 @@ class OidcClient implements OidcClientInterface
       throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
     }
 
-    if ($codeChallengeMethod && !in_array($codeChallengeMethod, $this->getCodeChallengeMethodsSupported(), true)) {
-      throw new OidcInvalidCodeChallengeMethodException($codeChallengeMethod);
-    }
-
     if (!$this->wellKnownUrl || filter_var($this->wellKnownUrl, FILTER_VALIDATE_URL) === false) {
       throw new LogicException(sprintf('Invalid well known url (%s) for OIDC', $this->wellKnownUrl));
+    }
+
+    if ($this->codeChallengeMethod && !array_key_exists($this->codeChallengeMethod, self::PKCE_ALGORITHMS)) {
+      throw new LogicException(sprintf('Invalid PKCE algorithm (%s) for code challenge method', $this->codeChallengeMethod));
     }
   }
 
@@ -140,16 +140,11 @@ class OidcClient implements OidcClientInterface
       $data['prompt'] = $prompt;
     }
 
-    try {
-      // Check if code challenge is activated
-      if (null !== $this->codeChallengeMethod) {
-        $data = array_merge($data, [
-            'code_challenge'        => $this->generateCodeChallenge(),
-            'code_challenge_method' => $this->codeChallengeMethod,
-        ]);
-      }
-    } catch (Exception $e) {
-      throw new OidcException('An error occurred during code challenge generation', $e);
+    if ($this->codeChallengeMethod) {
+      $data = array_merge($data, [
+          'code_challenge'        => $this->generateCodeChallenge(),
+          'code_challenge_method' => $this->codeChallengeMethod,
+      ]);
     }
 
     // Store remember me state
@@ -275,16 +270,18 @@ class OidcClient implements OidcClientInterface
   /**
    * Generate a code challenge based on the code verifier and PKCE Algorithm.
    *
-   * @throws OidcException
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   * @throws OidcCodeChallengeMethodNotSupportedException
    */
   private function generateCodeChallenge(): string
   {
     if (null === $this->codeChallengeMethod) {
-      throw new OidcException('Challenge code method is missing.');
+      throw new RuntimeException('Method should not called when a code challenge method isn\'t conmfigured');
     }
 
-    if (!array_key_exists($this->codeChallengeMethod, self::PKCE_ALGORITHMS)) {
-      throw new OidcException(sprintf('Could not find  PKCE algorithm for code challenge method "%s"', $this->codeChallengeMethod));
+    if (!in_array($this->codeChallengeMethod, $this->getCodeChallengeMethodsSupported(), true)) {
+      throw new OidcCodeChallengeMethodNotSupportedException($this->codeChallengeMethod);
     }
 
     $codeVerifier = bin2hex(random_bytes(64));

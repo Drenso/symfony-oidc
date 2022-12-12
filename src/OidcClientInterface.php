@@ -2,6 +2,7 @@
 
 namespace Drenso\OidcBundle;
 
+use Drenso\OidcBundle\Exception\OidcCodeChallengeMethodNotSupportedException;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
@@ -41,9 +42,9 @@ interface OidcClientInterface
    *                                                     presence of the "remember me" parameter in the current request
    * @param array<string, string> $additionalQueryParams additional query parameters which will be added to the generated redirect request
    *
-   * @throws OidcException
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
+   * @throws OidcCodeChallengeMethodNotSupportedException When the IdP doesn't support the request code challenge method
    */
   public function generateAuthorizationRedirect(
       ?string $prompt = null,
