@@ -53,6 +53,10 @@ class Configuration implements ConfigurationInterface
                 ->end() // remember_me_parameter
                 ->scalarNode('code_challenge_method')
                   ->defaultNull()
+                  ->validate()
+                    ->ifNotInArray([null, 'S256', 'plain'])
+                    ->thenInvalid('Invalid code challenge method %s')
+                  ->end()
                 ->end() // code_challenge_method
               ->end() // array prototype children
             ->end() // array prototype
