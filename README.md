@@ -112,6 +112,8 @@ There are a couple of options available for the `oidc` listener.
 | `client`                         | `default`       | The configured OIDC client to use                                                                                                             |
 | `user_identifier_property`       | `sub`           | The OidcUserData property to use as unique user identifier                                                                                    |
 | `enable_remember_me`             | `false`         | Enable "remember me" functionality for authenticator                                                                                          |
+| `enable_end_session_listener`    | `false`         | Enable "logout" functionality for authenticator through the "LogoutEvent"                                                                     |
+| `use_logout_target_path`         | `true`          | Used for the end session event subscriber                                                                                                     |
 | `always_use_default_target_path` | `false`         | Used for the success handler                                                                                                                  |
 | `default_target_path`            | `/`             | Used for the success handler                                                                                                                  |
 | `target_path_parameter`          | `_target_path`  | Used for the success handler                                                                                                                  |
@@ -170,6 +172,53 @@ You can override the `_remember_me` parameter per OIDC client. Just update the `
 Lastly, make sure the Symfony remember me authenticator is enabled, and that you set the `enable_remember_me` option to true for the `oidc` authenticator in `security.yaml`.
 
 When a user is authenticated, you will see the `REMEMBERME` cookie. You can remove the `PHPSESSID` cookie to check whether remember me is working.
+
+### Logout
+
+It is possible to enable "logout" through the `end_session_support` functionality of the Identity Provider, if the `end_session_endpoint` parameter is present in the .well-known endpoint it can be used.
+
+As logging out is fundamentally broken when using single sign-on, this option is disabled by default. This is due to the fact that logging out at the identity provider (for example: Azure, Facebook, etc) cannot guarantee the user is logged out of any other service that the user has authenticated with using the same identity provider.
+
+If you want to enable the "logout" support, simply add `enable_end_session_listener: true` to your oidc listener in the firewall config. It will only work of you enabled the default Symfony `logout: true` setting in your firewall.
+
+By default, the listener will pass the logout `target_path` to the OpenID Provider, so the user gets redirected back to your application after logging out. If you don't want this and want the user to remain at the logout confirmation page of your OpenID Provider, enable the `use_logout_target_path: false` setting.
+
+**_Example: default logout path_**
+
+```yaml
+security:
+  firewalls:
+    main:
+      logout: true
+      oidc:
+        enable_end_session_listener: true
+```
+
+**_Example: custom logout path_**
+
+```yaml
+security:
+  firewalls:
+    main:
+      logout:
+        target: /my_custom_target_path
+      oidc:
+        enable_end_session_listener: true
+```
+
+**_Example: disable redirect to logout `target_path`_**
+
+This will keep the user at the OpenID provider after login out.
+```yaml
+security:
+  firewalls:
+    main:
+      logout: true
+      oidc:
+        enable_end_session_listener: true
+        use_logout_target_path: false
+```
+
 
 ### Client locator
 

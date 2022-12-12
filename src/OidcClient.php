@@ -163,6 +163,28 @@ class OidcClient implements OidcClientInterface
   }
 
   /** {@inheritDoc} */
+  public function generateEndSessionEndpointRedirect(
+      OidcTokens $tokens,
+      ?string $postLogoutRedirectUrl = null,
+      array $additionalQueryParams = []): RedirectResponse
+  {
+    $data = array_merge($additionalQueryParams, [
+        'client_id'     => $this->clientId,
+        'id_token_hint' => $tokens->getIdToken(),
+    ]);
+
+    if (null !== $postLogoutRedirectUrl) {
+      $data = array_merge($data, [
+          'post_logout_redirect_uri' => $postLogoutRedirectUrl,
+      ]);
+    }
+
+    $endpointHasQuery = parse_url($this->getEndSessionEndpoint(), PHP_URL_QUERY);
+
+    return new RedirectResponse(sprintf('%s%s%s', $this->getEndSessionEndpoint(), $endpointHasQuery ? '&' : '?', http_build_query($data)));
+  }
+
+  /** {@inheritDoc} */
   public function retrieveUserInfo(OidcTokens $tokens): OidcUserData
   {
     // Set the authorization header
@@ -190,6 +212,15 @@ class OidcClient implements OidcClientInterface
   protected function getAuthorizationEndpoint(): string
   {
     return $this->getConfigurationValue('authorization_endpoint');
+  }
+
+  /**
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   */
+  protected function getEndSessionEndpoint(): string
+  {
+    return $this->getConfigurationValue('end_session_endpoint');
   }
 
   /**

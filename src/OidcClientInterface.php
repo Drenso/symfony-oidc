@@ -54,6 +54,22 @@ interface OidcClientInterface
   ): RedirectResponse;
 
   /**
+   * Create the redirect that should be followed in order to end the current session.
+   *
+   * @param OidcTokens            $tokens                OidcTokens object containing the information to pass to the end_session endpoint
+   * @param string|null           $postLogoutRedirectUrl Contains the url where the provider redirects the user to after logging out
+   * @param array<string, string> $additionalQueryParams additional query parameters which will be added to the generated redirect request
+   *
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   */
+  public function generateEndSessionEndpointRedirect(
+      OidcTokens $tokens,
+      ?string $postLogoutRedirectUrl,
+      array $additionalQueryParams = [],
+  ): RedirectResponse;
+
+  /**
    * Retrieve the user information.
    *
    * @throws OidcException
