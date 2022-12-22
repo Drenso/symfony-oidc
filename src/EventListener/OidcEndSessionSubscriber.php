@@ -5,11 +5,9 @@ namespace Drenso\OidcBundle\EventListener;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
-use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\OidcClientInterface;
+use Drenso\OidcBundle\Security\Token\OidcToken;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
-use Symfony\Component\Security\Core\Exception\TokenNotFoundException;
 use Symfony\Component\Security\Http\Event\LogoutEvent;
 use Symfony\Component\Security\Http\HttpUtils;
 
@@ -31,15 +29,11 @@ class OidcEndSessionSubscriber implements EventSubscriberInterface
   {
     $token = $event->getToken();
 
-    if (!$token instanceof TokenInterface) {
-      throw new TokenNotFoundException();
+    if (!$token instanceof OidcToken) {
+      return;
     }
 
-    $oidcTokens = $token->getAttribute('auth_data');
-
-    if (!$oidcTokens instanceof OidcTokens) {
-      throw new OidcException('Invalid token object.');
-    }
+    $oidcTokens = $token->getAuthData();
 
     $postLogoutRedirectUrl = null !== $this->logoutTarget ? $this->httpUtils->generateUri($event->getRequest(), $this->logoutTarget) : null;
 
