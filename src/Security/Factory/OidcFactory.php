@@ -70,7 +70,7 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
       $endSessionListenerId = sprintf('%s.%s', DrensoOidcExtension::END_SESSION_LISTENER_ID, $firewallName);
 
       /**
-       * If "use_default_logout_target_path" is true (default) pass the target path to the {@see OidcEndSessionSubscriber}
+       * If "use_logout_target_path" is true (default) pass the target path to the {@see OidcEndSessionSubscriber}
        */
       if ($config['use_logout_target_path']) {
         $logoutTargetPath = $container->getDefinition($logoutListenerId)->getArgument(1);
