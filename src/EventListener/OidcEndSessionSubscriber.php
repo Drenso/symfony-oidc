@@ -18,7 +18,7 @@ class OidcEndSessionSubscriber implements EventSubscriberInterface
   public function __construct(
      private OidcClientInterface $oidcClient,
      private HttpUtils $httpUtils,
-     private string $logoutTarget
+     private ?string $logoutTarget = null
   ) {
   }
 
@@ -41,7 +41,7 @@ class OidcEndSessionSubscriber implements EventSubscriberInterface
       throw new OidcException('Invalid token object.');
     }
 
-    $postLogoutRedirectUrl = $this->httpUtils->generateUri($event->getRequest(), $this->logoutTarget);
+    $postLogoutRedirectUrl = null !== $this->logoutTarget ? $this->httpUtils->generateUri($event->getRequest(), $this->logoutTarget) : null;
 
     $event->setResponse($this->oidcClient->generateEndSessionEndpointRedirect($oidcTokens, $postLogoutRedirectUrl));
   }

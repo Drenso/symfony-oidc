@@ -165,14 +165,19 @@ class OidcClient implements OidcClientInterface
   /** {@inheritDoc} */
   public function generateEndSessionEndpointRedirect(
       OidcTokens $tokens,
-      string $postLogoutRedirectUrl,
+      string $postLogoutRedirectUrl = null,
       array $additionalQueryParams = []
   ): RedirectResponse {
     $data = array_merge($additionalQueryParams, [
         'client_id'                => $this->clientId,
         'id_token_hint'            => $tokens->getIdToken(),
-        'post_logout_redirect_uri' => $postLogoutRedirectUrl,
     ]);
+
+    if (null !== $postLogoutRedirectUrl) {
+      $data = array_merge($data, [
+          'post_logout_redirect_uri' => $postLogoutRedirectUrl,
+      ]);
+    }
 
     $endpointHasQuery = parse_url($this->getEndSessionEndpoint(), PHP_URL_QUERY);
 

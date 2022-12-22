@@ -27,6 +27,7 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
     $this->addOption('user_identifier_property', 'sub');
     $this->addOption('enable_remember_me', false);
     $this->addOption('enable_end_session_listener', false);
+    $this->addOption('use_logout_target_path', true);
   }
 
   public function getPriority(): int
@@ -62,16 +63,27 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
         ->addArgument($config['enable_remember_me']);
 
     $logoutListenerId = sprintf('security.logout.listener.default.%s', $firewallName);
+    $logoutTargetPath = null;
 
     // Check if "logout" config is specified in the firewall and "enable_end_session_listener" is set to true
     if ($config['enable_end_session_listener'] && $container->hasDefinition($logoutListenerId)) {
       $endSessionListenerId = sprintf('%s.%s', DrensoOidcExtension::END_SESSION_LISTENER_ID, $firewallName);
 
-      $container->setDefinition($endSessionListenerId, new Definition(OidcEndSessionSubscriber::class))
+      /**
+       * If "use_default_logout_target_path" is true (default) pass the target path to the {@see OidcEndSessionSubscriber}
+       */
+      if ($config['use_logout_target_path']) {
+        $logoutTargetPath = $container->getDefinition($logoutListenerId)->getArgument(1);
+      }
+
+      $container
+          ->setDefinition($endSessionListenerId, new Definition(OidcEndSessionSubscriber::class))
           ->addArgument($clientReference)
           ->addArgument(new Reference('security.http_utils'))
-          ->addArgument($container->getDefinition($logoutListenerId)->getArgument(1)) // Get the configured logout target path
-          ->addTag('kernel.event_subscriber')
+          ->addArgument($logoutTargetPath) // Set the configured logout target path (null or string)
+          ->addTag('kernel.event_subscriber', [
+              'dispatcher' => sprintf('security.event_dispatcher.%s', $firewallName)
+          ])
         ;
     }
 
