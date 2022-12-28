@@ -63,18 +63,15 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
         ->addArgument($config['enable_remember_me']);
 
     $logoutListenerId = sprintf('security.logout.listener.default.%s', $firewallName);
-    $logoutTargetPath = null;
 
     // Check if "logout" config is specified in the firewall and "enable_end_session_listener" is set to true
     if ($config['enable_end_session_listener'] && $container->hasDefinition($logoutListenerId)) {
       $endSessionListenerId = sprintf('%s.%s', DrensoOidcExtension::END_SESSION_LISTENER_ID, $firewallName);
 
-      /**
-       * If "use_logout_target_path" is true (default) pass the target path to the {@see OidcEndSessionSubscriber}
-       */
-      if ($config['use_logout_target_path']) {
-        $logoutTargetPath = $container->getDefinition($logoutListenerId)->getArgument(1);
-      }
+      /** If "use_logout_target_path" is true (default) pass the target path to the {@see OidcEndSessionSubscriber} */
+      $logoutTargetPath = $config['use_logout_target_path']
+          ? $container->getDefinition($logoutListenerId)->getArgument(1)
+          : null;
 
       $container
           ->setDefinition($endSessionListenerId, new Definition(OidcEndSessionSubscriber::class))

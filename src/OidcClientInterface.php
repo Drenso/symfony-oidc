@@ -65,7 +65,7 @@ interface OidcClientInterface
    */
   public function generateEndSessionEndpointRedirect(
       OidcTokens $tokens,
-      string $postLogoutRedirectUrl,
+      ?string $postLogoutRedirectUrl,
       array $additionalQueryParams = [],
   ): RedirectResponse;
 

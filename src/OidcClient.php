@@ -165,7 +165,7 @@ class OidcClient implements OidcClientInterface
   /** {@inheritDoc} */
   public function generateEndSessionEndpointRedirect(
       OidcTokens $tokens,
-      string $postLogoutRedirectUrl = null,
+      ?string $postLogoutRedirectUrl = null,
       array $additionalQueryParams = []
   ): RedirectResponse {
     $data = array_merge($additionalQueryParams, [
