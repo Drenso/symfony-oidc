@@ -58,6 +58,13 @@ class Configuration implements ConfigurationInterface
                     ->thenInvalid('Invalid code challenge method %s')
                   ->end()
                 ->end() // code_challenge_method
+                ->scalarNode('verify_nonce')
+                  ->defaultValue(true)
+                  ->validate()
+                    ->ifNotInArray([true, false])
+                    ->thenInvalid('Verify nonce must be of type boolean')
+                  ->end()
+                ->end() // verify_nonce
               ->end() // array prototype children
             ->end() // array prototype
           ->end() // clients

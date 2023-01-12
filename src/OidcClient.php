@@ -50,7 +50,9 @@ class OidcClient implements OidcClientInterface
       private string $redirectRoute,
       private string $rememberMeParameter,
       protected ?OidcWellKnownParserInterface $wellKnownParser = null,
-      private ?string $codeChallengeMethod = null)
+      private ?string $codeChallengeMethod = null,
+      private bool $verifyNonce = true
+  )
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
@@ -94,7 +96,8 @@ class OidcClient implements OidcClientInterface
 
     // Request and verify the tokens
     return $this->verifyTokens(
-        $this->requestTokens('authorization_code', $code, $this->getRedirectUrl())
+        $this->requestTokens('authorization_code', $code, $this->getRedirectUrl()),
+        $this->verifyNonce
     );
   }
 
