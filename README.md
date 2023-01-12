@@ -62,7 +62,7 @@ drenso_oidc:
             #redirect_route: '/login_check'
             #custom_client_headers: []
             #code_challenge_method: ~ # Code challenge method, can be null, 'S256' or 'plain'
-            #verify_nonce: # Allow not to check nonce while JWT verification, can be true or false
+            #verify_nonce: true # Whether nonce verification has been enabled
 
         # Add any extra client
         #link: # Will be accessible using $linkOidcClient

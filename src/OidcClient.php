@@ -51,8 +51,7 @@ class OidcClient implements OidcClientInterface
       private string $rememberMeParameter,
       protected ?OidcWellKnownParserInterface $wellKnownParser = null,
       private ?string $codeChallengeMethod = null,
-      private bool $verifyNonce = true
-  )
+      private bool $verifyNonce = true)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
