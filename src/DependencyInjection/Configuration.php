@@ -58,9 +58,9 @@ class Configuration implements ConfigurationInterface
                     ->thenInvalid('Invalid code challenge method %s')
                   ->end()
                 ->end() // code_challenge_method
-                ->booleanNode('verify_nonce')
-                  ->defaultTrue()
-                ->end() // verify_nonce
+                ->booleanNode('disable_nonce')
+                  ->defaultFalse()
+                ->end() // disable_nonce
               ->end() // array prototype children
             ->end() // array prototype
           ->end() // clients

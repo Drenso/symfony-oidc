@@ -51,7 +51,7 @@ class OidcClient implements OidcClientInterface
       private string $rememberMeParameter,
       protected ?OidcWellKnownParserInterface $wellKnownParser = null,
       private ?string $codeChallengeMethod = null,
-      private bool $verifyNonce = true)
+      private bool $disableNonce = false)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
@@ -96,7 +96,7 @@ class OidcClient implements OidcClientInterface
     // Request and verify the tokens
     return $this->verifyTokens(
         $this->requestTokens('authorization_code', $code, $this->getRedirectUrl()),
-        $this->verifyNonce
+        !$this->disableNonce
     );
   }
 
@@ -126,8 +126,11 @@ class OidcClient implements OidcClientInterface
         'redirect_uri'  => $this->getRedirectUrl(),
         'scope'         => implode(' ', $scopes),
         'state'         => $this->generateState(),
-        'nonce'         => $this->generateNonce(),
     ]);
+
+    if (!$this->disableNonce) {
+      $data['nonce'] = $this->generateNonce();
+    }
 
     if ($prompt) {
       $validPrompts = ['none', 'login', 'consent', 'select_account', 'create'];
