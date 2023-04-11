@@ -61,6 +61,12 @@ class Configuration implements ConfigurationInterface
                 ->booleanNode('disable_nonce')
                   ->defaultFalse()
                 ->end() // disable_nonce
+                ->booleanNode('disable_state')
+                  ->defaultFalse()
+                ->end() // disable_state
+                ->booleanNode('disable_basic_auth')
+                  ->defaultFalse()
+                ->end() // disable_basic_auth
               ->end() // array prototype children
             ->end() // array prototype
           ->end() // clients

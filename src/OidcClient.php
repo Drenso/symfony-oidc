@@ -51,7 +51,9 @@ class OidcClient implements OidcClientInterface
       private string $rememberMeParameter,
       protected ?OidcWellKnownParserInterface $wellKnownParser = null,
       private ?string $codeChallengeMethod = null,
-      private bool $disableNonce = false)
+      private bool $disableNonce = false,
+      private bool $disableState = false,
+      private bool $disableBasicAuth = false)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
@@ -80,14 +82,17 @@ class OidcClient implements OidcClientInterface
     if (!$code = $request->query->get('code')) {
       throw new OidcAuthenticationException('Missing code in query');
     }
-    if (!$state = $request->query->get('state')) {
-      throw new OidcAuthenticationException('Missing state in query');
-    }
 
-    // Do a session check
-    if ($state != $this->sessionStorage->getState()) {
-      // Fail silently
-      throw new OidcAuthenticationException('Invalid session state');
+    if (!$this->disableState) {
+        if (!$state = $request->query->get('state')) {
+          throw new OidcAuthenticationException('Missing state in query');
+        }
+
+        // Do a session check
+        if ($state != $this->sessionStorage->getState()) {
+          // Fail silently
+          throw new OidcAuthenticationException('Invalid session state');
+        }
     }
 
     // Clear session after check
@@ -125,8 +130,11 @@ class OidcClient implements OidcClientInterface
         'response_type' => 'code',
         'redirect_uri'  => $this->getRedirectUrl(),
         'scope'         => implode(' ', $scopes),
-        'state'         => $this->generateState(),
     ]);
+
+    if (!$this->disableState) {
+        $data['state'] = $this->generateState();
+    }
 
     if (!$this->disableNonce) {
       $data['nonce'] = $this->generateNonce();
@@ -401,7 +409,7 @@ class OidcClient implements OidcClientInterface
 
     // Use basic auth if offered
     $headers = [];
-    if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods())) {
+    if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods()) && !$this->disableBasicAuth) {
       $headers = ['Authorization: Basic ' . base64_encode(urlencode($this->clientId) . ':' . urlencode($this->clientSecret))];
       unset($params['client_secret']);
     }

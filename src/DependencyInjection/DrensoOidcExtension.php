@@ -79,7 +79,9 @@ class DrensoOidcExtension extends ConfigurableExtension
         ->addArgument($config['remember_me_parameter'])
         ->addArgument($wellKnownParserId ? new Reference($wellKnownParserId) : null)
         ->addArgument($config['code_challenge_method'])
-        ->addArgument($config['disable_nonce']);
+        ->addArgument($config['disable_nonce'])
+        ->addArgument($config['disable_state'])
+        ->addArgument($config['disable_basic_auth']);
 
     $container
         ->registerAliasForArgument($clientId, OidcClientInterface::class, sprintf('%sOidcClient', $name));
