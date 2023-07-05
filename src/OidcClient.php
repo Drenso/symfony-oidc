@@ -159,8 +159,16 @@ class OidcClient implements OidcClientInterface
 
     // Remove security session state
     $session = $this->requestStack->getSession();
-    $session->remove(Security::AUTHENTICATION_ERROR);
-    $session->remove(Security::LAST_USERNAME);
+    $session->remove(defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME')
+        ? \Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR
+      /* @phan-suppress-next-line PhanDeprecatedClassConstant */
+        : Security::AUTHENTICATION_ERROR
+    );
+    $session->remove(defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME')
+        ? \Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME
+      /* @phan-suppress-next-line PhanDeprecatedClassConstant */
+        : Security::LAST_USERNAME
+    );
 
     $endpointHasQuery = parse_url($this->getAuthorizationEndpoint(), PHP_URL_QUERY);
 
