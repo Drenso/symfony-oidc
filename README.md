@@ -112,6 +112,7 @@ There are a couple of options available for the `oidc` listener.
 | `login_path`                     | `/login`        | The path to forward to when authentication is required                                                                                        | 
 | `client`                         | `default`       | The configured OIDC client to use                                                                                                             |
 | `user_identifier_property`       | `sub`           | The OidcUserData property to use as unique user identifier                                                                                    |
+| `user_identifier_from_idtoken`   | `false`         | The identifier is fetched from the id_token instead of userinfo endpoint                                                                      |
 | `enable_remember_me`             | `false`         | Enable "remember me" functionality for authenticator                                                                                          |
 | `enable_end_session_listener`    | `false`         | Enable "logout" functionality for authenticator through the "LogoutEvent"                                                                     |
 | `use_logout_target_path`         | `true`          | Used for the end session event subscriber                                                                                                     |

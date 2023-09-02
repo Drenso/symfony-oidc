@@ -25,6 +25,7 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
     // Set extra options
     $this->addOption('client', 'default');
     $this->addOption('user_identifier_property', 'sub');
+    $this->addOption('user_identifier_from_idtoken', false);
     $this->addOption('enable_remember_me', false);
     $this->addOption('enable_end_session_listener', false);
     $this->addOption('use_logout_target_path', true);
@@ -60,8 +61,10 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
         ->addArgument($config['check_path'])
         ->addArgument($config['login_path'])
         ->addArgument($config['user_identifier_property'])
-        ->addArgument($config['enable_remember_me']);
-
+        ->addArgument($config['enable_remember_me'])
+        ->addArgument($config['user_identifier_from_idtoken'])
+        ->addArgument(new Reference(sprintf("%s.%s", DrensoOidcExtension::JWT_HELPER_ID , $config['client'])))
+    ;
     $logoutListenerId = sprintf('security.logout.listener.default.%s', $firewallName);
 
     // Check if "logout" config is specified in the firewall and "enable_end_session_listener" is set to true

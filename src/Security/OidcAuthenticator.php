@@ -4,6 +4,7 @@ namespace Drenso\OidcBundle\Security;
 
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\OidcClientInterface;
+use Drenso\OidcBundle\OidcJwtHelper;
 use Drenso\OidcBundle\OidcSessionStorage;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Drenso\OidcBundle\Security\Exception\UnsupportedManagerException;
@@ -37,7 +38,10 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       private string $checkPath,
       private string $loginPath,
       private string $userIdentifierProperty,
-      private bool $enableRememberMe)
+      private bool $enableRememberMe,
+      private bool $userIdentifierFromIdToken = false,
+      private ?OidcJwtHelper $jwtHelper = null
+  )
   {
   }
 
@@ -63,8 +67,22 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       // Retrieve the user data with the authentication data
       $userData = $this->oidcClient->retrieveUserInfo($authData);
 
+
+
+      // Look for the user identifier in either the id_token or the userinfo endpoint
+      if ($this->userIdentifierFromIdToken) {
+        if (!$this->jwtHelper) {
+          throw new RuntimeException('Missing required JwtHelper object when retrieving user identifier from token. 
+          Did you extend the authenticator and not provide the JwtHelper?');
+        }
+
+        $userIdentifier = $this->jwtHelper->getIdTokenClaims($authData)->{$this->userIdentifierProperty} ?? null;
+      } else {
+        $userIdentifier = $userData->getUserDataString($this->userIdentifierProperty);
+      }
+
       // Ensure the user exists
-      if (!$userIdentifier = $userData->getUserDataString($this->userIdentifierProperty)) {
+      if (!$userIdentifier) {
         throw new UserNotFoundException(
             sprintf('User identifier property (%s) yielded empty user identifier', $this->userIdentifierProperty));
       }
