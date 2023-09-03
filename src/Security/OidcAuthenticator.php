@@ -10,6 +10,7 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Drenso\OidcBundle\Security\Exception\UnsupportedManagerException;
 use Drenso\OidcBundle\Security\Token\OidcToken;
 use Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface;
+use RuntimeException;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -69,8 +70,10 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       // Look for the user identifier in either the id_token or the userinfo endpoint
       if ($this->userIdentifierFromIdToken) {
         if (!$this->jwtHelper) {
-          throw new RuntimeException('Missing required JwtHelper object when retrieving user identifier from token. 
-          Did you extend the authenticator and not provide the JwtHelper?');
+          throw new RuntimeException(
+              'Missing required JwtHelper object when retrieving user identifier from token. ' .
+              'Did you extend the authenticator yourself and not provide the JwtHelper?'
+          );
         }
 
         $userIdentifier = $this->jwtHelper->getIdTokenClaims($authData)->{$this->userIdentifierProperty} ?? null;
