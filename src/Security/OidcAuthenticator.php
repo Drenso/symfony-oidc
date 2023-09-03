@@ -41,8 +41,7 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       private bool $enableRememberMe,
       private bool $userIdentifierFromIdToken = false,
       private ?OidcJwtHelper $jwtHelper = null
-  )
-  {
+  ) {
   }
 
   public function supports(Request $request): ?bool
@@ -66,8 +65,6 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
 
       // Retrieve the user data with the authentication data
       $userData = $this->oidcClient->retrieveUserInfo($authData);
-
-
 
       // Look for the user identifier in either the id_token or the userinfo endpoint
       if ($this->userIdentifierFromIdToken) {

@@ -179,7 +179,7 @@ class OidcJwtHelper
 
   public function getIdTokenClaims(OidcTokens $tokens): ?object
   {
-      return $this->decodeJwt($tokens->getIdToken(), 1);
+    return $this->decodeJwt($tokens->getIdToken(), 1);
   }
 
   private function getKeyForHeader($keys, $header): object
