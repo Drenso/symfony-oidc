@@ -18,7 +18,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
-use Symfony\Component\Security\Http\Authenticator\AuthenticatorInterface;
+use Symfony\Component\Security\Http\Authenticator\InteractiveAuthenticatorInterface;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\RememberMeBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Badge\UserBadge;
 use Symfony\Component\Security\Http\Authenticator\Passport\Passport;
@@ -27,7 +27,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 use Symfony\Component\Security\Http\HttpUtils;
 
-class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPointInterface
+class OidcAuthenticator implements InteractiveAuthenticatorInterface, AuthenticationEntryPointInterface
 {
   public function __construct(
       private HttpUtils $httpUtils,
@@ -133,5 +133,10 @@ class OidcAuthenticator implements AuthenticatorInterface, AuthenticationEntryPo
       string $firewallName): TokenInterface
   {
     throw new UnsupportedManagerException();
+  }
+
+  public function isInteractive(): bool
+  {
+    return true;
   }
 }
