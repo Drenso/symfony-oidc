@@ -17,7 +17,6 @@ use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\Security\Core\Security;
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Cache\CacheInterface;
@@ -159,16 +158,28 @@ class OidcClient implements OidcClientInterface
 
     // Remove security session state
     $session = $this->requestStack->getSession();
-    $session->remove(defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME')
-        ? \Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR
-      /* @phan-suppress-next-line PhanDeprecatedClassConstant */
-        : Security::AUTHENTICATION_ERROR
-    );
-    $session->remove(defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME')
-        ? \Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME
-      /* @phan-suppress-next-line PhanDeprecatedClassConstant */
-        : Security::LAST_USERNAME
-    );
+
+    // BC for attribute definition
+    $session->remove(match (true) {
+      // Symfony 7
+      defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR') => \Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR,
+      // Symfony 6
+      /* @phan-suppress-next-line PhanUndeclaredConstantOfClass */
+      defined('\Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR') => \Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR,
+      // Symfony 5
+      /* @phan-suppress-next-line PhanUndeclaredClassConstant */
+      default => \Symfony\Component\Security\Core\Security::AUTHENTICATION_ERROR,
+    });
+    $session->remove(match (true) {
+      // Symfony 7
+      defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME') => \Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME,
+      // Symfony 6
+      /* @phan-suppress-next-line PhanUndeclaredConstantOfClass */
+      defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME') => \Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME,
+      // Symfony 5
+      /* @phan-suppress-next-line PhanUndeclaredClassConstant */
+      default => \Symfony\Component\Security\Core\Security::LAST_USERNAME,
+    });
 
     $endpointHasQuery = parse_url($this->getAuthorizationEndpoint(), PHP_URL_QUERY);
 

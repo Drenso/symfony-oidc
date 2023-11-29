@@ -7,6 +7,7 @@
     "phpseclib\\Crypt\\RSA",
     "Psr\\Cache\\InvalidArgumentException",
     "Symfony\\Contracts\\Cache\\CacheInterface",
+    "Symfony\\Component\\Security\\Core\\Security",
     "Symfony\\Component\\Security\\Http\\Authenticator\\Passport\\PassportInterface"
   ],
   "php-core-extensions" : [
