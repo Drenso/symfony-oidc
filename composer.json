@@ -28,7 +28,7 @@
     "ext-openssl": "*",
     "symfony/http-foundation": "^3.4.35 || ^4.2.12 || ^5.0.7",
     "symfony/routing": "^3.4 || ^4.0 || ^5.0",
-    "psr/log": "^1.1",
+    "psr/log": "^1.1 || ^2.0 || ^3.0",
     "phpseclib/phpseclib": "^2.0.31 || ^3.0.7",
     "symfony/dependency-injection": "^3.4.26 || ^4.1.12 || ^5.0",
     "symfony/security-bundle": "^3.4 || ^4.0 || ^5.0",
