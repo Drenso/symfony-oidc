@@ -226,7 +226,7 @@ class OidcClient implements OidcClientInterface
       throw new OidcException('Error retrieving the user info from the endpoint.');
     }
 
-    return new OidcUserData($data);
+    return new OidcUserData($data, $tokens);
   }
 
   /**

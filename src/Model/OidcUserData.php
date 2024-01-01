@@ -10,11 +10,13 @@ class OidcUserData
 {
   private static ?PropertyAccessor $accessor = null;
   private stdClass $userData;
+  private OidcTokens $tokens;
 
-  public function __construct(array $userData)
+  public function __construct(array $userData, OidcTokens $tokens)
   {
     // Cast the array data to a stdClass for easy access
     $this->userData = (object)$userData;
+    $this->tokens = $tokens;
   }
 
   /** Get the OIDC sub claim */
@@ -104,5 +106,10 @@ class OidcUserData
 
     // Cast the user data to a stdClass
     return self::$accessor->getValue($this->userData, $propertyPath);
+  }
+
+  public function getTokens(): OidcTokens
+  {
+    return $this->tokens;
   }
 }
