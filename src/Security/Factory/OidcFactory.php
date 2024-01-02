@@ -43,31 +43,31 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
   }
 
   public function createAuthenticator(
-      ContainerBuilder $container,
-      string $firewallName,
-      array $config,
-      string $userProviderId): string
+    ContainerBuilder $container,
+    string $firewallName,
+    array $config,
+    string $userProviderId): string
   {
     $authenticatorId = sprintf('%s.%s', DrensoOidcExtension::AUTHENTICATOR_ID, $firewallName);
     $clientReference = new Reference(sprintf('%s.%s', DrensoOidcExtension::CLIENT_ID, $config['client']));
 
     $container
-        ->setDefinition($authenticatorId, new ChildDefinition(DrensoOidcExtension::AUTHENTICATOR_ID))
-        ->addArgument(new Reference('security.http_utils'))
-        ->addArgument($clientReference)
-        ->addArgument(new Reference(sprintf('%s.%s', DrensoOidcExtension::SESSION_STORAGE_ID, $config['client'])))
-        ->addArgument(new Reference($userProviderId))
-        ->addArgument(new Reference($this->createAuthenticationSuccessHandler($container, $firewallName, $config)))
-        ->addArgument(new Reference($this->createAuthenticationFailureHandler($container, $firewallName, $config)))
-        ->addArgument($config['check_path'])
-        ->addArgument($config['login_path'])
-        ->addArgument($config['user_identifier_property'])
-        ->addArgument($config['enable_remember_me'])
-        ->addArgument($config['user_identifier_from_idtoken'])
-        ->addArgument(new Reference(
-            sprintf('%s.%s', DrensoOidcExtension::JWT_HELPER_ID, $config['client']),
-            ContainerInterface::NULL_ON_INVALID_REFERENCE
-        ));
+      ->setDefinition($authenticatorId, new ChildDefinition(DrensoOidcExtension::AUTHENTICATOR_ID))
+      ->addArgument(new Reference('security.http_utils'))
+      ->addArgument($clientReference)
+      ->addArgument(new Reference(sprintf('%s.%s', DrensoOidcExtension::SESSION_STORAGE_ID, $config['client'])))
+      ->addArgument(new Reference($userProviderId))
+      ->addArgument(new Reference($this->createAuthenticationSuccessHandler($container, $firewallName, $config)))
+      ->addArgument(new Reference($this->createAuthenticationFailureHandler($container, $firewallName, $config)))
+      ->addArgument($config['check_path'])
+      ->addArgument($config['login_path'])
+      ->addArgument($config['user_identifier_property'])
+      ->addArgument($config['enable_remember_me'])
+      ->addArgument($config['user_identifier_from_idtoken'])
+      ->addArgument(new Reference(
+        sprintf('%s.%s', DrensoOidcExtension::JWT_HELPER_ID, $config['client']),
+        ContainerInterface::NULL_ON_INVALID_REFERENCE
+      ));
 
     $logoutListenerId = sprintf('security.logout.listener.default.%s', $firewallName);
 
@@ -81,14 +81,14 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
           : null;
 
       $container
-          ->setDefinition($endSessionListenerId, new Definition(OidcEndSessionSubscriber::class))
-          ->addArgument($clientReference)
-          ->addArgument(new Reference('security.http_utils'))
-          ->addArgument($logoutTargetPath) // Set the configured logout target path (null or string)
-          ->addTag('kernel.event_subscriber', [
-              'dispatcher' => sprintf('security.event_dispatcher.%s', $firewallName),
-          ])
-        ;
+        ->setDefinition($endSessionListenerId, new Definition(OidcEndSessionSubscriber::class))
+        ->addArgument($clientReference)
+        ->addArgument(new Reference('security.http_utils'))
+        ->addArgument($logoutTargetPath) // Set the configured logout target path (null or string)
+        ->addTag('kernel.event_subscriber', [
+          'dispatcher' => sprintf('security.event_dispatcher.%s', $firewallName),
+        ])
+      ;
     }
 
     return $authenticatorId;
@@ -100,10 +100,10 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
    * @todo: Remove when dropping support for Symfony 5.4
    */
   protected function createAuthProvider(
-      ContainerBuilder $container,
-      string $id,
-      array $config,
-      string $userProviderId): string
+    ContainerBuilder $container,
+    string $id,
+    array $config,
+    string $userProviderId): string
   {
     throw new UnsupportedManagerException();
   }

@@ -98,9 +98,9 @@ class OidcUserData
   public function getUserData(string $propertyPath): mixed
   {
     self::$accessor ??= PropertyAccess::createPropertyAccessorBuilder()
-        ->disableExceptionOnInvalidIndex()
-        ->disableExceptionOnInvalidPropertyPath()
-        ->getPropertyAccessor();
+      ->disableExceptionOnInvalidIndex()
+      ->disableExceptionOnInvalidPropertyPath()
+      ->getPropertyAccessor();
 
     // Cast the user data to a stdClass
     return self::$accessor->getValue($this->userData, $propertyPath);

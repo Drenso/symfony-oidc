@@ -14,9 +14,9 @@ use RuntimeException;
 class OidcJwtHelper
 {
   public function __construct(
-      protected OidcUrlFetcher $urlFetcher,
-      protected OidcSessionStorage $sessionStorage,
-      private string $clientId)
+    protected OidcUrlFetcher $urlFetcher,
+    protected OidcSessionStorage $sessionStorage,
+    private string $clientId)
   {
   }
 
@@ -90,7 +90,7 @@ class OidcJwtHelper
       }
       $len            = ((int)$bit) / 16;
       $expectedAtHash = self::urlEncode(
-          substr(hash('sha' . $bit, $tokens->getAccessToken(), true), 0, $len));
+        substr(hash('sha' . $bit, $tokens->getAccessToken(), true), 0, $len));
     }
 
     // Get and remove nonce from session
@@ -101,7 +101,7 @@ class OidcJwtHelper
 
     /* @noinspection PhpUndefinedVariableInspection */
     return ($claims->iss == $issuer)
-        && (($claims->aud == $this->clientId) || (in_array($this->clientId, $claims->aud)))
+        && (($claims->aud == $this->clientId) || in_array($this->clientId, $claims->aud))
         && (!$verifyNonce || $claims->nonce == $nonce)
         && (!isset($claims->exp) || $claims->exp >= time())
         && (!isset($claims->nbf) || $claims->nbf <= time())
@@ -153,8 +153,8 @@ class OidcJwtHelper
     if (class_exists(RSA::class)) {
       /** @phan-suppress-next-line PhanUndeclaredMethod */
       $rsa = RSA::load($public_key_xml)
-          ->withPadding(RSA::ENCRYPTION_PKCS1|RSA::SIGNATURE_PKCS1)
-          ->withHash($hashtype);
+        ->withPadding(RSA::ENCRYPTION_PKCS1|RSA::SIGNATURE_PKCS1)
+        ->withHash($hashtype);
     } elseif (class_exists('\phpseclib\Crypt\RSA')) {
       /** @phan-suppress-next-line PhanUndeclaredClassMethod */
       $rsa = new \phpseclib\Crypt\RSA();

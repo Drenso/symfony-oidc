@@ -14,9 +14,9 @@ use Symfony\Component\Security\Http\HttpUtils;
 class OidcEndSessionSubscriber implements EventSubscriberInterface
 {
   public function __construct(
-      private OidcClientInterface $oidcClient,
-      private HttpUtils $httpUtils,
-      private ?string $logoutTarget = null)
+    private OidcClientInterface $oidcClient,
+    private HttpUtils $httpUtils,
+    private ?string $logoutTarget = null)
   {
   }
 
@@ -38,8 +38,8 @@ class OidcEndSessionSubscriber implements EventSubscriberInterface
         : null;
 
     $event->setResponse($this->oidcClient->generateEndSessionEndpointRedirect(
-        $token->getAuthData(),
-        $postLogoutRedirectUrl
+      $token->getAuthData(),
+      $postLogoutRedirectUrl
     ));
   }
 

@@ -29,28 +29,28 @@ class OidcClient implements OidcClientInterface
 {
   /** OIDC configuration values */
   protected ?array $configuration = null;
-  private ?string  $cacheKey      = null;
+  private ?string $cacheKey       = null;
   private const PKCE_ALGORITHMS   = [
-      'S256'  => 'sha256',
-      'plain' => false,
+    'S256'  => 'sha256',
+    'plain' => false,
   ];
 
   public function __construct(
-      protected RequestStack $requestStack,
-      protected HttpUtils $httpUtils,
-      protected ?CacheInterface $wellKnownCache,
-      protected OidcUrlFetcher $urlFetcher,
-      protected OidcSessionStorage $sessionStorage,
-      protected OidcJwtHelper $jwtHelper,
-      protected string $wellKnownUrl,
-      private ?int $wellKnownCacheTime,
-      private string $clientId,
-      private string $clientSecret,
-      private string $redirectRoute,
-      private string $rememberMeParameter,
-      protected ?OidcWellKnownParserInterface $wellKnownParser = null,
-      private ?string $codeChallengeMethod = null,
-      private bool $disableNonce = false)
+    protected RequestStack $requestStack,
+    protected HttpUtils $httpUtils,
+    protected ?CacheInterface $wellKnownCache,
+    protected OidcUrlFetcher $urlFetcher,
+    protected OidcSessionStorage $sessionStorage,
+    protected OidcJwtHelper $jwtHelper,
+    protected string $wellKnownUrl,
+    private ?int $wellKnownCacheTime,
+    private string $clientId,
+    private string $clientSecret,
+    private string $redirectRoute,
+    private string $rememberMeParameter,
+    protected ?OidcWellKnownParserInterface $wellKnownParser = null,
+    private ?string $codeChallengeMethod = null,
+    private bool $disableNonce = false)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
@@ -66,13 +66,12 @@ class OidcClient implements OidcClientInterface
     }
   }
 
-  /** {@inheritDoc} */
   public function authenticate(Request $request): OidcTokens
   {
     // Check whether the request has an error state
     if ($request->request->has('error')) {
       throw new OidcAuthenticationException(sprintf('OIDC error: %s. Description: %s.',
-          $request->request->get('error', ''), $request->request->get('error_description', '')));
+        $request->request->get('error', ''), $request->request->get('error_description', '')));
     }
 
     // Check whether the request contains the required state and code keys
@@ -94,12 +93,11 @@ class OidcClient implements OidcClientInterface
 
     // Request and verify the tokens
     return $this->verifyTokens(
-        $this->requestTokens('authorization_code', $code, $this->getRedirectUrl()),
-        !$this->disableNonce
+      $this->requestTokens('authorization_code', $code, $this->getRedirectUrl()),
+      !$this->disableNonce
     );
   }
 
-  /** {@inheritDoc} */
   public function refreshTokens(string $refreshToken): OidcTokens
   {
     // Clear session after check
@@ -107,24 +105,23 @@ class OidcClient implements OidcClientInterface
 
     // Request and verify the tokens
     return $this->verifyTokens(
-        $this->requestTokens('refresh_token', null, null, $refreshToken),
-        verifyNonce: false
+      $this->requestTokens('refresh_token', null, null, $refreshToken),
+      verifyNonce: false
     );
   }
 
-  /** {@inheritDoc} */
   public function generateAuthorizationRedirect(
-      ?string $prompt = null,
-      array $scopes = ['openid'],
-      bool $forceRememberMe = false,
-      array $additionalQueryParams = []): RedirectResponse
+    ?string $prompt = null,
+    array $scopes = ['openid'],
+    bool $forceRememberMe = false,
+    array $additionalQueryParams = []): RedirectResponse
   {
     $data = array_merge($additionalQueryParams, [
-        'client_id'     => $this->clientId,
-        'response_type' => 'code',
-        'redirect_uri'  => $this->getRedirectUrl(),
-        'scope'         => implode(' ', $scopes),
-        'state'         => $this->generateState(),
+      'client_id'     => $this->clientId,
+      'response_type' => 'code',
+      'redirect_uri'  => $this->getRedirectUrl(),
+      'scope'         => implode(' ', $scopes),
+      'state'         => $this->generateState(),
     ]);
 
     if (!$this->disableNonce) {
@@ -135,9 +132,9 @@ class OidcClient implements OidcClientInterface
       $validPrompts = ['none', 'login', 'consent', 'select_account', 'create'];
       if (!in_array($prompt, $validPrompts)) {
         throw new InvalidArgumentException(sprintf(
-            'The prompt parameter need to be one of ("%s"), but "%s" given',
-            implode('", "', $validPrompts),
-            $prompt
+          'The prompt parameter need to be one of ("%s"), but "%s" given',
+          implode('", "', $validPrompts),
+          $prompt
         ));
       }
 
@@ -146,8 +143,8 @@ class OidcClient implements OidcClientInterface
 
     if ($this->codeChallengeMethod) {
       $data = array_merge($data, [
-          'code_challenge'        => $this->generateCodeChallenge(),
-          'code_challenge_method' => $this->codeChallengeMethod,
+        'code_challenge'        => $this->generateCodeChallenge(),
+        'code_challenge_method' => $this->codeChallengeMethod,
       ]);
     }
 
@@ -186,20 +183,19 @@ class OidcClient implements OidcClientInterface
     return new RedirectResponse(sprintf('%s%s%s', $this->getAuthorizationEndpoint(), $endpointHasQuery ? '&' : '?', http_build_query($data)));
   }
 
-  /** {@inheritDoc} */
   public function generateEndSessionEndpointRedirect(
-      OidcTokens $tokens,
-      ?string $postLogoutRedirectUrl = null,
-      array $additionalQueryParams = []): RedirectResponse
+    OidcTokens $tokens,
+    ?string $postLogoutRedirectUrl = null,
+    array $additionalQueryParams = []): RedirectResponse
   {
     $data = array_merge($additionalQueryParams, [
-        'client_id'     => $this->clientId,
-        'id_token_hint' => $tokens->getIdToken(),
+      'client_id'     => $this->clientId,
+      'id_token_hint' => $tokens->getIdToken(),
     ]);
 
     if (null !== $postLogoutRedirectUrl) {
       $data = array_merge($data, [
-          'post_logout_redirect_uri' => $postLogoutRedirectUrl,
+        'post_logout_redirect_uri' => $postLogoutRedirectUrl,
       ]);
     }
 
@@ -208,7 +204,6 @@ class OidcClient implements OidcClientInterface
     return new RedirectResponse(sprintf('%s%s%s', $this->getEndSessionEndpoint(), $endpointHasQuery ? '&' : '?', http_build_query($data)));
   }
 
-  /** {@inheritDoc} */
   public function retrieveUserInfo(OidcTokens $tokens): OidcUserData
   {
     // Set the authorization header
@@ -395,15 +390,15 @@ class OidcClient implements OidcClientInterface
    * @throws OidcException
    */
   private function requestTokens(
-      string $grantType,
-      string $code = null,
-      string $redirectUrl = null,
-      string $refreshToken = null): OidcTokens
+    string $grantType,
+    ?string $code = null,
+    ?string $redirectUrl = null,
+    ?string $refreshToken = null): OidcTokens
   {
     $params = [
-        'grant_type'    => $grantType,
-        'client_id'     => $this->clientId,
-        'client_secret' => $this->clientSecret,
+      'grant_type'    => $grantType,
+      'client_id'     => $this->clientId,
+      'client_secret' => $this->clientSecret,
     ];
 
     if (null !== $code) {
@@ -430,7 +425,7 @@ class OidcClient implements OidcClientInterface
       unset($params['client_secret']);
 
       $params = array_merge($params, [
-          'code_verifier' => $codeVerifier,
+        'code_verifier' => $codeVerifier,
       ]);
     }
 

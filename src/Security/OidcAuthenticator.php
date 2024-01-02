@@ -30,18 +30,18 @@ use Symfony\Component\Security\Http\HttpUtils;
 class OidcAuthenticator implements InteractiveAuthenticatorInterface, AuthenticationEntryPointInterface
 {
   public function __construct(
-      private HttpUtils $httpUtils,
-      private OidcClientInterface $oidcClient,
-      private OidcSessionStorage $sessionStorage,
-      private OidcUserProviderInterface $oidcUserProvider,
-      private AuthenticationSuccessHandlerInterface $successHandler,
-      private AuthenticationFailureHandlerInterface $failureHandler,
-      private string $checkPath,
-      private string $loginPath,
-      private string $userIdentifierProperty,
-      private bool $enableRememberMe,
-      private bool $userIdentifierFromIdToken = false,
-      private ?OidcJwtHelper $jwtHelper = null
+    private HttpUtils $httpUtils,
+    private OidcClientInterface $oidcClient,
+    private OidcSessionStorage $sessionStorage,
+    private OidcUserProviderInterface $oidcUserProvider,
+    private AuthenticationSuccessHandlerInterface $successHandler,
+    private AuthenticationFailureHandlerInterface $failureHandler,
+    private string $checkPath,
+    private string $loginPath,
+    private string $userIdentifierProperty,
+    private bool $enableRememberMe,
+    private bool $userIdentifierFromIdToken = false,
+    private ?OidcJwtHelper $jwtHelper = null
   ) {
   }
 
@@ -53,7 +53,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
         && $request->query->has('state');
   }
 
-  public function start(Request $request, AuthenticationException $authException = null): Response
+  public function start(Request $request, ?AuthenticationException $authException = null): Response
   {
     return $this->httpUtils->createRedirectResponse($request, $this->loginPath);
   }
@@ -71,8 +71,8 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
       if ($this->userIdentifierFromIdToken) {
         if (!$this->jwtHelper) {
           throw new RuntimeException(
-              'Missing required JwtHelper object when retrieving user identifier from token. ' .
-              'Did you extend the authenticator yourself and not provide the JwtHelper?'
+            'Missing required JwtHelper object when retrieving user identifier from token. ' .
+            'Did you extend the authenticator yourself and not provide the JwtHelper?'
           );
         }
 
@@ -84,14 +84,14 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
       // Ensure the user exists
       if (!$userIdentifier) {
         throw new UserNotFoundException(
-            sprintf('User identifier property (%s) yielded empty user identifier', $this->userIdentifierProperty));
+          sprintf('User identifier property (%s) yielded empty user identifier', $this->userIdentifierProperty));
       }
       $this->oidcUserProvider->ensureUserExists($userIdentifier, $userData);
 
       // Create the passport
       $passport = new SelfValidatingPassport(new UserBadge(
-          $userIdentifier,
-          fn (string $userIdentifier) => $this->oidcUserProvider->loadOidcUser($userIdentifier),
+        $userIdentifier,
+        fn (string $userIdentifier) => $this->oidcUserProvider->loadOidcUser($userIdentifier),
       ));
       $passport->setAttribute(OidcToken::AUTH_DATA_ATTR, $authData);
       $passport->setAttribute(OidcToken::USER_DATA_ATTR, $userData);
@@ -129,8 +129,8 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
    * @phan-suppress PhanUndeclaredTypeParameter
    */
   public function createAuthenticatedToken(
-      PassportInterface $passport,
-      string $firewallName): TokenInterface
+    PassportInterface $passport,
+    string $firewallName): TokenInterface
   {
     throw new UnsupportedManagerException();
   }

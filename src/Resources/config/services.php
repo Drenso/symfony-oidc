@@ -11,34 +11,35 @@ use Symfony\Component\DependencyInjection\Loader\Configurator\ContainerConfigura
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\HttpUtils;
 use Symfony\Contracts\Cache\CacheInterface;
+
 use function Symfony\Component\DependencyInjection\Loader\Configurator\service;
 
 return function (ContainerConfigurator $configurator): void {
   $configurator->services()
-      ->set(DrensoOidcExtension::AUTHENTICATOR_ID, OidcAuthenticator::class)
-        ->abstract()
+    ->set(DrensoOidcExtension::AUTHENTICATOR_ID, OidcAuthenticator::class)
+    ->abstract()
 
-      ->set(DrensoOidcExtension::URL_FETCHER_ID, OidcUrlFetcher::class)
-        ->abstract()
+    ->set(DrensoOidcExtension::URL_FETCHER_ID, OidcUrlFetcher::class)
+    ->abstract()
 
-      ->set(DrensoOidcExtension::SESSION_STORAGE_ID, OidcSessionStorage::class)
-      ->args([
-          service(RequestStack::class),
-      ])
-      ->abstract()
+    ->set(DrensoOidcExtension::SESSION_STORAGE_ID, OidcSessionStorage::class)
+    ->args([
+      service(RequestStack::class),
+    ])
+    ->abstract()
 
-      ->set(DrensoOidcExtension::JWT_HELPER_ID, OidcJwtHelper::class)
-        ->abstract()
+    ->set(DrensoOidcExtension::JWT_HELPER_ID, OidcJwtHelper::class)
+    ->abstract()
 
-      ->set(DrensoOidcExtension::CLIENT_ID, OidcClient::class)
-        ->args([
-            service(RequestStack::class),
-            service(HttpUtils::class),
-            service(CacheInterface::class)->nullOnInvalid(),
-        ])
-        ->abstract()
+    ->set(DrensoOidcExtension::CLIENT_ID, OidcClient::class)
+    ->args([
+      service(RequestStack::class),
+      service(HttpUtils::class),
+      service(CacheInterface::class)->nullOnInvalid(),
+    ])
+    ->abstract()
 
-      ->set(DrensoOidcExtension::CLIENT_LOCATOR_ID, OidcClientLocator::class)
-      ->alias(OidcClientLocator::class, DrensoOidcExtension::CLIENT_LOCATOR_ID)
+    ->set(DrensoOidcExtension::CLIENT_LOCATOR_ID, OidcClientLocator::class)
+    ->alias(OidcClientLocator::class, DrensoOidcExtension::CLIENT_LOCATOR_ID)
   ;
 };

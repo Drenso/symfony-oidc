@@ -47,10 +47,10 @@ interface OidcClientInterface
    * @throws OidcCodeChallengeMethodNotSupportedException When the IdP doesn't support the request code challenge method
    */
   public function generateAuthorizationRedirect(
-      ?string $prompt = null,
-      array $scopes = ['openid'],
-      bool $forceRememberMe = false,
-      array $additionalQueryParams = [],
+    ?string $prompt = null,
+    array $scopes = ['openid'],
+    bool $forceRememberMe = false,
+    array $additionalQueryParams = [],
   ): RedirectResponse;
 
   /**
@@ -64,9 +64,9 @@ interface OidcClientInterface
    * @throws OidcConfigurationResolveException
    */
   public function generateEndSessionEndpointRedirect(
-      OidcTokens $tokens,
-      ?string $postLogoutRedirectUrl,
-      array $additionalQueryParams = [],
+    OidcTokens $tokens,
+    ?string $postLogoutRedirectUrl,
+    array $additionalQueryParams = [],
   ): RedirectResponse;
 
   /**
