@@ -252,6 +252,6 @@ Some providers return incorrect or incomplete well known information. You can co
 
 ## Known usages
 
-A list of Open source Projects that use this Symfony OIDC bundle:
+A list of open source projects that use this bundle:
 
 - Zitadel's [example-symfony-oidc](https://github.com/zitadel/example-symfony-oidc): A template repository with basic OIDC authentication, user model, roles and example pages.
