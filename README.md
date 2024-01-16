@@ -249,3 +249,9 @@ However, if you need to refresh the tokens yourself for your implementation, you
 ### Parsing well-known information
 
 Some providers return incorrect or incomplete well known information. You can configure a custom well-known parser for the `OidcClient` by setting the `well_known_parser` to a service id which implements the `OidcWellKnownParserInterface`.
+
+## Known usages
+
+A list of open source projects that use this bundle:
+
+- Zitadel's [example-symfony-oidc](https://github.com/zitadel/example-symfony-oidc): A template repository with basic OIDC authentication, user model, roles and example pages.
