@@ -46,8 +46,6 @@ composer-require-checker:
     - tags
 
 composer-unused:
-  before_script:
-    - curl -JOL https://github.com/composer-unused/composer-unused/releases/download/0.7.7/composer-unused.phar
   except:
     - master
     - tags
