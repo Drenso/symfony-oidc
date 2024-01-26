@@ -3,10 +3,10 @@
 declare(strict_types=1);
 
 use Rector\Config\RectorConfig;
-use Rector\Core\ValueObject\PhpVersion;
 use Rector\Php73\Rector\FuncCall\JsonThrowOnErrorRector;
 use Rector\PostRector\Rector\NameImportingPostRector;
 use Rector\Set\ValueObject\LevelSetList;
+use Rector\ValueObject\PhpVersion;
 
 return static function (RectorConfig $rc): void {
   $rc->paths(['./src']);
