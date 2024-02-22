@@ -5,11 +5,11 @@
 /composer.lock
 composer.phar
 
-# Ignore composer
-composer.phar
-
 # Vendor
 /vendor
 
 # PHP-CS-Fixer cache
 .php-cs-fixer.cache
+
+# Rector cache
+/var/cache/rector
