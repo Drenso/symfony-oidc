@@ -9,7 +9,7 @@ use Symfony\Component\PropertyAccess\PropertyAccessor;
 class OidcUserData
 {
   private static ?PropertyAccessor $accessor = null;
-  private stdClass $userData;
+  private readonly stdClass $userData;
 
   public function __construct(array $userData)
   {

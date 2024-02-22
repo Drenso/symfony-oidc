@@ -7,7 +7,7 @@ use Symfony\Component\HttpFoundation\Session\SessionInterface;
 
 class OidcSessionStorage
 {
-  public function __construct(private RequestStack $requestStack, private string $clientName)
+  public function __construct(private readonly RequestStack $requestStack, private readonly string $clientName)
   {
   }
 

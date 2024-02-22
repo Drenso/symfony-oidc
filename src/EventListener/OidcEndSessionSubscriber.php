@@ -14,9 +14,9 @@ use Symfony\Component\Security\Http\HttpUtils;
 class OidcEndSessionSubscriber implements EventSubscriberInterface
 {
   public function __construct(
-    private OidcClientInterface $oidcClient,
-    private HttpUtils $httpUtils,
-    private ?string $logoutTarget = null)
+    private readonly OidcClientInterface $oidcClient,
+    private readonly HttpUtils $httpUtils,
+    private readonly ?string $logoutTarget = null)
   {
   }
 

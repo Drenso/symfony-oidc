@@ -11,8 +11,8 @@ use stdClass;
  */
 class OidcTokens
 {
-  private string $accessToken;
-  private string $idToken;
+  private readonly string $accessToken;
+  private readonly string $idToken;
   private ?DateTimeImmutable $expiry = null;
   private ?string $refreshToken      = null;
   /** @var string[]|null */
@@ -38,7 +38,7 @@ class OidcTokens
     }
 
     if (isset($tokens->scope)) {
-      $this->scope = explode(' ', $tokens->scope);
+      $this->scope = explode(' ', (string)$tokens->scope);
     }
   }
 

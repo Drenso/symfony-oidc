@@ -8,7 +8,7 @@ use Throwable;
 
 class OidcClientLocator
 {
-  public function __construct(private ContainerInterface $locator, private string $defaultClient)
+  public function __construct(private readonly ContainerInterface $locator, private readonly string $defaultClient)
   {
   }
 

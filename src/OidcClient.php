@@ -43,14 +43,14 @@ class OidcClient implements OidcClientInterface
     protected OidcSessionStorage $sessionStorage,
     protected OidcJwtHelper $jwtHelper,
     protected string $wellKnownUrl,
-    private ?int $wellKnownCacheTime,
-    private string $clientId,
-    private string $clientSecret,
-    private string $redirectRoute,
-    private string $rememberMeParameter,
+    private readonly ?int $wellKnownCacheTime,
+    private readonly string $clientId,
+    private readonly string $clientSecret,
+    private readonly string $redirectRoute,
+    private readonly string $rememberMeParameter,
     protected ?OidcWellKnownParserInterface $wellKnownParser = null,
-    private ?string $codeChallengeMethod = null,
-    private bool $disableNonce = false)
+    private readonly ?string $codeChallengeMethod = null,
+    private readonly bool $disableNonce = false)
   {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {

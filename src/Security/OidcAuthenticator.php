@@ -30,18 +30,18 @@ use Symfony\Component\Security\Http\HttpUtils;
 class OidcAuthenticator implements InteractiveAuthenticatorInterface, AuthenticationEntryPointInterface
 {
   public function __construct(
-    private HttpUtils $httpUtils,
-    private OidcClientInterface $oidcClient,
-    private OidcSessionStorage $sessionStorage,
-    private OidcUserProviderInterface $oidcUserProvider,
-    private AuthenticationSuccessHandlerInterface $successHandler,
-    private AuthenticationFailureHandlerInterface $failureHandler,
-    private string $checkPath,
-    private string $loginPath,
-    private string $userIdentifierProperty,
-    private bool $enableRememberMe,
-    private bool $userIdentifierFromIdToken = false,
-    private ?OidcJwtHelper $jwtHelper = null
+    private readonly HttpUtils $httpUtils,
+    private readonly OidcClientInterface $oidcClient,
+    private readonly OidcSessionStorage $sessionStorage,
+    private readonly OidcUserProviderInterface $oidcUserProvider,
+    private readonly AuthenticationSuccessHandlerInterface $successHandler,
+    private readonly AuthenticationFailureHandlerInterface $failureHandler,
+    private readonly string $checkPath,
+    private readonly string $loginPath,
+    private readonly string $userIdentifierProperty,
+    private readonly bool $enableRememberMe,
+    private readonly bool $userIdentifierFromIdToken = false,
+    private readonly ?OidcJwtHelper $jwtHelper = null
   ) {
   }
 

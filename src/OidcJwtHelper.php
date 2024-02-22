@@ -16,7 +16,7 @@ class OidcJwtHelper
   public function __construct(
     protected OidcUrlFetcher $urlFetcher,
     protected OidcSessionStorage $sessionStorage,
-    private string $clientId)
+    private readonly string $clientId)
   {
   }
 
@@ -83,7 +83,7 @@ class OidcJwtHelper
     if (isset($claims->at_hash) && $tokens->getAccessToken() !== null) {
       $accessTokenHeader = $this->getAccessTokenHeader($tokens);
       if (isset($accessTokenHeader->alg) && $accessTokenHeader->alg != 'none') {
-        $bit = substr($accessTokenHeader->alg, 2, 3);
+        $bit = substr((string)$accessTokenHeader->alg, 2, 3);
       } else {
         // TODO: Error case. throw exception???
         $bit = '256';
@@ -130,7 +130,7 @@ class OidcJwtHelper
       throw new OidcAuthenticationException('No support for signature type: ' . $header->alg);
     }
 
-    $hashType = 'sha' . substr($header->alg, 2);
+    $hashType = 'sha' . substr((string)$header->alg, 2);
 
     return $this->verifyRsaJwtSignature($hashType, $this->getKeyForHeader($jwks->keys, $header), $payload, $signature);
   }
