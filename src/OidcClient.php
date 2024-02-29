@@ -280,7 +280,7 @@ class OidcClient implements OidcClientInterface
    */
   protected function getTokenEndpointAuthMethods(): array
   {
-    return $this->getConfigurationValue('token_endpoint_auth_methods_supported');
+    return $this->getConfigurationValue('token_endpoint_auth_methods_supported', ['client_secret_basic']);
   }
 
   /**
@@ -372,13 +372,13 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  private function getConfigurationValue(string $key): mixed
+  private function getConfigurationValue(string $key, mixed $default = null): mixed
   {
     // Resolve the configuration
     $this->resolveConfiguration();
 
     if (!array_key_exists($key, $this->configuration)) {
-      throw new OidcConfigurationException($key);
+      return $default ?? throw new OidcConfigurationException($key);
     }
 
     return $this->configuration[$key];
