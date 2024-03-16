@@ -78,7 +78,6 @@ class OidcJwtHelper
     bool $verifyNonce): void
   {
     $validator = new Validator();
-    $jwks      = $this->getJwks($jwksUri);
 
     // Only validate id and access tokens
     foreach ([OidcTokenType::ID, OidcTokenType::ACCESS] as $tokenType) {
@@ -89,7 +88,7 @@ class OidcJwtHelper
       // Parse the token
       $token  = self::parseToken($rawToken);
       $signer = $this->getTokenSigner($token);
-      $key    = $this->getTokenKey($jwks, $token);
+      $key    = $this->getTokenKey($jwksUri, $token);
 
       if (!$validator->validate($token, new SignedWith($signer, $key))) {
         throw new OidcAuthenticationException('Unable to verify signature');
@@ -131,11 +130,25 @@ class OidcJwtHelper
     }
   }
 
-  private function getTokenKey(array $jwks, Token $token): Key
+  /** @throws OidcConfigurationResolveException */
+  private function getTokenKey(string $jwksUri, Token $token): Key
   {
     try {
+      $jwks                = $this->getJwks($jwksUri);
+      $matchingJwkForToken = $this->getMatchingJwkForToken($jwks, $token);
+    } catch (OidcAuthenticationException $e) {
+      if (!$this->isCacheEnabled()) {
+        throw $e;
+      }
+
+      // Try again, but force without cache in case a new key was added
+      $jwks                = $this->getJwks($jwksUri, true);
+      $matchingJwkForToken = $this->getMatchingJwkForToken($jwks, $token);
+    }
+
+    try {
       // phpseclib is used to load the JWK, but it requires a single JWK to be JSON encoded
-      $jwkData = json_encode(['keys' => [$this->getMatchingJwkForToken($jwks, $token)]], JSON_THROW_ON_ERROR);
+      $jwkData = json_encode(['keys' => [$matchingJwkForToken]], JSON_THROW_ON_ERROR);
     } catch (JsonException $e) {
       throw new OidcAuthenticationException('Failed to generate JWK json data', previous: $e);
     }
@@ -202,7 +215,7 @@ class OidcJwtHelper
   }
 
   /** @throws OidcConfigurationResolveException */
-  private function getJwks(string $jwksUri): array
+  private function getJwks(string $jwksUri, bool $forceNoCache = false): array
   {
     if (!$jwksUri) {
       throw new OidcAuthenticationException('Unable to verify signature due to no jwks_uri being defined');
@@ -213,14 +226,20 @@ class OidcJwtHelper
       throw new OidcAuthenticationException('The jwks uri does not match with an earlier invocation');
     }
 
-    if ($this->jwks !== null) {
+    // If already loaded, directly return JWK data, but not when no cache has been enforced
+    if (!$forceNoCache && $this->jwks !== null) {
       return $this->jwks;
     }
 
-    if ($this->jwksCache && $this->jwksCacheTime !== null) {
+    if ($this->isCacheEnabled()) {
       try {
         $this->cacheKey ??= '_drenso_oidc_client__jwks__' . (new AsciiSlugger('en'))->slug($jwksUri);
-        $jwks           = $this->jwksCache->get($this->cacheKey, function (ItemInterface $item) use ($jwksUri) {
+        if ($forceNoCache) {
+          // Clear the cache item to force refresh
+          $this->jwksCache->delete($this->cacheKey);
+        }
+
+        $jwks = $this->jwksCache->get($this->cacheKey, function (ItemInterface $item) use ($jwksUri) {
           $item->expiresAfter($this->jwksCacheTime);
 
           return json_decode($this->urlFetcher->fetchUrl($jwksUri))->keys;
@@ -257,5 +276,10 @@ class OidcJwtHelper
         return new DateTimeImmutable();
       }
     };
+  }
+
+  public function isCacheEnabled(): bool
+  {
+    return $this->jwksCache && $this->jwksCacheTime !== null;
   }
 }
