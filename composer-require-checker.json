@@ -4,7 +4,6 @@
     "static", "self", "parent",
     "array", "string", "int", "float", "bool", "iterable", "callable", "void", "object", "mixed",
     "random_bytes",
-    "phpseclib\\Crypt\\RSA",
     "Psr\\Cache\\InvalidArgumentException",
     "Symfony\\Contracts\\Cache\\CacheInterface",
     "Symfony\\Component\\Security\\Core\\Security",

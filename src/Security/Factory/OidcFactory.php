@@ -9,7 +9,6 @@ use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AbstractF
 use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\AuthenticatorFactoryInterface;
 use Symfony\Component\DependencyInjection\ChildDefinition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
@@ -63,11 +62,7 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
       ->addArgument($config['login_path'])
       ->addArgument($config['user_identifier_property'])
       ->addArgument($config['enable_remember_me'])
-      ->addArgument($config['user_identifier_from_idtoken'])
-      ->addArgument(new Reference(
-        sprintf('%s.%s', DrensoOidcExtension::JWT_HELPER_ID, $config['client']),
-        ContainerInterface::NULL_ON_INVALID_REFERENCE
-      ));
+      ->addArgument($config['user_identifier_from_idtoken']);
 
     $logoutListenerId = sprintf('security.logout.listener.default.%s', $firewallName);
 

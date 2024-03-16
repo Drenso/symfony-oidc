@@ -36,6 +36,20 @@ class Configuration implements ConfigurationInterface
                     ->thenInvalid('Must be either null or an integer value')
                   ->end()
                 ->end() // well_known_cache_time
+                ->scalarNode('jwks_cache_time')
+                  ->defaultValue(3600)
+                  ->validate()
+                    ->ifTrue(fn ($value) => $value !== null && !is_int($value))
+                    ->thenInvalid('Must be either null or an integer value')
+                  ->end()
+                ->end() // jwks_cache_time
+                ->scalarNode('token_leeway_seconds')
+                  ->defaultValue(300)
+                  ->validate()
+                    ->ifTrue(fn ($value) => !is_int($value) || $value < 0)
+                    ->thenInvalid('Must be an integer value and greater or equal to zero')
+                  ->end()
+                ->end() // token_leeway_seconds
                 ->scalarNode('client_id')
                   ->isRequired()
                 ->end() // client_id

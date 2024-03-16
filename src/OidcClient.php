@@ -12,7 +12,6 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
-use phpseclib3\Crypt\RSA;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -52,11 +51,6 @@ class OidcClient implements OidcClientInterface
     private readonly ?string $codeChallengeMethod = null,
     private readonly bool $disableNonce = false)
   {
-    // Check for required phpseclib classes
-    if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
-      throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
-    }
-
     if (!$this->wellKnownUrl || filter_var($this->wellKnownUrl, FILTER_VALIDATE_URL) === false) {
       throw new LogicException(sprintf('Invalid well known url (%s) for OIDC', $this->wellKnownUrl));
     }
@@ -255,7 +249,7 @@ class OidcClient implements OidcClientInterface
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
    */
-  protected function getJwktUri(): string
+  protected function getJwksUri(): string
   {
     return $this->getConfigurationValue('jwks_uri');
   }
@@ -448,20 +442,9 @@ class OidcClient implements OidcClientInterface
   /** @throws OidcException */
   private function verifyTokens(OidcTokens $tokens, $verifyNonce = true): OidcTokens
   {
-    // Retrieve the claims
-    $claims = $this->jwtHelper->getIdTokenClaims($tokens);
+    $this->jwtHelper->verifyTokens($this->getJwksUri(), $tokens, $this->getIssuer(), $verifyNonce);
 
-    // Verify the token
-    if (!$this->jwtHelper->verifyJwtSignature($this->getJwktUri(), $tokens)) {
-      throw new OidcAuthenticationException('Unable to verify signature');
-    }
-
-    // If this is a valid claim
-    if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens, $verifyNonce)) {
-      return $tokens;
-    } else {
-      throw new OidcAuthenticationException('Unable to verify JWT claims');
-    }
+    return $tokens;
   }
 
   /**
@@ -480,7 +463,7 @@ class OidcClient implements OidcClientInterface
 
     if ($this->wellKnownCache && $this->wellKnownCacheTime !== null) {
       try {
-        $this->cacheKey ??= '_drenso_oidc_client__' . (new AsciiSlugger('en'))->slug($this->wellKnownUrl);
+        $this->cacheKey ??= '_drenso_oidc_client__well_known__' . (new AsciiSlugger('en'))->slug($this->wellKnownUrl);
         $config         = $this->wellKnownCache->get($this->cacheKey, function (ItemInterface $item) {
           $item->expiresAfter($this->wellKnownCacheTime);
 

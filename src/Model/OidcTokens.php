@@ -3,6 +3,7 @@
 namespace Drenso\OidcBundle\Model;
 
 use DateTimeImmutable;
+use Drenso\OidcBundle\Enum\OidcTokenType;
 use Drenso\OidcBundle\Exception\OidcException;
 use stdClass;
 
@@ -60,6 +61,15 @@ class OidcTokens
   public function getRefreshToken(): ?string
   {
     return $this->refreshToken;
+  }
+
+  public function getTokenByType(OidcTokenType $type): ?string
+  {
+    return match ($type) {
+      OidcTokenType::ID      => $this->idToken,
+      OidcTokenType::ACCESS  => $this->accessToken,
+      OidcTokenType::REFRESH => $this->refreshToken,
+    };
   }
 
   /**  @return string[]|null */

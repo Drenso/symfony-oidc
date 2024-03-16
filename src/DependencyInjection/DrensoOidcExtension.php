@@ -62,7 +62,9 @@ class DrensoOidcExtension extends ConfigurableExtension
       ->setDefinition($jwtHelperId, new ChildDefinition(self::JWT_HELPER_ID))
       ->addArgument(new Reference($urlFetcherId))
       ->addArgument(new Reference($sessionStorageId))
-      ->addArgument($config['client_id']);
+      ->addArgument($config['client_id'])
+      ->addArgument($config['jwks_cache_time'])
+      ->addArgument($config['token_leeway_seconds']);
 
     $clientId          = sprintf('%s.%s', self::CLIENT_ID, $name);
     $wellKnownParserId = $config['well_known_parser'];

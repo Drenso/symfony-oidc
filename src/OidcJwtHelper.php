@@ -2,48 +2,250 @@
 
 namespace Drenso\OidcBundle;
 
-use Drenso\OidcBundle\Exception\OidcException;
+use DateInterval;
+use DateTimeImmutable;
+use Drenso\OidcBundle\Enum\OidcTokenType;
+use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
-use phpseclib3\Crypt\RSA;
+use Exception;
+use JsonException;
+use Lcobucci\JWT\Encoding\JoseEncoder;
+use Lcobucci\JWT\Parser as ParserInterface;
+use Lcobucci\JWT\Signer;
+use Lcobucci\JWT\Signer\Ecdsa;
+use Lcobucci\JWT\Signer\Key;
+use Lcobucci\JWT\Signer\Key\InMemory;
+use Lcobucci\JWT\Signer\Rsa;
+use Lcobucci\JWT\Signer\Rsa\Sha256;
+use Lcobucci\JWT\Signer\Rsa\Sha384;
+use Lcobucci\JWT\Signer\Rsa\Sha512;
+use Lcobucci\JWT\Token;
+use Lcobucci\JWT\Token\Parser;
+use Lcobucci\JWT\UnencryptedToken;
+use Lcobucci\JWT\Validation\Constraint\HasClaimWithValue;
+use Lcobucci\JWT\Validation\Constraint\IssuedBy;
+use Lcobucci\JWT\Validation\Constraint\LooseValidAt;
+use Lcobucci\JWT\Validation\Constraint\PermittedFor;
+use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Lcobucci\JWT\Validation\Validator;
+use phpseclib3\Crypt\EC\Formats\Keys\JWK as EC_JWK;
+use phpseclib3\Crypt\PublicKeyLoader;
+use phpseclib3\Crypt\RSA\Formats\Keys\JWK as RSA_JWK;
+use Psr\Cache\InvalidArgumentException;
+use Psr\Clock\ClockInterface;
 use RuntimeException;
+use Symfony\Component\String\Slugger\AsciiSlugger;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * Contains helper functions to decode/verify JWT data.
  */
 class OidcJwtHelper
 {
+  private static ?ParserInterface $parser = null;
+
+  protected ?array $jwks     = null;
+  protected ?string $jwksUri = null;
+  private ?string $cacheKey  = null;
+
   public function __construct(
-    protected OidcUrlFetcher $urlFetcher,
-    protected OidcSessionStorage $sessionStorage,
-    private readonly string $clientId)
+    protected readonly ?CacheInterface $jwksCache,
+    protected ?ClockInterface $clock,
+    protected readonly OidcUrlFetcher $urlFetcher,
+    protected readonly OidcSessionStorage $sessionStorage,
+    protected readonly string $clientId,
+    protected readonly ?int $jwksCacheTime,
+    protected readonly int $leewaySeconds)
   {
   }
 
-  /**
-   * Per RFC4648, "base64 encoding with URL-safe and filename-safe
-   * alphabet".  This just replaces characters 62 and 63.  None of the
-   * reference implementations seem to restore the padding if necessary,
-   * but we'll do it anyway.
-   */
-  private static function b64url2b64(string $base64url): string
+  public static function parseToken(string $token): UnencryptedToken
   {
-    // "Shouldn't" be necessary, but why not
-    $padding = strlen($base64url) % 4;
-    if ($padding > 0) {
-      $base64url .= str_repeat('=', 4 - $padding);
+    $parsedToken = (self::$parser ??= new Parser(new JoseEncoder()))->parse($token);
+
+    /** @noinspection PhpConditionAlreadyCheckedInspection */
+    if (!$parsedToken instanceof UnencryptedToken) {
+      throw new RuntimeException('Not an unencrypted token.');
     }
 
-    return strtr($base64url, '-_', '+/');
+    return $parsedToken;
   }
 
-  /**
-   * A wrapper around base64_decode which decodes Base64URL-encoded data,
-   * which is not the same alphabet as base64.
-   */
-  private static function base64url_decode(string $base64url): string|false
+  /** @throws OidcConfigurationResolveException */
+  public function verifyTokens(
+    string $jwksUri,
+    OidcTokens $tokens,
+    string $issuer,
+    bool $verifyNonce): void
   {
-    return base64_decode(self::b64url2b64($base64url));
+    $validator = new Validator();
+    $jwks      = $this->getJwks($jwksUri);
+
+    foreach (OidcTokenType::cases() as $tokenType) {
+      if (null === $rawToken = $tokens->getTokenByType($tokenType)) {
+        continue;
+      }
+
+      // Parse the token
+      $token  = self::parseToken($rawToken);
+      $signer = $this->getTokenSigner($token);
+      $key    = $this->getTokenKey($jwks, $signer, $token);
+
+      if (!$validator->validate($token, new SignedWith($signer, $key))) {
+        throw new OidcAuthenticationException('Unable to verify signature');
+      }
+
+      // Default claims
+      $claims = [
+        new IssuedBy($issuer),
+        new PermittedFor($this->clientId),
+        new LooseValidAt($this->getClock(), new DateInterval("PT{$this->leewaySeconds}S")),
+      ];
+
+      if ($tokenType === OidcTokenType::ID) {
+        if ($token->claims()->has('at_hash')) {
+          // Validate the at (access token) hash
+          $bit = substr((string)$token->headers()->get('alg'), 2, 3);
+          if (!$bit || !is_numeric($bit)) {
+            throw new OidcAuthenticationException('Could not determine at hash algorithm');
+          }
+
+          $claims[] = new HasClaimWithValue(
+            'at_hash',
+            self::urlEncode(
+              substr(hash("sha$bit", $tokens->getAccessToken(), true), 0, (int)$bit / 16),
+            ),
+          );
+        }
+
+        if ($verifyNonce) {
+          $claims[] = new HasClaimWithValue('nonce', $this->sessionStorage->getNonce());
+          $this->sessionStorage->clearNonce();
+        }
+      }
+
+      if (!$validator->validate($token, ...$claims)) {
+        throw new OidcAuthenticationException('Unable to verify JWT claims');
+      }
+    }
+  }
+
+  private function getTokenKey(array $jwks, Signer $signer, Token $token): Key
+  {
+    try {
+      // phpseclib is used to load the JWK, but it requires a single JWK to be JSON encoded
+      $jwkData = json_encode(['keys' => [$this->getMatchingJwkForToken($jwks, $token)]], JSON_THROW_ON_ERROR);
+    } catch (JsonException $e) {
+      throw new OidcAuthenticationException('Failed to generate JWK json data', previous: $e);
+    }
+
+    try {
+      $jwk = match (true) {
+        $signer instanceof Rsa   => RSA_JWK::load($jwkData),
+        $signer instanceof Ecdsa => EC_JWK::load($jwkData),
+        default                  => throw new OidcAuthenticationException('Only RSA and ECDSA keys are supported'),
+      };
+
+      return InMemory::plainText(PublicKeyLoader::load($jwk)->toString('pkcs8'));
+    } catch (Exception $e) {
+      throw new OidcAuthenticationException('Failed to load JWK', previous: $e);
+    }
+  }
+
+  private function getTokenSigner(Token $token): Signer
+  {
+    $algorithm = $token->headers()->get('alg');
+    if (!is_string($algorithm)) {
+      throw new OidcAuthenticationException('Invalid JWT token header, missing signature algorithm');
+    }
+
+    $keyAlgorithm = match ($algorithm) {
+      'RS256' => new Sha256(),
+      'RS384' => new Sha384(),
+      'RS512' => new Sha512(),
+      'ES256' => new Ecdsa\Sha256(),
+      'ES384' => new Ecdsa\Sha384(),
+      'ES512' => new Ecdsa\Sha512(),
+      default => throw new OidcAuthenticationException("JWT algorithm $algorithm is not supported"),
+    };
+
+    if ($algorithm !== $keyAlgorithm->algorithmId()) {
+      throw new OidcAuthenticationException('Key algorithm does not match token algorithm');
+    }
+
+    return $keyAlgorithm;
+  }
+
+  private function getMatchingJwkForToken(array $keys, Token $token): object
+  {
+    $headers   = $token->headers();
+    $algorithm = $headers->get('alg');
+    $keyId     = $headers->get('kid');
+    $kty       = match (true) {
+      str_starts_with((string)$algorithm, 'RS') => 'RSA',
+      str_starts_with((string)$algorithm, 'ES') => 'EC',
+      default                                   => null,
+    };
+
+    foreach ($keys as $key) {
+      if ($kty && $key->kty === $kty) {
+        if ($keyId === null || $key->kid === $keyId) {
+          return $key;
+        }
+      } else {
+        if ($key->alg === $algorithm && $key->kid === $keyId) {
+          return $key;
+        }
+      }
+    }
+
+    if ($keyId !== null) {
+      throw new OidcAuthenticationException("Unable to find a key for (algorithm, key id): $algorithm, $keyId");
+    } else {
+      throw new OidcAuthenticationException('Unable to find a signing key');
+    }
+  }
+
+  /** @throws OidcConfigurationResolveException */
+  private function getJwks(string $jwksUri): array
+  {
+    if (!$jwksUri) {
+      throw new OidcAuthenticationException('Unable to verify signature due to no jwks_uri being defined');
+    }
+
+    // Only a single uri can be loaded in one instance
+    if ($this->jwksUri !== null && $this->jwksUri !== $jwksUri) {
+      throw new OidcAuthenticationException('The jwks uri does not match with an earlier invocation');
+    }
+
+    if ($this->jwks !== null) {
+      return $this->jwks;
+    }
+
+    if ($this->jwksCache && $this->jwksCacheTime !== null) {
+      try {
+        $this->cacheKey ??= '_drenso_oidc_client__jwks__' . (new AsciiSlugger('en'))->slug($jwksUri);
+        $jwks           = $this->jwksCache->get($this->cacheKey, function (ItemInterface $item) use ($jwksUri) {
+          $item->expiresAfter($this->jwksCacheTime);
+
+          return json_decode($this->urlFetcher->fetchUrl($jwksUri))->keys;
+        });
+      } catch (InvalidArgumentException $e) {
+        throw new OidcConfigurationResolveException('Cache failed: ' . $e->getMessage(), previous: $e);
+      }
+    } else {
+      $jwks = json_decode($this->urlFetcher->fetchUrl($jwksUri))->keys;
+    }
+
+    if ($jwks === null) {
+      throw new OidcAuthenticationException('Error decoding JSON from jwks_uri');
+    }
+
+    $this->jwksUri = $jwksUri;
+
+    return $this->jwks = $jwks;
   }
 
   private static function urlEncode(string $str): string
@@ -54,151 +256,13 @@ class OidcJwtHelper
     return strtr($enc, '+/', '-_');
   }
 
-  /**
-   * @param string $jwt     string encoded JWT
-   * @param int    $section the section we would like to decode
-   *
-   * @throws OidcException
-   *
-   * @return object|null Returns null when a non-valid JWT is encountered
-   */
-  public function decodeJwt(string $jwt, int $section = 0): ?object
+  private function getClock(): ClockInterface
   {
-    if ($section < 0 || $section > 2) {
-      throw new OidcException('Invalid JWT section requested');
-    }
-
-    $parts = explode('.', $jwt);
-
-    if (count($parts) !== 3) {
-      // When there are not exactly three parts, the passed string is not a JWT
-      return null;
-    }
-
-    return json_decode(self::base64url_decode($parts[$section]));
-  }
-
-  public function verifyJwtClaims(string $issuer, ?object $claims, ?OidcTokens $tokens = null, bool $verifyNonce = true): bool
-  {
-    if (isset($claims->at_hash) && $tokens->getAccessToken() !== null) {
-      $accessTokenHeader = $this->getAccessTokenHeader($tokens);
-      if (isset($accessTokenHeader->alg) && $accessTokenHeader->alg != 'none') {
-        $bit = substr((string)$accessTokenHeader->alg, 2, 3);
-      } else {
-        // TODO: Error case. throw exception???
-        $bit = '256';
+    return $this->clock ??= new class() implements ClockInterface {
+      public function now(): DateTimeImmutable
+      {
+        return new DateTimeImmutable();
       }
-      $len            = ((int)$bit) / 16;
-      $expectedAtHash = self::urlEncode(
-        substr(hash('sha' . $bit, $tokens->getAccessToken(), true), 0, $len));
-    }
-
-    // Get and remove nonce from session
-    $nonce = $verifyNonce ? $this->sessionStorage->getNonce() : null;
-    if (null !== $nonce) {
-      $this->sessionStorage->clearNonce();
-    }
-
-    /* @noinspection PhpUndefinedVariableInspection */
-    return ($claims->iss == $issuer)
-        && (($claims->aud == $this->clientId) || in_array($this->clientId, $claims->aud))
-        && (!$verifyNonce || $claims->nonce == $nonce)
-        && (!isset($claims->exp) || $claims->exp >= time())
-        && (!isset($claims->nbf) || $claims->nbf <= time())
-        && (!isset($claims->at_hash) || $claims->at_hash == $expectedAtHash)
-    ;
-  }
-
-  public function verifyJwtSignature(string $jwksUri, OidcTokens $tokens): bool
-  {
-    // Check JWT information
-    if (!$jwksUri) {
-      throw new OidcAuthenticationException('Unable to verify signature due to no jwks_uri being defined');
-    }
-
-    $parts     = explode('.', $tokens->getIdToken());
-    $signature = self::base64url_decode(array_pop($parts));
-    $header    = json_decode(self::base64url_decode($parts[0]));
-    $payload   = implode('.', $parts);
-    $jwks      = json_decode($this->urlFetcher->fetchUrl($jwksUri));
-    if ($jwks === null) {
-      throw new OidcAuthenticationException('Error decoding JSON from jwks_uri');
-    }
-
-    // Check for supported signature types
-    if (!in_array($header->alg, ['RS256', 'RS384', 'RS512'])) {
-      throw new OidcAuthenticationException('No support for signature type: ' . $header->alg);
-    }
-
-    $hashType = 'sha' . substr((string)$header->alg, 2);
-
-    return $this->verifyRsaJwtSignature($hashType, $this->getKeyForHeader($jwks->keys, $header), $payload, $signature);
-  }
-
-  public function verifyRsaJwtSignature(string $hashtype, object $key, $payload, $signature): bool
-  {
-    if (!(property_exists($key, 'n') and property_exists($key, 'e'))) {
-      throw new OidcAuthenticationException('Malformed key object');
-    }
-
-    /**
-     * We already have base64url-encoded data, so re-encode it as
-     * regular base64 and use the XML key format for simplicity.
-     */
-    $public_key_xml = "<RSAKeyValue>\r\n" .
-        '  <Modulus>' . self::b64url2b64($key->n) . "</Modulus>\r\n" .
-        '  <Exponent>' . self::b64url2b64($key->e) . "</Exponent>\r\n" .
-        '</RSAKeyValue>';
-
-    if (class_exists(RSA::class)) {
-      /** @phan-suppress-next-line PhanUndeclaredMethod */
-      $rsa = RSA::load($public_key_xml)
-        ->withPadding(RSA::ENCRYPTION_PKCS1|RSA::SIGNATURE_PKCS1)
-        ->withHash($hashtype);
-    } elseif (class_exists('\phpseclib\Crypt\RSA')) {
-      /** @phan-suppress-next-line PhanUndeclaredClassMethod */
-      $rsa = new \phpseclib\Crypt\RSA();
-      /* @phan-suppress-next-line PhanUndeclaredClassMethod */
-      $rsa->setHash($hashtype);
-      /* @phan-suppress-next-line PhanTypeMismatchArgument,PhanUndeclaredClassConstant,PhanUndeclaredClassMethod */
-      $rsa->loadKey($public_key_xml, \phpseclib\Crypt\RSA::PUBLIC_FORMAT_XML);
-      /* @phan-suppress-next-line PhanUndeclaredClassConstant,PhanUndeclaredClassProperty */
-      $rsa->signatureMode = \phpseclib\Crypt\RSA::SIGNATURE_PKCS1;
-    } else {
-      throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
-    }
-
-    /* @phan-suppress-next-line PhanUndeclaredClassMethod */
-    return $rsa->verify($payload, $signature);
-  }
-
-  private function getAccessTokenHeader(OidcTokens $tokens): ?object
-  {
-    return $this->decodeJwt($tokens->getAccessToken(), 0);
-  }
-
-  public function getIdTokenClaims(OidcTokens $tokens): ?object
-  {
-    return $this->decodeJwt($tokens->getIdToken(), 1);
-  }
-
-  private function getKeyForHeader($keys, $header): object
-  {
-    foreach ($keys as $key) {
-      if ($key->kty == 'RSA') {
-        if (!isset($header->kid) || $key->kid == $header->kid) {
-          return $key;
-        }
-      } else {
-        if ($key->alg == $header->alg && $key->kid == $header->kid) {
-          return $key;
-        }
-      }
-    }
-    if (isset($header->kid)) {
-      throw new OidcAuthenticationException(sprintf('Unable to find a key for (algorithm, kid): %s, %s', $header->alg, $header->kid));
-    } else {
-      throw new OidcAuthenticationException('Unable to find a key for RSA');
-    }
+    };
   }
 }
