@@ -50,7 +50,7 @@
     "symfony/translation-contracts": "^2.0 || ^3.0"
   },
   "suggest": {
-    "symfony/cache": "When installed, the well known information will be automatically cached"
+    "symfony/cache": "When installed, IdP information will be automatically cached"
   },
   "autoload": {
     "psr-4": {
