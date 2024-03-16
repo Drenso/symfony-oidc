@@ -16,7 +16,6 @@ use Lcobucci\JWT\Signer;
 use Lcobucci\JWT\Signer\Ecdsa;
 use Lcobucci\JWT\Signer\Key;
 use Lcobucci\JWT\Signer\Key\InMemory;
-use Lcobucci\JWT\Signer\Rsa;
 use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Lcobucci\JWT\Signer\Rsa\Sha384;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
@@ -29,9 +28,7 @@ use Lcobucci\JWT\Validation\Constraint\LooseValidAt;
 use Lcobucci\JWT\Validation\Constraint\PermittedFor;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Lcobucci\JWT\Validation\Validator;
-use phpseclib3\Crypt\EC\Formats\Keys\JWK as EC_JWK;
 use phpseclib3\Crypt\PublicKeyLoader;
-use phpseclib3\Crypt\RSA\Formats\Keys\JWK as RSA_JWK;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Clock\ClockInterface;
 use RuntimeException;
@@ -91,7 +88,7 @@ class OidcJwtHelper
       // Parse the token
       $token  = self::parseToken($rawToken);
       $signer = $this->getTokenSigner($token);
-      $key    = $this->getTokenKey($jwks, $signer, $token);
+      $key    = $this->getTokenKey($jwks, $token);
 
       if (!$validator->validate($token, new SignedWith($signer, $key))) {
         throw new OidcAuthenticationException('Unable to verify signature');
@@ -132,7 +129,7 @@ class OidcJwtHelper
     }
   }
 
-  private function getTokenKey(array $jwks, Signer $signer, Token $token): Key
+  private function getTokenKey(array $jwks, Token $token): Key
   {
     try {
       // phpseclib is used to load the JWK, but it requires a single JWK to be JSON encoded
@@ -142,13 +139,7 @@ class OidcJwtHelper
     }
 
     try {
-      $jwk = match (true) {
-        $signer instanceof Rsa   => RSA_JWK::load($jwkData),
-        $signer instanceof Ecdsa => EC_JWK::load($jwkData),
-        default                  => throw new OidcAuthenticationException('Only RSA and ECDSA keys are supported'),
-      };
-
-      return InMemory::plainText(PublicKeyLoader::load($jwk)->toString('pkcs8'));
+      return InMemory::plainText(PublicKeyLoader::loadPublicKey($jwkData)->toString('pkcs8'));
     } catch (Exception $e) {
       throw new OidcAuthenticationException('Failed to load JWK', previous: $e);
     }
