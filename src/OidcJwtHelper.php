@@ -80,7 +80,8 @@ class OidcJwtHelper
     $validator = new Validator();
     $jwks      = $this->getJwks($jwksUri);
 
-    foreach (OidcTokenType::cases() as $tokenType) {
+    // Only validate id and access tokens
+    foreach ([OidcTokenType::ID, OidcTokenType::ACCESS] as $tokenType) {
       if (null === $rawToken = $tokens->getTokenByType($tokenType)) {
         continue;
       }
@@ -97,11 +98,12 @@ class OidcJwtHelper
       // Default claims
       $claims = [
         new IssuedBy($issuer),
-        new PermittedFor($this->clientId),
         new LooseValidAt($this->getClock(), new DateInterval("PT{$this->leewaySeconds}S")),
       ];
 
       if ($tokenType === OidcTokenType::ID) {
+        $claims[] =  new PermittedFor($this->clientId);
+
         if ($token->claims()->has('at_hash')) {
           // Validate the at (access token) hash
           $bit = substr((string)$token->headers()->get('alg'), 2, 3);
