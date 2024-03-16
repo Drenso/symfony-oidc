@@ -19,7 +19,7 @@ We also require the use of PHP8, as that significantly reduces the maintenance c
 Do you need this bundle, but you cannot enable the new authentication manager or use PHP8? Check out
 the [v1.x](https://github.com/Drenso/symfony-oidc/tree/v1.x) branch and its documentation!
 
-### Migrate from v1.x
+### Migrate from older versions
 
 Take a look at [UPGRADE.md](https://github.com/Drenso/symfony-oidc/blob/master/UPGRADE.md)!
 
@@ -59,6 +59,8 @@ drenso_oidc:
             # Extra configuration options
             #well_known_parser: ~ # Service id for a custom well-known configuration parser
             #well_known_cache_time: 3600 # Time in seconds, will only be used when symfony/cache is available
+            #jwks_cache_time: 3600 # Time in seconds, will only be used when symfony/cache is available
+            #token_leeway_seconds: 300 # Leeway time in seconds when validating token validity
             #redirect_route: '/login_check'
             #custom_client_headers: []
             #code_challenge_method: ~ # Code challenge method, can be null, 'S256' or 'plain'
@@ -235,11 +237,15 @@ If for some reason you have several OIDC clients configured and need to retrieve
 
 The locator will throw an OidcClientNotFoundException when the requested client is not found. When called without an argument, it will return the configured default client.
 
+### Leeway
+
+This bundle uses a 300 seconds leeway when validating the access tokens. This value can be configured with the `token_leeway_seconds` client option.
+
 ### Cache
 
-When you have `symfony/cache` available in your project, this library will automatically cache the well known data. By default, it will be cached for `3600` seconds.
+When you have `symfony/cache` available in your project, this library will automatically cache the well known and jwks results. By default, it will be cached for `3600` seconds.
 
-You can disable this cache by passing `null` to the `well_known_cache_time` client option.
+You can disable the caches separately by passing `null` to the `well_known_cache_time` or `jwks_cache_time` client options.
 
 ### Refreshing tokens
 

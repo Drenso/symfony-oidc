@@ -1,5 +1,21 @@
 This file describes the steps you will need to make when upgrading this bundle.
 
+# From 2.0 to 3.0
+
+  - ES signing algorithms are now supported
+  - Token validity verification now uses a configured leeway seconds value, which by default is 300
+    - Configurable with `token_leeway_seconds` client option
+    - The `iat` claim is now also taken into account
+  - Additional cache has been added for JWK results caching
+    - Cache can be disabled by setting the `jwks_cache_time` client option to `null`
+  - Internal cache keys have been updated
+  - `OidcJwtHelper` has been rewritten: if you were not calling this class yourself, you should be fine
+    - Only a new `verifyTokens` function is now available which combines the old `verifyJwtSignature` and `verifyJwtClaims` methods
+    - `decodeJwt` and `getIdTokenClaims` are no longer available, but you can get a decoded token object with `JwtHelper::parseToken()`
+  - Support for `phpseclib/phpseclib` 2 has been dropped
+  - The `getJwktUri` method typo in `OidcClient` has been fixed, it is now `getJwksUri`
+  - The `OidcJwtHelper` is no longer passed to the `OidcAuthenticator` instance
+
 # From 2.0 to 2.1
 
 The following has changed:
