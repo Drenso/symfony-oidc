@@ -56,8 +56,8 @@ class OidcJwtHelper
     protected readonly OidcUrlFetcher $urlFetcher,
     protected readonly ?OidcSessionStorage $sessionStorage,
     protected readonly string $clientId,
-    protected readonly ?int $jwksCacheTime,
-    protected readonly int $leewaySeconds)
+    protected readonly ?int $jwksCacheTime = 3600,
+    protected readonly int $leewaySeconds = 300)
   {
   }
 

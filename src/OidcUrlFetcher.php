@@ -9,7 +9,7 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
  */
 class OidcUrlFetcher
 {
-  public function __construct(private readonly array $customClientHeaders)
+  public function __construct(private readonly array $customClientHeaders = [])
   {
   }
 
