@@ -85,8 +85,8 @@ class OidcJwtHelper
     $idToken     = $tokens->getTokenByType(OidcTokenType::ID);
     $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
 
-    $this->verifyToken($issuer, $jwksUri, OidcTokenType::ID, $idToken, $verifyNonce, $accessToken);
-    $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, $accessToken, $verifyNonce);
+    $this->verifyToken($issuer, $jwksUri, OidcTokenType::ID, self::parseToken($idToken), $verifyNonce, $accessToken);
+    $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, self::parseToken($accessToken), $verifyNonce);
   }
 
   /**
@@ -99,7 +99,7 @@ class OidcJwtHelper
     string $issuer,
     string $jwksUri,
     OidcTokenType $tokenType,
-    string $token,
+    UnencryptedToken $token,
     bool $verifyNonce,
     ?string $accessToken = null,
     Constraint ...$additionalConstraints): void
@@ -107,7 +107,6 @@ class OidcJwtHelper
     self::$validator ??= new Validator();
 
     // Parse the token
-    $token  = self::parseToken($token);
     $signer = $this->getTokenSigner($token);
     $key    = $this->getTokenKey($jwksUri, $token);
 
