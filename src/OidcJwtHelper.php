@@ -5,6 +5,7 @@ namespace Drenso\OidcBundle;
 use DateInterval;
 use DateTimeImmutable;
 use Drenso\OidcBundle\Enum\OidcTokenType;
+use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
@@ -53,7 +54,7 @@ class OidcJwtHelper
     protected readonly ?CacheInterface $jwksCache,
     protected ?ClockInterface $clock,
     protected readonly OidcUrlFetcher $urlFetcher,
-    protected readonly OidcSessionStorage $sessionStorage,
+    protected readonly ?OidcSessionStorage $sessionStorage,
     protected readonly string $clientId,
     protected readonly ?int $jwksCacheTime,
     protected readonly int $leewaySeconds)
@@ -75,8 +76,8 @@ class OidcJwtHelper
   /**
    * Validate the supplied OidcTokens.
    *
-   * @throws OidcConfigurationResolveException Thrown when the cache fails
-   * @throws OidcAuthenticationException       Throw when a token is invalid
+   * @throws OidcConfigurationResolveException|OidcConfigurationException Thrown on invalid configuration
+   * @throws OidcAuthenticationException                                  Throw when a token is invalid
    */
   public function verifyTokens(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
@@ -91,8 +92,8 @@ class OidcJwtHelper
   /**
    * Validate a token.
    *
-   * @throws OidcConfigurationResolveException Thrown when the cache fails
-   * @throws OidcAuthenticationException       Throw when a token is invalid
+   * @throws OidcConfigurationResolveException|OidcConfigurationException Thrown on invalid configuration
+   * @throws OidcAuthenticationException                                  Throw when a token is invalid
    */
   public function verifyToken(
     string $issuer,
@@ -139,6 +140,10 @@ class OidcJwtHelper
       }
 
       if ($verifyNonce) {
+        if (!$this->sessionStorage) {
+          throw new OidcConfigurationException('Session storage has not been configured for nonce validation');
+        }
+
         $constraints[] = new HasClaimWithValue('nonce', $this->sessionStorage->getNonce());
         $this->sessionStorage->clearNonce();
       }
