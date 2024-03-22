@@ -148,7 +148,7 @@ class OidcJwtHelper
       }
     }
 
-    if (!self::$validator->validate($token, ...$constraints)) {
+    if (!self::$validator->validate($token, ...$constraints, ...$additionalConstraints)) {
       throw new OidcAuthenticationException('Unable to verify JWT claims');
     }
   }
