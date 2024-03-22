@@ -442,7 +442,7 @@ class OidcClient implements OidcClientInterface
   /** @throws OidcException */
   private function verifyTokens(OidcTokens $tokens, $verifyNonce = true): OidcTokens
   {
-    $this->jwtHelper->verifyTokens($this->getJwksUri(), $tokens, $this->getIssuer(), $verifyNonce);
+    $this->jwtHelper->verifyTokens($this->getIssuer(), $this->getJwksUri(), $tokens, $verifyNonce);
 
     return $tokens;
   }

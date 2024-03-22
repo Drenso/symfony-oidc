@@ -22,6 +22,7 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Lcobucci\JWT\Token;
 use Lcobucci\JWT\Token\Parser;
 use Lcobucci\JWT\UnencryptedToken;
+use Lcobucci\JWT\Validation\Constraint;
 use Lcobucci\JWT\Validation\Constraint\HasClaimWithValue;
 use Lcobucci\JWT\Validation\Constraint\IssuedBy;
 use Lcobucci\JWT\Validation\Constraint\LooseValidAt;
@@ -42,6 +43,7 @@ use Symfony\Contracts\Cache\ItemInterface;
 class OidcJwtHelper
 {
   private static ?ParserInterface $parser = null;
+  private static ?Validator $validator    = null;
 
   protected ?array $jwks     = null;
   protected ?string $jwksUri = null;
@@ -70,63 +72,80 @@ class OidcJwtHelper
     return $parsedToken;
   }
 
-  /** @throws OidcConfigurationResolveException */
-  public function verifyTokens(
-    string $jwksUri,
-    OidcTokens $tokens,
-    string $issuer,
-    bool $verifyNonce): void
+  /**
+   * Validate the supplied OidcTokens.
+   *
+   * @throws OidcConfigurationResolveException Thrown when the cache fails
+   * @throws OidcAuthenticationException       Throw when a token is invalid
+   */
+  public function verifyTokens(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
-    $validator = new Validator();
-
     // Only validate id and access tokens
-    foreach ([OidcTokenType::ID, OidcTokenType::ACCESS] as $tokenType) {
-      if (null === $rawToken = $tokens->getTokenByType($tokenType)) {
-        continue;
-      }
+    $idToken     = $tokens->getTokenByType(OidcTokenType::ID);
+    $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
 
-      // Parse the token
-      $token  = self::parseToken($rawToken);
-      $signer = $this->getTokenSigner($token);
-      $key    = $this->getTokenKey($jwksUri, $token);
+    $this->verifyToken($issuer, $jwksUri, OidcTokenType::ID, $idToken, $verifyNonce, $accessToken);
+    $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, $accessToken, $verifyNonce);
+  }
 
-      if (!$validator->validate($token, new SignedWith($signer, $key))) {
-        throw new OidcAuthenticationException('Unable to verify signature');
-      }
+  /**
+   * Validate a token.
+   *
+   * @throws OidcConfigurationResolveException Thrown when the cache fails
+   * @throws OidcAuthenticationException       Throw when a token is invalid
+   */
+  public function verifyToken(
+    string $issuer,
+    string $jwksUri,
+    OidcTokenType $tokenType,
+    string $token,
+    bool $verifyNonce,
+    ?string $accessToken = null,
+    Constraint ...$additionalConstraints): void
+  {
+    self::$validator ??= new Validator();
 
-      // Default claims
-      $claims = [
-        new IssuedBy($issuer),
-        new LooseValidAt($this->getClock(), new DateInterval("PT{$this->leewaySeconds}S")),
-      ];
+    // Parse the token
+    $token  = self::parseToken($token);
+    $signer = $this->getTokenSigner($token);
+    $key    = $this->getTokenKey($jwksUri, $token);
 
-      if ($tokenType === OidcTokenType::ID) {
-        $claims[] =  new PermittedFor($this->clientId);
+    if (!self::$validator->validate($token, new SignedWith($signer, $key))) {
+      throw new OidcAuthenticationException('Unable to verify signature');
+    }
 
-        if ($token->claims()->has('at_hash')) {
-          // Validate the at (access token) hash
-          $bit = substr((string)$token->headers()->get('alg'), 2, 3);
-          if (!$bit || !is_numeric($bit)) {
-            throw new OidcAuthenticationException('Could not determine at hash algorithm');
-          }
+    // Default claims
+    $constraints = [
+      new IssuedBy($issuer),
+      new LooseValidAt($this->getClock(), new DateInterval("PT{$this->leewaySeconds}S")),
+    ];
 
-          $claims[] = new HasClaimWithValue(
-            'at_hash',
-            self::urlEncode(
-              substr(hash("sha$bit", $tokens->getAccessToken(), true), 0, (int)$bit / 16),
-            ),
-          );
+    if ($tokenType === OidcTokenType::ID) {
+      $constraints[] = new PermittedFor($this->clientId);
+
+      if ($token->claims()->has('at_hash') && $accessToken) {
+        // Validate the at (access token) hash
+        $bit = substr((string)$token->headers()->get('alg'), 2, 3);
+        if (!$bit || !is_numeric($bit)) {
+          throw new OidcAuthenticationException('Could not determine at hash algorithm');
         }
 
-        if ($verifyNonce) {
-          $claims[] = new HasClaimWithValue('nonce', $this->sessionStorage->getNonce());
-          $this->sessionStorage->clearNonce();
-        }
+        $constraints[] = new HasClaimWithValue(
+          'at_hash',
+          self::urlEncode(
+            substr(hash("sha$bit", $accessToken, true), 0, (int)$bit / 16),
+          ),
+        );
       }
 
-      if (!$validator->validate($token, ...$claims)) {
-        throw new OidcAuthenticationException('Unable to verify JWT claims');
+      if ($verifyNonce) {
+        $constraints[] = new HasClaimWithValue('nonce', $this->sessionStorage->getNonce());
+        $this->sessionStorage->clearNonce();
       }
+    }
+
+    if (!self::$validator->validate($token, ...$constraints)) {
+      throw new OidcAuthenticationException('Unable to verify JWT claims');
     }
   }
 
