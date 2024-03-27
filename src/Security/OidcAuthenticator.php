@@ -33,7 +33,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
     private readonly HttpUtils $httpUtils,
     private readonly OidcClientInterface $oidcClient,
     private readonly OidcSessionStorage $sessionStorage,
-    private readonly OidcUserProviderInterface $oidcUserProvider,
+    private readonly OidcUserProviderInterface|ChainUserProvider $oidcUserProvider,
     private readonly AuthenticationSuccessHandlerInterface $successHandler,
     private readonly AuthenticationFailureHandlerInterface $failureHandler,
     private readonly string $checkPath,
