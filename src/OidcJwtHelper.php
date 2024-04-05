@@ -8,6 +8,7 @@ use Drenso\OidcBundle\Enum\OidcTokenType;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Model\OidcTokens;
+use Drenso\OidcBundle\Security\Exception\InvalidJwtTokenException;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
 use JsonException;
@@ -21,6 +22,7 @@ use Lcobucci\JWT\Signer\Rsa\Sha256;
 use Lcobucci\JWT\Signer\Rsa\Sha384;
 use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Lcobucci\JWT\Token;
+use Lcobucci\JWT\Token\InvalidTokenStructure;
 use Lcobucci\JWT\Token\Parser;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint;
@@ -33,7 +35,6 @@ use Lcobucci\JWT\Validation\Validator;
 use phpseclib3\Crypt\PublicKeyLoader;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Clock\ClockInterface;
-use RuntimeException;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -61,13 +62,18 @@ class OidcJwtHelper
   {
   }
 
+  /** @throws InvalidJwtTokenException When the token is not a valid JWT */
   public static function parseToken(string $token): UnencryptedToken
   {
-    $parsedToken = (self::$parser ??= new Parser(new JoseEncoder()))->parse($token);
+    try {
+      $parsedToken = (self::$parser ??= new Parser(new JoseEncoder()))->parse($token);
+    } catch (InvalidTokenStructure $e) {
+      throw new InvalidJwtTokenException('Invalid token structure', previous: $e);
+    }
 
     /** @noinspection PhpConditionAlreadyCheckedInspection */
     if (!$parsedToken instanceof UnencryptedToken) {
-      throw new RuntimeException('Not an unencrypted token.');
+      throw new InvalidJwtTokenException('Not an unencrypted token.');
     }
 
     return $parsedToken;
@@ -85,8 +91,19 @@ class OidcJwtHelper
     $idToken     = $tokens->getTokenByType(OidcTokenType::ID);
     $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
 
-    $this->verifyToken($issuer, $jwksUri, OidcTokenType::ID, self::parseToken($idToken), $verifyNonce, $accessToken);
-    $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, self::parseToken($accessToken), $verifyNonce);
+    try {
+      $this->verifyToken($issuer, $jwksUri, OidcTokenType::ID, self::parseToken($idToken), $verifyNonce, $accessToken);
+    } catch (InvalidJwtTokenException $e) {
+      throw new OidcAuthenticationException('Invalid ID token', $e);
+    }
+
+    try {
+      $parsedAccessToken = self::parseToken($accessToken);
+      $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, $parsedAccessToken, $verifyNonce);
+    } catch (InvalidJwtTokenException) {
+      // An access token is not required to be a JWT token.
+      // If it cannot be parsed as token, ignore it and skip validation
+    }
   }
 
   /**
