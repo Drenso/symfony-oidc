@@ -31,6 +31,7 @@ use Lcobucci\JWT\Validation\Constraint\IssuedBy;
 use Lcobucci\JWT\Validation\Constraint\LooseValidAt;
 use Lcobucci\JWT\Validation\Constraint\PermittedFor;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
+use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
 use Lcobucci\JWT\Validation\Validator;
 use phpseclib3\Crypt\PublicKeyLoader;
 use Psr\Cache\InvalidArgumentException;
@@ -127,8 +128,13 @@ class OidcJwtHelper
     $signer = $this->getTokenSigner($token);
     $key    = $this->getTokenKey($jwksUri, $token);
 
-    if (!self::$validator->validate($token, new SignedWith($signer, $key))) {
-      throw new OidcAuthenticationException('Unable to verify signature');
+    try {
+      self::$validator->assert($token, new SignedWith($signer, $key));
+    } catch (RequiredConstraintsViolated $e) {
+      throw new OidcAuthenticationException(
+        "Unable to verify signature - {$e->getMessage()}",
+        previous: $e
+      );
     }
 
     // Default claims
@@ -165,8 +171,13 @@ class OidcJwtHelper
       }
     }
 
-    if (!self::$validator->validate($token, ...$constraints, ...$additionalConstraints)) {
-      throw new OidcAuthenticationException('Unable to verify JWT claims');
+    try {
+      self::$validator->assert($token, ...$constraints, ...$additionalConstraints);
+    } catch (RequiredConstraintsViolated $e) {
+      throw new OidcAuthenticationException(
+        "Unable to verify JWT claims - {$e->getMessage()}",
+        previous: $e
+      );
     }
   }
 
