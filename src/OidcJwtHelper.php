@@ -99,8 +99,7 @@ class OidcJwtHelper
     }
 
     try {
-      $parsedAccessToken = self::parseToken($accessToken);
-      $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, $parsedAccessToken, false);
+      $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, self::parseToken($accessToken), false);
     } catch (InvalidJwtTokenException) {
       // An access token is not required to be a JWT token.
       // If it cannot be parsed as token, ignore it and skip validation
@@ -138,37 +137,60 @@ class OidcJwtHelper
     }
 
     // Default claims
-    $constraints = [
-      new IssuedBy($issuer),
-      new LooseValidAt($this->getClock(), new DateInterval("PT{$this->leewaySeconds}S")),
-    ];
+    $constraints          = [];
+    $issuedByConstraint   = new IssuedBy($issuer);
+    $looseValidConstraint = new LooseValidAt($this->getClock(), new DateInterval("PT{$this->leewaySeconds}S"));
 
-    if ($tokenType === OidcTokenType::ID) {
-      $constraints[] = new PermittedFor($this->clientId);
+    switch ($tokenType) {
+      case $tokenType === OidcTokenType::ID:
+        $constraints = [
+          $issuedByConstraint,
+          $looseValidConstraint,
+          new PermittedFor($this->clientId),
+        ];
 
-      if ($token->claims()->has('at_hash') && $accessToken) {
-        // Validate the at (access token) hash
-        $bit = substr((string)$token->headers()->get('alg'), 2, 3);
-        if (!$bit || !is_numeric($bit)) {
-          throw new OidcAuthenticationException('Could not determine at hash algorithm');
+        if ($token->claims()->has('at_hash') && $accessToken) {
+          // Validate the at (access token) hash
+          $bit = substr((string)$token->headers()->get('alg'), 2, 3);
+          if (!$bit || !is_numeric($bit)) {
+            throw new OidcAuthenticationException('Could not determine at hash algorithm');
+          }
+
+          $constraints[] = new HasClaimWithValue(
+            'at_hash',
+            self::urlEncode(
+              substr(hash("sha$bit", $accessToken, true), 0, (int)$bit / 16),
+            ),
+          );
         }
 
-        $constraints[] = new HasClaimWithValue(
-          'at_hash',
-          self::urlEncode(
-            substr(hash("sha$bit", $accessToken, true), 0, (int)$bit / 16),
-          ),
-        );
-      }
+        if ($verifyNonce) {
+          if (!$this->sessionStorage) {
+            throw new OidcConfigurationException('Session storage has not been configured for nonce validation');
+          }
 
-      if ($verifyNonce) {
-        if (!$this->sessionStorage) {
-          throw new OidcConfigurationException('Session storage has not been configured for nonce validation');
+          $constraints[] = new HasClaimWithValue('nonce', $this->sessionStorage->getNonce());
+          $this->sessionStorage->clearNonce();
         }
 
-        $constraints[] = new HasClaimWithValue('nonce', $this->sessionStorage->getNonce());
-        $this->sessionStorage->clearNonce();
-      }
+        break;
+      case $tokenType === OidcTokenType::ACCESS:
+        if ($token->claims()->has(Token\RegisteredClaims::ISSUER)) {
+          $constraints[] = $issuedByConstraint;
+        }
+
+        if ($token->claims()->has(Token\RegisteredClaims::ISSUED_AT)
+          && $token->claims()->has(Token\RegisteredClaims::NOT_BEFORE)
+          && $token->claims()->has(Token\RegisteredClaims::EXPIRATION_TIME)) {
+          $constraints[] = $looseValidConstraint;
+        }
+
+        if (empty($constraints) && empty($additionalConstraints)) {
+          // No constraints defined
+          return;
+        }
+
+        break;
     }
 
     try {
