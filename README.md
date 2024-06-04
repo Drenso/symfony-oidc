@@ -10,7 +10,7 @@ Many thanks to https://github.com/jumbojett/OpenID-Connect-PHP for the implement
 
 ### Version notes
 
-Version 2 of this bundle only supports Symfony's new authentication manager, introduced in Symfony 5.3. As the security
+Since version 2 this bundle only supports Symfony's new authentication manager, introduced in Symfony 5.3. As the security
 manager matured in Symfony 5.4, that is the first version this bundle supports. Using the new authentication manager is
 required for Symfony 6!
 
