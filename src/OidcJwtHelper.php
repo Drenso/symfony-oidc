@@ -142,7 +142,7 @@ class OidcJwtHelper
     $looseValidConstraint = new LooseValidAt($this->getClock(), new DateInterval("PT{$this->leewaySeconds}S"));
 
     switch ($tokenType) {
-      case $tokenType === OidcTokenType::ID:
+      case OidcTokenType::ID:
         $constraints = [
           $issuedByConstraint,
           $looseValidConstraint,
@@ -174,7 +174,7 @@ class OidcJwtHelper
         }
 
         break;
-      case $tokenType === OidcTokenType::ACCESS:
+      case OidcTokenType::ACCESS:
         if ($token->claims()->has(Token\RegisteredClaims::ISSUER)) {
           $constraints[] = $issuedByConstraint;
         }
