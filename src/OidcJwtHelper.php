@@ -133,11 +133,11 @@ class OidcJwtHelper
 
     // Default claims
     $constraints = [
-      new IssuedBy($issuer),
       new LooseValidAt($this->getClock(), new DateInterval("PT{$this->leewaySeconds}S")),
     ];
 
     if ($tokenType === OidcTokenType::ID) {
+      $constraints[] = new IssuedBy($issuer);
       $constraints[] = new PermittedFor($this->clientId);
 
       if ($token->claims()->has('at_hash') && $accessToken) {
