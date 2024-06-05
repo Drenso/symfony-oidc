@@ -24,6 +24,7 @@ use Lcobucci\JWT\Signer\Rsa\Sha512;
 use Lcobucci\JWT\Token;
 use Lcobucci\JWT\Token\InvalidTokenStructure;
 use Lcobucci\JWT\Token\Parser;
+use Lcobucci\JWT\Token\RegisteredClaims;
 use Lcobucci\JWT\UnencryptedToken;
 use Lcobucci\JWT\Validation\Constraint;
 use Lcobucci\JWT\Validation\Constraint\HasClaimWithValue;
@@ -176,13 +177,13 @@ class OidcJwtHelper
         break;
       case OidcTokenType::ACCESS:
       case OidcTokenType::REFRESH:
-        if ($token->claims()->has(Token\RegisteredClaims::ISSUER)) {
+        if ($token->claims()->has(RegisteredClaims::ISSUER)) {
           $constraints[] = $issuedByConstraint;
         }
 
-        if ($token->claims()->has(Token\RegisteredClaims::ISSUED_AT)
-          && $token->claims()->has(Token\RegisteredClaims::NOT_BEFORE)
-          && $token->claims()->has(Token\RegisteredClaims::EXPIRATION_TIME)) {
+        if ($token->claims()->has(RegisteredClaims::ISSUED_AT)
+          && $token->claims()->has(RegisteredClaims::NOT_BEFORE)
+          && $token->claims()->has(RegisteredClaims::EXPIRATION_TIME)) {
           $constraints[] = $looseValidConstraint;
         }
 
