@@ -175,6 +175,7 @@ class OidcJwtHelper
 
         break;
       case OidcTokenType::ACCESS:
+      case OidcTokenType::REFRESH:
         if ($token->claims()->has(Token\RegisteredClaims::ISSUER)) {
           $constraints[] = $issuedByConstraint;
         }
