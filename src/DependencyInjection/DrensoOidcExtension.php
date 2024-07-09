@@ -58,13 +58,15 @@ class DrensoOidcExtension extends ConfigurableExtension
       ->addArgument($name);
 
     $jwtHelperId = sprintf('%s.%s', self::JWT_HELPER_ID, $name);
+    $additionalTokenConstraintsProviderId = $config['additional_token_constraints_provider'];
     $container
       ->setDefinition($jwtHelperId, new ChildDefinition(self::JWT_HELPER_ID))
       ->addArgument(new Reference($urlFetcherId))
       ->addArgument(new Reference($sessionStorageId))
       ->addArgument($config['client_id'])
       ->addArgument($config['jwks_cache_time'])
-      ->addArgument($config['token_leeway_seconds']);
+      ->addArgument($config['token_leeway_seconds'])
+      ->addArgument($additionalTokenConstraintsProviderId ? new Reference($additionalTokenConstraintsProviderId) : null);
 
     $clientId          = sprintf('%s.%s', self::CLIENT_ID, $name);
     $wellKnownParserId = $config['well_known_parser'];
