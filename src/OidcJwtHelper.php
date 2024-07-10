@@ -60,7 +60,8 @@ class OidcJwtHelper
     protected readonly ?OidcSessionStorage $sessionStorage,
     protected readonly string $clientId,
     protected readonly ?int $jwksCacheTime = 3600,
-    protected readonly int $leewaySeconds = 300)
+    protected readonly int $leewaySeconds = 300,
+    protected readonly ?OidcTokenConstraintProviderInterface $oidcTokenConstraintProvider = null)
   {
   }
 
@@ -93,14 +94,16 @@ class OidcJwtHelper
     $idToken     = $tokens->getTokenByType(OidcTokenType::ID);
     $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
 
+    $additionalIdTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ID) ?? [];
     try {
-      $this->verifyToken($issuer, $jwksUri, OidcTokenType::ID, self::parseToken($idToken), $verifyNonce, $accessToken);
+      $this->verifyToken($issuer, $jwksUri, OidcTokenType::ID, self::parseToken($idToken), $verifyNonce, $accessToken, ...$additionalIdTokenConstraints);
     } catch (InvalidJwtTokenException $e) {
       throw new OidcAuthenticationException('Invalid ID token', $e);
     }
 
+    $additionalAccessTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ACCESS) ?? [];
     try {
-      $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, self::parseToken($accessToken), false);
+      $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, self::parseToken($accessToken), false, null, ...$additionalAccessTokenConstraints);
     } catch (InvalidJwtTokenException) {
       // An access token is not required to be a JWT token.
       // If it cannot be parsed as token, ignore it and skip validation
