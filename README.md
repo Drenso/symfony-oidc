@@ -264,6 +264,49 @@ You can disable the caches separately by passing `null` to the `well_known_cache
 Currently, the firewall implementation provided by this bundle does not offer refresh tokens (as it should not be necessary).
 However, if you need to refresh the tokens yourself for your implementation, you can use the `refreshTokens` method on the `OidcClientInterface`!
 
+### Additional token claim validation
+
+If you need to validate additional token claims, you can create a service which implements `OidcTokenConstraintProviderInterface` and add its service id to the OIDC client of your choice.
+
+Sample configuration:
+
+```yaml
+drenso_oidc:
+    clients:
+        default:
+            additional_token_constraints_provider: App\Security\AdditionalTokenConstraintProvider
+```
+
+Sample constraint provider:
+
+```php
+namespace App\Security;
+
+use App\Security\Constraint\HasAudienceContaining;
+use Drenso\OidcBundle\Enum\OidcTokenType;
+use Drenso\OidcBundle\OidcTokenConstraintProviderInterface;
+
+class AdditionalTokenConstraintProvider implements OidcTokenConstraintProviderInterface
+{
+    public function getAdditionalConstraints(OidcTokenType $tokenType): array
+    {
+        if (OidcTokenType::ID === $tokenType) {
+            return [
+                new HasAudienceContaining('abc123'),
+            ];
+        }
+
+        if (OidcTokenType::ACCESS === $tokenType) {
+            return [
+                new HasAudienceContaining('def456'),
+            ];
+        }
+
+        return [];
+    }
+}
+```
+
 ### Parsing well-known information
 
 Some providers return incorrect or incomplete well known information. You can configure a custom well-known parser for the `OidcClient` by setting the `well_known_parser` to a service id which implements the `OidcWellKnownParserInterface`.
