@@ -8,6 +8,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
+use Drenso\OidcBundle\Model\UnvalidatedOidcTokens;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -29,6 +30,13 @@ interface OidcClientInterface
    * @throws OidcException
    */
   public function refreshTokens(string $refreshToken): OidcTokens;
+
+  /**
+   * Use an existing auth token to retrieve new tokens from the OIDC provider with another scope and/or audience.
+   *
+   * @throws OidcException
+   */
+  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens;
 
   /**
    * Create the redirect that should be followed in order to authorize.

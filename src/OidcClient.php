@@ -8,6 +8,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
+use Drenso\OidcBundle\Model\UnvalidatedOidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
 use InvalidArgumentException;
@@ -99,9 +100,28 @@ class OidcClient implements OidcClientInterface
 
     // Request and verify the tokens
     return $this->verifyTokens(
-      $this->requestTokens('refresh_token', null, null, $refreshToken),
+      $this->requestTokens('refresh_token', refreshToken: $refreshToken),
       verifyNonce: false
     );
+  }
+
+  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens
+  {
+    // Clear session after check
+    $this->sessionStorage->clearState();
+
+    // Request and verify exchange tokens
+    $tokens = new OidcTokens(
+      $this->requestTokens(
+        'urn:ietf:params:oauth:grant-type:token-exchange',
+        subjectToken: $accessToken,
+        scope: $targetScope,
+        audience: $targetAudience
+      )
+    );
+    $this->jwtHelper->verifyAccessToken($this->getIssuer(), $this->getJwksUri(), $tokens, false);
+
+    return $tokens;
   }
 
   public function generateAuthorizationRedirect(
@@ -387,7 +407,10 @@ class OidcClient implements OidcClientInterface
     string $grantType,
     ?string $code = null,
     ?string $redirectUrl = null,
-    ?string $refreshToken = null): OidcTokens
+    ?string $refreshToken = null,
+    ?string $subjectToken = null,
+    ?string $scope = null,
+    ?string $audience = null): UnvalidatedOidcTokens
   {
     $params = [
       'grant_type'    => $grantType,
@@ -423,6 +446,18 @@ class OidcClient implements OidcClientInterface
       ]);
     }
 
+    if (null !== $subjectToken) {
+      $params['subject_token'] = $subjectToken;
+    }
+
+    if (null !== $scope) {
+      $params['scope'] = $scope;
+    }
+
+    if (null !== $audience) {
+      $params['audience'] = $audience;
+    }
+
     $jsonToken = json_decode($this->urlFetcher->fetchUrl($this->getTokenEndpoint(), $params, $headers));
 
     // Throw an error if the server returns one
@@ -436,12 +471,13 @@ class OidcClient implements OidcClientInterface
     // Clear code verifier from session after check
     $this->sessionStorage->clearCodeVerifier();
 
-    return new OidcTokens($jsonToken);
+    return new UnvalidatedOidcTokens($jsonToken);
   }
 
   /** @throws OidcException */
-  private function verifyTokens(OidcTokens $tokens, $verifyNonce = true): OidcTokens
+  private function verifyTokens(UnvalidatedOidcTokens $unvalidatedTokens, $verifyNonce = true): OidcTokens
   {
+    $tokens = new OidcTokens($unvalidatedTokens);
     $this->jwtHelper->verifyTokens($this->getIssuer(), $this->getJwksUri(), $tokens, $verifyNonce);
 
     return $tokens;
