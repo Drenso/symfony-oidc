@@ -6,6 +6,7 @@ use Drenso\OidcBundle\Exception\OidcCodeChallengeMethodNotSupportedException;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
+use Drenso\OidcBundle\Model\OidcExchangeTokens;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
@@ -13,6 +14,7 @@ use Exception;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
+use stdClass;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -87,7 +89,9 @@ class OidcClient implements OidcClientInterface
 
     // Request and verify the tokens
     return $this->verifyTokens(
-      $this->requestTokens('authorization_code', $code, $this->getRedirectUrl()),
+      new OidcTokens(
+        $this->requestTokens('authorization_code', $code, $this->getRedirectUrl())
+      ),
       !$this->disableNonce
     );
   }
@@ -99,8 +103,26 @@ class OidcClient implements OidcClientInterface
 
     // Request and verify the tokens
     return $this->verifyTokens(
-      $this->requestTokens('refresh_token', null, null, $refreshToken),
+      new OidcTokens(
+        $this->requestTokens('refresh_token', null, null, $refreshToken)
+      ),
       verifyNonce: false
+    );
+  }
+
+  public function exchangeToken(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens
+  {
+    // Clear session after check
+    $this->sessionStorage->clearState();
+
+    // Request exchange tokens. Exchange tokens have no ID token, so no verification here
+    return new OidcExchangeTokens(
+      $this->requestTokens(
+        grantType: 'urn:ietf:params:oauth:grant-type:token-exchange',
+        subjectToken: $accessToken,
+        scope: $targetScope,
+        audience: $targetAudience
+      )
     );
   }
 
@@ -387,7 +409,11 @@ class OidcClient implements OidcClientInterface
     string $grantType,
     ?string $code = null,
     ?string $redirectUrl = null,
-    ?string $refreshToken = null): OidcTokens
+    ?string $refreshToken = null,
+    ?string $subjectToken = null,
+    ?string $requestedTokenType = null,
+    ?string $scope = null,
+    ?string $audience = null): stdClass
   {
     $params = [
       'grant_type'    => $grantType,
@@ -423,6 +449,22 @@ class OidcClient implements OidcClientInterface
       ]);
     }
 
+    if (null !== $subjectToken) {
+      $params['subject_token'] = $subjectToken;
+    }
+
+    if (null !== $requestedTokenType) {
+      $params['requested_token_type'] = $requestedTokenType;
+    }
+
+    if (null !== $scope) {
+      $params['scope'] = $scope;
+    }
+
+    if (null !== $audience) {
+      $params['audience'] = $audience;
+    }
+
     $jsonToken = json_decode($this->urlFetcher->fetchUrl($this->getTokenEndpoint(), $params, $headers));
 
     // Throw an error if the server returns one
@@ -436,7 +478,7 @@ class OidcClient implements OidcClientInterface
     // Clear code verifier from session after check
     $this->sessionStorage->clearCodeVerifier();
 
-    return new OidcTokens($jsonToken);
+    return $jsonToken;
   }
 
   /** @throws OidcException */

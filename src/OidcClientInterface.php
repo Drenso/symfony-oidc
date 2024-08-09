@@ -31,6 +31,13 @@ interface OidcClientInterface
   public function refreshTokens(string $refreshToken): OidcTokens;
 
   /**
+   * Use an existing auth token to retrieve new tokens from the OIDC provider with another scope and/or audience.
+   *
+   * @throws OidcException
+   */
+  public function exchangeToken(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens;
+
+  /**
    * Create the redirect that should be followed in order to authorize.
    *
    * @param string|null           $prompt                One of 'none', 'login', 'consent', 'select_account' or 'create'
