@@ -110,7 +110,7 @@ class OidcClient implements OidcClientInterface
     );
   }
 
-  public function exchangeToken(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens
+  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens
   {
     // Clear session after check
     $this->sessionStorage->clearState();

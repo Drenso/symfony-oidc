@@ -35,7 +35,7 @@ interface OidcClientInterface
    *
    * @throws OidcException
    */
-  public function exchangeToken(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens;
+  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens;
 
   /**
    * Create the redirect that should be followed in order to authorize.
