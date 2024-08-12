@@ -411,7 +411,6 @@ class OidcClient implements OidcClientInterface
     ?string $redirectUrl = null,
     ?string $refreshToken = null,
     ?string $subjectToken = null,
-    ?string $requestedTokenType = null,
     ?string $scope = null,
     ?string $audience = null): stdClass
   {
@@ -451,10 +450,6 @@ class OidcClient implements OidcClientInterface
 
     if (null !== $subjectToken) {
       $params['subject_token'] = $subjectToken;
-    }
-
-    if (null !== $requestedTokenType) {
-      $params['requested_token_type'] = $requestedTokenType;
     }
 
     if (null !== $scope) {
