@@ -10,7 +10,10 @@ use stdClass;
  */
 class OidcTokens extends UnvalidatedOidcTokens
 {
-  /** @throws OidcException */
+  /**
+   * @param stdClass|UnvalidatedOidcTokens $tokens
+   * @throws OidcException
+   */
   public function __construct(object $tokens)
   {
     // These are the only required parameters per https://tools.ietf.org/html/rfc6749#section-4.2.2

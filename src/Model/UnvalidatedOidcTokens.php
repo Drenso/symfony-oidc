@@ -19,7 +19,10 @@ class UnvalidatedOidcTokens
   /** @var string[]|null */
   private ?array $scope = null;
 
-  /** @throws OidcException */
+  /**
+   * @param stdClass|UnvalidatedOidcTokens $tokens
+   * @throws OidcException
+   */
   public function __construct(object $tokens)
   {
     if ($tokens instanceof stdClass) {
