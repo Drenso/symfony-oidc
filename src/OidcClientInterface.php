@@ -8,6 +8,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
+use Drenso\OidcBundle\Model\UnvalidatedOidcTokens;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -35,7 +36,7 @@ interface OidcClientInterface
    *
    * @throws OidcException
    */
-  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens;
+  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): UnvalidatedOidcTokens;
 
   /**
    * Create the redirect that should be followed in order to authorize.

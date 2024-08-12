@@ -6,15 +6,14 @@ use Drenso\OidcBundle\Exception\OidcCodeChallengeMethodNotSupportedException;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
-use Drenso\OidcBundle\Model\OidcExchangeTokens;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
+use Drenso\OidcBundle\Model\UnvalidatedOidcTokens;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
-use stdClass;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -89,9 +88,7 @@ class OidcClient implements OidcClientInterface
 
     // Request and verify the tokens
     return $this->verifyTokens(
-      new OidcTokens(
-        $this->requestTokens('authorization_code', $code, $this->getRedirectUrl())
-      ),
+      $this->requestTokens('authorization_code', $code, $this->getRedirectUrl()),
       !$this->disableNonce
     );
   }
@@ -103,26 +100,22 @@ class OidcClient implements OidcClientInterface
 
     // Request and verify the tokens
     return $this->verifyTokens(
-      new OidcTokens(
-        $this->requestTokens('refresh_token', null, null, $refreshToken)
-      ),
+      $this->requestTokens('refresh_token', refreshToken: $refreshToken),
       verifyNonce: false
     );
   }
 
-  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens
+  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): UnvalidatedOidcTokens
   {
     // Clear session after check
     $this->sessionStorage->clearState();
 
     // Request exchange tokens. Exchange tokens have no ID token, so no verification here
-    return new OidcExchangeTokens(
-      $this->requestTokens(
-        grantType: 'urn:ietf:params:oauth:grant-type:token-exchange',
-        subjectToken: $accessToken,
-        scope: $targetScope,
-        audience: $targetAudience
-      )
+    return $this->requestTokens(
+      'urn:ietf:params:oauth:grant-type:token-exchange',
+      subjectToken: $accessToken,
+      scope: $targetScope,
+      audience: $targetAudience
     );
   }
 
@@ -412,7 +405,7 @@ class OidcClient implements OidcClientInterface
     ?string $refreshToken = null,
     ?string $subjectToken = null,
     ?string $scope = null,
-    ?string $audience = null): stdClass
+    ?string $audience = null): UnvalidatedOidcTokens
   {
     $params = [
       'grant_type'    => $grantType,
@@ -473,12 +466,13 @@ class OidcClient implements OidcClientInterface
     // Clear code verifier from session after check
     $this->sessionStorage->clearCodeVerifier();
 
-    return $jsonToken;
+    return new UnvalidatedOidcTokens($jsonToken);
   }
 
   /** @throws OidcException */
-  private function verifyTokens(OidcTokens $tokens, $verifyNonce = true): OidcTokens
+  private function verifyTokens(UnvalidatedOidcTokens $unvalidatedTokens, $verifyNonce = true): OidcTokens
   {
+    $tokens = new OidcTokens($unvalidatedTokens);
     $this->jwtHelper->verifyTokens($this->getIssuer(), $this->getJwksUri(), $tokens, $verifyNonce);
 
     return $tokens;
