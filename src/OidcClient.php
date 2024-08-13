@@ -110,13 +110,18 @@ class OidcClient implements OidcClientInterface
     // Clear session after check
     $this->sessionStorage->clearState();
 
-    // Request exchange tokens. Exchange tokens have no ID token, so no verification here
-    return $this->requestTokens(
-      'urn:ietf:params:oauth:grant-type:token-exchange',
-      subjectToken: $accessToken,
-      scope: $targetScope,
-      audience: $targetAudience
+    // Request and verify exchange tokens
+    $tokens = new OidcTokens(
+      $this->requestTokens(
+        'urn:ietf:params:oauth:grant-type:token-exchange',
+        subjectToken: $accessToken,
+        scope: $targetScope,
+        audience: $targetAudience
+      )
     );
+    $this->jwtHelper->verifyAccessToken($this->getIssuer(), $this->getJwksUri(), $tokens, false);
+
+    return $tokens;
   }
 
   public function generateAuthorizationRedirect(

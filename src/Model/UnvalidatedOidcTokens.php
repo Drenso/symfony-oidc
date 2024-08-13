@@ -24,7 +24,7 @@ class UnvalidatedOidcTokens
    */
   public function __construct(UnvalidatedOidcTokens|stdClass $tokens)
   {
-    if ($tokens instanceof UnvalidatedOidcTokens) {
+    if ($tokens instanceof self) {
       $this->accessToken = $tokens->accessToken;
       $this->idToken = $tokens->idToken;
       $this->expiry = DateTimeImmutable::createFromInterface($tokens->expiry);

@@ -90,8 +90,13 @@ class OidcJwtHelper
    */
   public function verifyTokens(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
-    // Only validate id and access tokens
-    $idToken     = $tokens->getTokenByType(OidcTokenType::ID);
+    $this->verifyIdToken($issuer, $jwksUri, $tokens, $verifyNonce);
+    $this->verifyAccessToken($issuer, $jwksUri, $tokens, $verifyNonce);
+  }
+
+  public function verifyIdToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
+  {
+    $idToken = $tokens->getTokenByType(OidcTokenType::ID);
     $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
 
     $additionalIdTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ID) ?? [];
@@ -100,7 +105,11 @@ class OidcJwtHelper
     } catch (InvalidJwtTokenException $e) {
       throw new OidcAuthenticationException('Invalid ID token', $e);
     }
+  }
 
+  public function verifyAccessToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
+  {
+    $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
     $additionalAccessTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ACCESS) ?? [];
     try {
       $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, self::parseToken($accessToken), false, null, ...$additionalAccessTokenConstraints);
