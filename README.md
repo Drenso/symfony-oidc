@@ -311,6 +311,10 @@ class AdditionalTokenConstraintProvider implements OidcTokenConstraintProviderIn
 
 Some providers return incorrect or incomplete well known information. You can configure a custom well-known parser for the `OidcClient` by setting the `well_known_parser` to a service id which implements the `OidcWellKnownParserInterface`.
 
+### OAuth 2.0 Token Exchange (RFC 8693)[https://www.rfc-editor.org/rfc/rfc8693]
+
+This bundle support Token Exchange: you can use the `exchangeTokens` on the `OidcClient` to do so. This was added with https://github.com/Drenso/symfony-oidc/pull/66, which contains some more background information regarding the procedure as well.
+
 ## Known usages
 
 A list of open source projects that use this bundle:
