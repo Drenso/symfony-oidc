@@ -11,18 +11,18 @@ use stdClass;
 class OidcTokens extends UnvalidatedOidcTokens
 {
   /**
-   * @param stdClass|UnvalidatedOidcTokens $tokens
    * @throws OidcException
    */
-  public function __construct(object $tokens)
+  public function __construct(UnvalidatedOidcTokens|stdClass $tokens)
   {
     // These are the only required parameters per https://tools.ietf.org/html/rfc6749#section-4.2.2
-    if ($tokens instanceof stdClass) {
-      if (!isset($tokens->id_token) || !isset($tokens->access_token)) {
+    if ($tokens instanceof UnvalidatedOidcTokens) {
+      if ((null === $tokens->idToken) || (null === $tokens->accessToken)) {
         throw new OidcException('Invalid token object.');
       }
-    } elseif ($tokens instanceof UnvalidatedOidcTokens) {
-      if ((null === $tokens->getIdToken()) || (null === $tokens->getAccessToken())) {
+
+    } else {
+      if (!isset($tokens->id_token) || !isset($tokens->access_token)) {
         throw new OidcException('Invalid token object.');
       }
     }

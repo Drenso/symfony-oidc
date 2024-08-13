@@ -20,33 +20,32 @@ class UnvalidatedOidcTokens
   private ?array $scope = null;
 
   /**
-   * @param stdClass|UnvalidatedOidcTokens $tokens
    * @throws OidcException
    */
-  public function __construct(object $tokens)
+  public function __construct(UnvalidatedOidcTokens|stdClass $tokens)
   {
-    if ($tokens instanceof stdClass) {
-      $this->accessToken = $tokens->access_token ?? null;
-      $this->idToken     = $tokens->id_token ?? null;
+    if ($tokens instanceof UnvalidatedOidcTokens) {
+      $this->accessToken = $tokens->accessToken;
+      $this->idToken = $tokens->idToken;
+      $this->expiry = DateTimeImmutable::createFromInterface($tokens->expiry);
+      $this->refreshToken = $tokens->refreshToken;
+      $this->scope = $tokens->scope;
+      return;
+    }
 
-      if (isset($tokens->expires_in)) {
-        $this->expiry = DateTimeImmutable::createFromFormat('U', (string)(time() + $tokens->expires_in));
-      }
+    $this->accessToken = $tokens->access_token ?? null;
+    $this->idToken     = $tokens->id_token ?? null;
 
-      if (isset($tokens->refresh_token)) {
-        $this->refreshToken = $tokens->refresh_token;
-      }
+    if (isset($tokens->expires_in)) {
+      $this->expiry = DateTimeImmutable::createFromFormat('U', (string)(time() + $tokens->expires_in));
+    }
 
-      if (isset($tokens->scope)) {
-        $this->scope = explode(' ', (string)$tokens->scope);
-      }
+    if (isset($tokens->refresh_token)) {
+      $this->refreshToken = $tokens->refresh_token;
+    }
 
-    } elseif ($tokens instanceof UnvalidatedOidcTokens) {
-      $this->accessToken = $tokens->getAccessToken();
-      $this->idToken = $tokens->getAccessToken();
-      $this->expiry = DateTimeImmutable::createFromInterface($tokens->getExpiry());
-      $this->refreshToken = $tokens->getRefreshToken();
-      $this->scope = $tokens->getScope();
+    if (isset($tokens->scope)) {
+      $this->scope = explode(' ', (string)$tokens->scope);
     }
   }
 
