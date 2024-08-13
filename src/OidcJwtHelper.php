@@ -96,7 +96,7 @@ class OidcJwtHelper
 
   public function verifyIdToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
-    $idToken = $tokens->getTokenByType(OidcTokenType::ID);
+    $idToken     = $tokens->getTokenByType(OidcTokenType::ID);
     $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
 
     $additionalIdTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ID) ?? [];
@@ -109,7 +109,7 @@ class OidcJwtHelper
 
   public function verifyAccessToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
-    $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
+    $accessToken                      = $tokens->getTokenByType(OidcTokenType::ACCESS);
     $additionalAccessTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ACCESS) ?? [];
     try {
       $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, self::parseToken($accessToken), false, null, ...$additionalAccessTokenConstraints);

@@ -19,17 +19,16 @@ class UnvalidatedOidcTokens
   /** @var string[]|null */
   private ?array $scope = null;
 
-  /**
-   * @throws OidcException
-   */
+  /** @throws OidcException */
   public function __construct(UnvalidatedOidcTokens|stdClass $tokens)
   {
     if ($tokens instanceof self) {
-      $this->accessToken = $tokens->accessToken;
-      $this->idToken = $tokens->idToken;
-      $this->expiry = DateTimeImmutable::createFromInterface($tokens->expiry);
+      $this->accessToken  = $tokens->accessToken;
+      $this->idToken      = $tokens->idToken;
+      $this->expiry       = DateTimeImmutable::createFromInterface($tokens->expiry);
       $this->refreshToken = $tokens->refreshToken;
-      $this->scope = $tokens->scope;
+      $this->scope        = $tokens->scope;
+
       return;
     }
 
