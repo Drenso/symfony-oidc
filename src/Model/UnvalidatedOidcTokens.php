@@ -4,12 +4,9 @@ namespace Drenso\OidcBundle\Model;
 
 use DateTimeImmutable;
 use Drenso\OidcBundle\Enum\OidcTokenType;
-use Drenso\OidcBundle\Exception\OidcException;
 use stdClass;
 
-/**
- * Contains the access and id tokens retrieved from OpenID authentication.
- */
+/** Contains the unvalidated access and id tokens retrieved from the identity provider. */
 class UnvalidatedOidcTokens
 {
   protected readonly ?string $accessToken;
@@ -19,8 +16,7 @@ class UnvalidatedOidcTokens
   /** @var string[]|null */
   private ?array $scope = null;
 
-  /** @throws OidcException */
-  public function __construct(UnvalidatedOidcTokens|stdClass $tokens)
+  public function __construct(self|stdClass $tokens)
   {
     if ($tokens instanceof self) {
       $this->accessToken  = $tokens->accessToken;
