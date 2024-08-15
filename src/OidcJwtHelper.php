@@ -357,7 +357,7 @@ class OidcJwtHelper
 
   private function getClock(): ClockInterface
   {
-    return $this->clock ??= new class() implements ClockInterface {
+    return $this->clock ??= new class implements ClockInterface {
       public function now(): DateTimeImmutable
       {
         return new DateTimeImmutable();
