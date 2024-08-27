@@ -210,7 +210,7 @@ security:
         enable_end_session_listener: true
 ```
 
-**_Example: custom logout path_**
+**_Example: custom logout target path_**
 
 ```yaml
 security:
