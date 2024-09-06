@@ -238,6 +238,33 @@ class OidcClient implements OidcClientInterface
     return new OidcUserData($data);
   }
 
+  public function getIntrospection(OidcTokens $tokens): array
+  {
+    $headers = [];
+    if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods())) {
+      $headers = [
+        'Authorization: Basic ' . base64_encode(urlencode($this->clientId) . ':' . urlencode($this->clientSecret)),
+      ];
+    }
+
+    $jsonData = $this->urlFetcher->fetchUrl(
+      $this->getConfigurationValue('introspection_endpoint'),
+      ['token' => $tokens->getAccessToken()],
+      $headers,
+    );
+    $jsonData = mb_convert_encoding($jsonData, 'UTF-8');
+
+    // Read the data
+    $data = json_decode($jsonData, true);
+
+    // Check data due
+    if (!is_array($data)) {
+      throw new OidcException('Error from the introspection endpoint.');
+    }
+
+    return $data;
+  }
+
   /**
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException

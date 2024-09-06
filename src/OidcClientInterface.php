@@ -82,4 +82,9 @@ interface OidcClientInterface
    * @throws OidcException
    */
   public function retrieveUserInfo(OidcTokens $tokens): OidcUserData;
+
+  /**
+   * @throws OidcException
+   */
+  public function getIntrospection(OidcTokens $tokens): array;
 }
