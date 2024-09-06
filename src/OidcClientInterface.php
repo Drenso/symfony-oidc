@@ -2,10 +2,12 @@
 
 namespace Drenso\OidcBundle;
 
+use Drenso\OidcBundle\Enum\OidcTokenType;
 use Drenso\OidcBundle\Exception\OidcCodeChallengeMethodNotSupportedException;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
+use Drenso\OidcBundle\Model\OidcIntrospectionData;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
 use Symfony\Component\HttpFoundation\RedirectResponse;
@@ -82,4 +84,11 @@ interface OidcClientInterface
    * @throws OidcException
    */
   public function retrieveUserInfo(OidcTokens $tokens): OidcUserData;
+
+  /**
+   * Introspect the supplied token.
+   *
+   * @throws OidcException
+   */
+  public function introspect(OidcTokens $tokens, ?OidcTokenType $tokenType = null): OidcIntrospectionData;
 }
