@@ -39,7 +39,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
     private readonly string $loginPath,
     private readonly string $userIdentifierProperty,
     private readonly bool $enableRememberMe,
-    private readonly bool $userIdentifierFromIdToken = false
+    private readonly bool $userIdentifierFromIdToken = false,
   ) {
   }
 
