@@ -44,7 +44,7 @@
   },
   "require-dev": {
     "drenso/phan-extensions": "^3.0",
-    "friendsofphp/php-cs-fixer": "3.63.2",
+    "friendsofphp/php-cs-fixer": "3.64.0",
     "rector/rector": "1.2.4",
     "symfony/cache": "^5.4 || ^6.3 || ^7.0",
     "symfony/translation-contracts": "^2.0 || ^3.0"
