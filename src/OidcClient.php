@@ -2,10 +2,12 @@
 
 namespace Drenso\OidcBundle;
 
+use Drenso\OidcBundle\Enum\OidcTokenType;
 use Drenso\OidcBundle\Exception\OidcCodeChallengeMethodNotSupportedException;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
+use Drenso\OidcBundle\Model\OidcIntrospectionData;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
 use Drenso\OidcBundle\Model\UnvalidatedOidcTokens;
@@ -238,20 +240,30 @@ class OidcClient implements OidcClientInterface
     return new OidcUserData($data);
   }
 
-  public function getIntrospection(OidcTokens $tokens): array
+  public function introspect(OidcTokens $tokens, ?OidcTokenType $tokenType = null): OidcIntrospectionData
   {
     $headers = [];
-    if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods())) {
-      $headers = [
-        'Authorization: Basic ' . base64_encode(urlencode($this->clientId) . ':' . urlencode($this->clientSecret)),
+    if (in_array('client_secret_basic', $this->getIntrospectionEndpointAuthMethodsSupported())) {
+      $headers = [$this->generateBasicAuthorization()];
+    }
+
+    if ($tokenType === OidcTokenType::ACCESS) {
+      $params = [
+        'token' => $tokens->getAccessToken(),
+        'token_type_hint' => 'access_token',
+      ];
+    } elseif ($tokenType === OidcTokenType::REFRESH) {
+      $params = [
+        'token' => $tokens->getRefreshToken(),
+        'token_type_hint' => 'refresh_token',
+      ];
+    } else {
+      $params = [
+        'token' => $tokens->getIdToken(),
       ];
     }
 
-    $jsonData = $this->urlFetcher->fetchUrl(
-      $this->getConfigurationValue('introspection_endpoint'),
-      ['token' => $tokens->getAccessToken()],
-      $headers,
-    );
+    $jsonData = $this->urlFetcher->fetchUrl($this->getIntrospectionEndpoint(), $params, $headers);
     $jsonData = mb_convert_encoding($jsonData, 'UTF-8');
 
     // Read the data
@@ -262,7 +274,7 @@ class OidcClient implements OidcClientInterface
       throw new OidcException('Error from the introspection endpoint.');
     }
 
-    return $data;
+    return new OidcIntrospectionData($data);
   }
 
   /**
@@ -346,6 +358,28 @@ class OidcClient implements OidcClientInterface
   protected function getUserinfoEndpoint(): string
   {
     return $this->getConfigurationValue('userinfo_endpoint');
+  }
+
+  /**
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   */
+  protected function getIntrospectionEndpointAuthMethodsSupported(): array
+  {
+    try {
+      return $this->getConfigurationValue('introspection_endpoint_auth_methods_supported');
+    } catch (OidcConfigurationException $e) {
+      return $this->getTokenEndpointAuthMethods();
+    }
+  }
+
+  /**
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   */
+  protected function getIntrospectionEndpoint(): string
+  {
+    return $this->getConfigurationValue('introspection_endpoint');
   }
 
   /** Generate a nonce to verify the response */
@@ -460,7 +494,7 @@ class OidcClient implements OidcClientInterface
     // Use basic auth if offered
     $headers = [];
     if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods())) {
-      $headers = ['Authorization: Basic ' . base64_encode(urlencode($this->clientId) . ':' . urlencode($this->clientSecret))];
+      $headers = [$this->generateBasicAuthorization()];
       unset($params['client_id']);
       unset($params['client_secret']);
     }
@@ -562,5 +596,10 @@ class OidcClient implements OidcClientInterface
     }
 
     return $this->wellKnownParser?->parseWellKnown($config) ?? $config;
+  }
+
+  private function generateBasicAuthorization(): string
+  {
+    return 'Authorization: Basic ' . base64_encode(urlencode($this->clientId) . ':' . urlencode($this->clientSecret));
   }
 }
