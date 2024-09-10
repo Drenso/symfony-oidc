@@ -247,20 +247,16 @@ class OidcClient implements OidcClientInterface
       $headers = [$this->generateBasicAuthorization()];
     }
 
-    if ($tokenType === OidcTokenType::ACCESS) {
-      $params = [
+    $params = match ($tokenType) {
+      OidcTokenType::ACCESS => [
         'token' => $tokens->getAccessToken(),
         'token_type_hint' => 'access_token',
-      ];
-    } elseif ($tokenType === OidcTokenType::REFRESH) {
-      $params = [
+      ],
+      OidcTokenType::REFRESH => [
         'token' => $tokens->getRefreshToken(),
         'token_type_hint' => 'refresh_token',
-      ];
-    } else {
-      $params = [
-        'token' => $tokens->getIdToken(),
-      ];
+      ],
+      default => throw new InvalidArgumentException('Only access and refresh tokens can be introspected'),
     }
 
     $jsonData = $this->urlFetcher->fetchUrl($this->getIntrospectionEndpoint(), $params, $headers);
