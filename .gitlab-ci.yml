@@ -11,27 +11,27 @@ workflow:
 include:
   # Prepare
   - project: 'intern/runner-templates'
-    ref: "15.0"
+    ref: "15.1"
     file: '/symfony/install-dependencies.yml'
 
   # CS fix
   - project: 'intern/runner-templates'
-    ref: "15.0"
+    ref: "15.1"
     file: '/php/code-style-fixer.yml'
 
   # Lint
   - project: 'intern/runner-templates'
-    ref: "15.0"
+    ref: "15.1"
     file: '/php/phan.yml'
   - project: 'intern/runner-templates'
-    ref: "15.0"
+    ref: "15.1"
     file: '/php/composer-require-checker.yml'
   - project: 'intern/runner-templates'
-    ref: "15.0"
+    ref: "15.1"
     file: '/php/composer-unused.yml'
   - project: 'intern/runner-templates'
     file: '/deploy/deploy.yml'
-    ref: "15.0"
+    ref: "15.1"
 
 install-dependencies:
   before_script:
