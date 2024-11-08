@@ -378,6 +378,7 @@ class OidcClient
     $headers = [];
     if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods())) {
       $headers = ['Authorization: Basic ' . base64_encode(urlencode($this->clientId) . ':' . urlencode($this->clientSecret))];
+      unset($params['client_id']);
       unset($params['client_secret']);
     }
 
