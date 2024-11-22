@@ -25,6 +25,7 @@ The following IdPs are known to work with this bundle:
 
 | IdP                | Status | Remarks                                                                                                                                              |
 |--------------------|--------|------------------------------------------------------------------------------------------------------------------------------------------------------|
+| Auth0 by Okta      | ✅      |                                                                                                                                                      |
 | OpenConext         | ✅      | Used by SURFconext in the Netherlands                                                                                                                |
 | Keycloak           | ✅      |                                                                                                                                                      |
 | Microsoft Entra ID | ✅      | Will not work with default configuration, make sure to follow [these steps.](https://github.com/Drenso/symfony-oidc/blob/master/docs/ms-entra-id.md) |
