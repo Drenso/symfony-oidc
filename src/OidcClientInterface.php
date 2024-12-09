@@ -30,7 +30,7 @@ interface OidcClientInterface
    *
    * @throws OidcException
    */
-  public function refreshTokens(string $refreshToken): OidcTokens;
+  public function refreshTokens(string $refreshToken, ?string $targetScope = null): OidcTokens;
 
   /**
    * Use an existing auth token to retrieve new tokens from the OIDC provider with another scope and/or audience.
