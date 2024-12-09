@@ -95,14 +95,18 @@ class OidcClient implements OidcClientInterface
     );
   }
 
-  public function refreshTokens(string $refreshToken): OidcTokens
+  public function refreshTokens(string $refreshToken, ?string $targetScope = null): OidcTokens
   {
     // Clear session after check
     $this->sessionStorage->clearState();
 
     // Request and verify the tokens
     return $this->verifyTokens(
-      $this->requestTokens('refresh_token', refreshToken: $refreshToken),
+      $this->requestTokens(
+        'refresh_token',
+        refreshToken: $refreshToken,
+        scope: $targetScope
+      ),
       verifyNonce: false
     );
   }
