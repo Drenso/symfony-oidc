@@ -14,7 +14,6 @@ return RectorConfig::configure()
   ->withImportNames()
   ->withPhpSets()
   ->withSkip([
-    JsonThrowOnErrorRector::class,
     NameImportingPostRector::class => [
       './src/OidcClient.php',
     ],
