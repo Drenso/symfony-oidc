@@ -9,8 +9,10 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
  */
 class OidcUrlFetcher
 {
-  public function __construct(private readonly array $customClientHeaders = [])
-  {
+  public function __construct(
+    private readonly array $customClientHeaders = [],
+    private readonly array $customClientOptions = [],
+  ) {
   }
 
   /**
@@ -70,6 +72,10 @@ class OidcUrlFetcher
 
     // Timeout in seconds
     curl_setopt($ch, CURLOPT_TIMEOUT, 20);
+
+    foreach ($this->customClientOptions as $opt => $value) {
+      curl_setopt($ch, $opt, $value);
+    }
 
     // Download the given URL, and return output
     $output = curl_exec($ch);

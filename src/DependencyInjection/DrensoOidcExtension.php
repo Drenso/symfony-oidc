@@ -50,7 +50,8 @@ class DrensoOidcExtension extends ConfigurableExtension
     $urlFetcherId = sprintf('%s.%s', self::URL_FETCHER_ID, $name);
     $container
       ->setDefinition($urlFetcherId, new ChildDefinition(self::URL_FETCHER_ID))
-      ->addArgument($config['custom_client_headers']);
+      ->addArgument($config['custom_client_headers'])
+      ->addArgument($config['custom_client_options']);
 
     $sessionStorageId = sprintf('%s.%s', self::SESSION_STORAGE_ID, $name);
     $container
