@@ -91,9 +91,10 @@ drenso_oidc:
 You will need to update your User Provider to implement the methods from the `OidcUserProviderInterface`. Two methods
 need to be implemented:
 
-- `ensureUserExists(string $userIdentifier, OidcUserData $userData)`: Implement this method to bootstrap a new account
-  using the data available from the passed `OidcUserData` object. The identifier is a configurable property from the
-  user data, which defaults to `sub`. If the account cannot be bootstrapped, authentication will be impossible as the
+- `ensureUserExists(string $userIdentifier, OidcUserData $userData, ?\Drenso\OidcBundle\Model\OidcTokens $oidcTokens = null)`:
+  Implement this method to bootstrap a new account using the data available from the passed `OidcUserData` object.
+  The identifier is a configurable property from the user data, which defaults to `sub`.
+  If the account cannot be bootstrapped, authentication will be impossible as the
   User Provider will not be capable of retrieving the user.
 - `loadOidcUser(string $userIdentifier): UserInterface`: Implement this method to retrieve the user based on the
   identifier. We use a dedicated method instead of Symfony's default `loadUserByIdentifier` to allow you to detect where

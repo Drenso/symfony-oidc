@@ -79,7 +79,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
         throw new UserNotFoundException(
           sprintf('User identifier property (%s) yielded empty user identifier', $this->userIdentifierProperty));
       }
-      $this->oidcUserProvider->ensureUserExists($userIdentifier, $userData);
+      $this->oidcUserProvider->ensureUserExists($userIdentifier, $userData, $authData);
 
       // Create the passport
       $passport = new SelfValidatingPassport(new UserBadge(
