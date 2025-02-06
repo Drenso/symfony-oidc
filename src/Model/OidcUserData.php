@@ -11,6 +11,7 @@ class OidcUserData
   private static ?PropertyAccessorInterface $accessor = null;
   private readonly stdClass $userData;
 
+  /** @param array<string, mixed> $userData */
   public function __construct(array $userData)
   {
     // Cast the array data to a stdClass for easy access
@@ -65,13 +66,21 @@ class OidcUserData
     return $this->getUserDataString('schac_home_organization');
   }
 
-  /** Get the OIDC edu_person_affiliations claim */
+  /**
+   * Get the OIDC edu_person_affiliations claim.
+   *
+   * @return string[]
+   */
   public function getAffiliations(): array
   {
     return $this->getUserDataArray('eduperson_affiliation');
   }
 
-  /** Get the OIDC uids claim */
+  /**
+   * Get the OIDC uids claim.
+   *
+   * @return string[]
+   */
   public function getUids(): array
   {
     return $this->getUserDataArray('uids');
@@ -89,7 +98,11 @@ class OidcUserData
     return $this->getUserData($key) ?: '';
   }
 
-  /** Get an array property from the user data */
+  /**
+   * Get an array property from the user data.
+   *
+   * @phpstan-ignore missingType.iterableValue
+   */
   public function getUserDataArray(string $key): array
   {
     return $this->getUserData($key) ?: [];

@@ -9,6 +9,10 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
  */
 class OidcUrlFetcher
 {
+  /**
+   * @param string[]             $customClientHeaders
+   * @param array<string, mixed> $customClientOptions
+   */
   public function __construct(
     private readonly array $customClientHeaders = [],
     private readonly array $customClientOptions = [],
@@ -18,8 +22,8 @@ class OidcUrlFetcher
   /**
    * Retrieve the content from the specified url.
    *
-   * @param array|null $params  if this is set the request type will be POST
-   * @param array      $headers extra headers to be sent with the request
+   * @param array<string, mixed>|null $params  if this is set the request type will be POST
+   * @param string[]                  $headers extra headers to be sent with the request
    */
   public function fetchUrl(string $url, ?array $params = null, array $headers = []): string
   {
@@ -43,7 +47,7 @@ class OidcUrlFetcher
     $curlVersion = curl_version()['version'];
     $headers[]   = "User-Agent: curl/$curlVersion drenso/symfony-oidc";
 
-    // Add custom headers to a existing headers
+    // Add custom headers to existing headers
     $headers = array_merge($headers, $this->customClientHeaders);
 
     // Include headers
@@ -69,6 +73,7 @@ class OidcUrlFetcher
     curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
     foreach ($this->customClientOptions as $opt => $value) {
+      /* @phpstan-ignore argument.type */
       curl_setopt($ch, $opt, $value);
     }
 

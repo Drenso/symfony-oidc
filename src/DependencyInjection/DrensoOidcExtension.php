@@ -22,6 +22,7 @@ class DrensoOidcExtension extends ConfigurableExtension
   public const CLIENT_LOCATOR_ID        = self::BASE_ID . 'client_locator';
   public const END_SESSION_LISTENER_ID  = self::BASE_ID . 'end_session_listener';
 
+  /** @param array<string, mixed> $mergedConfig */
   public function loadInternal(array $mergedConfig, ContainerBuilder $container): void
   {
     // Autoload configured services
@@ -45,6 +46,7 @@ class DrensoOidcExtension extends ConfigurableExtension
       ->addArgument($mergedConfig['default_client']);
   }
 
+  /** @param array<string, mixed> $config */
   private function registerClient(ContainerBuilder $container, string $name, array $config): Reference
   {
     $urlFetcherId = sprintf('%s.%s', self::URL_FETCHER_ID, $name);

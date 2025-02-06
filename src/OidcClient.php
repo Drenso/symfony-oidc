@@ -29,7 +29,7 @@ use Symfony\Contracts\Cache\ItemInterface;
  */
 class OidcClient implements OidcClientInterface
 {
-  /** OIDC configuration values */
+  /** @var array<string, mixed> OIDC configuration values */
   protected ?array $configuration = null;
   private ?string $cacheKey       = null;
   private const PKCE_ALGORITHMS   = [
@@ -329,6 +329,8 @@ class OidcClient implements OidcClientInterface
   /**
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
+   *
+   * @return string[]
    */
   protected function getTokenEndpointAuthMethods(): array
   {
@@ -338,6 +340,8 @@ class OidcClient implements OidcClientInterface
   /**
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
+   *
+   * @return string[]
    */
   protected function getCodeChallengeMethodsSupported(): array
   {
@@ -362,6 +366,8 @@ class OidcClient implements OidcClientInterface
   /**
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
+   *
+   * @return string[]
    */
   protected function getIntrospectionEndpointAuthMethodsSupported(): array
   {
@@ -535,7 +541,7 @@ class OidcClient implements OidcClientInterface
   }
 
   /** @throws OidcException */
-  private function verifyTokens(UnvalidatedOidcTokens $unvalidatedTokens, $verifyNonce = true): OidcTokens
+  private function verifyTokens(UnvalidatedOidcTokens $unvalidatedTokens, bool $verifyNonce = true): OidcTokens
   {
     $tokens = new OidcTokens($unvalidatedTokens);
     $this->jwtHelper->verifyTokens($this->getIssuer(), $this->getJwksUri(), $tokens, $verifyNonce);
@@ -578,6 +584,8 @@ class OidcClient implements OidcClientInterface
    * Retrieves the well-known configuration from the configured url.
    *
    * @throws OidcConfigurationResolveException
+   *
+   * @return array<string, mixed>
    */
   private function retrieveWellKnownConfiguration(): array
   {

@@ -11,6 +11,7 @@ class OidcIntrospectionData
   private static ?PropertyAccessorInterface $accessor = null;
   private readonly stdClass $introspectionData;
 
+  /** @param array<string, mixed> $introspectionData */
   public function __construct(array $introspectionData)
   {
     // Cast the array data to a stdClass for easy access
@@ -70,7 +71,11 @@ class OidcIntrospectionData
     return $this->getIntrospectionDataString('sub');
   }
 
-  /** Get the OIDC aud claim */
+  /**
+   * Get the OIDC aud claim.
+   *
+   * @return string|string[]
+   */
   public function getAud(): string|array
   {
     return $this->getIntrospectionDataStringOrArray('aud');
@@ -100,7 +105,11 @@ class OidcIntrospectionData
     return $this->getIntrospectionData($key) ?: '';
   }
 
-  /** Get a string property from the introspection data */
+  /**
+   * Get a string property from the introspection data.
+   *
+   * @return string|string[]
+   */
   public function getIntrospectionDataStringOrArray(string $key): string|array
   {
     return $this->getIntrospectionData($key) ?: '';

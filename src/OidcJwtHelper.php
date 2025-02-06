@@ -43,12 +43,15 @@ use Symfony\Contracts\Cache\ItemInterface;
 
 /**
  * Contains helper functions to decode/verify JWT data.
+ *
+ * @phpstan-type JwkObject object{kty: string, kid: string}
  */
 class OidcJwtHelper
 {
   private static ?ParserInterface $parser = null;
   private static ?Validator $validator    = null;
 
+  /** @var JwkObject[] */
   protected ?array $jwks     = null;
   protected ?string $jwksUri = null;
   private ?string $cacheKey  = null;
@@ -271,6 +274,7 @@ class OidcJwtHelper
     return $keyAlgorithm;
   }
 
+  /** @param list<JwkObject> $keys */
   private function getMatchingJwkForToken(array $keys, Token $token): object
   {
     $headers   = $token->headers();
@@ -301,7 +305,10 @@ class OidcJwtHelper
     }
   }
 
-  /** @throws OidcConfigurationResolveException */
+  /**
+   * @return list<JwkObject>
+   * @throws OidcConfigurationResolveException
+   */
   private function getJwks(string $jwksUri, bool $forceNoCache = false): array
   {
     if (!$jwksUri) {

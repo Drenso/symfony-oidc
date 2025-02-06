@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\UserNotFoundException;
+use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationFailureHandlerInterface;
 use Symfony\Component\Security\Http\Authentication\AuthenticationSuccessHandlerInterface;
 use Symfony\Component\Security\Http\Authenticator\InteractiveAuthenticatorInterface;
@@ -26,8 +27,12 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 use Symfony\Component\Security\Http\HttpUtils;
 
+/**
+ * @template-covariant TUser of UserInterface
+ */
 class OidcAuthenticator implements InteractiveAuthenticatorInterface, AuthenticationEntryPointInterface
 {
+  /** @param OidcUserProviderInterface<TUser> $oidcUserProvider */
   public function __construct(
     private readonly HttpUtils $httpUtils,
     private readonly OidcClientInterface $oidcClient,
