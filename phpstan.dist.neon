@@ -1,0 +1,7 @@
+parameters:
+    level: 1
+    tmpDir: var/cache/phpstan
+    paths:
+      - src/
+    excludePaths:
+      - src/DependencyInjection/Configuration.php

@@ -44,6 +44,9 @@
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "3.68.5",
+    "phpstan/extension-installer": "1.4.3",
+    "phpstan/phpstan": "2.1.2",
+    "phpstan/phpstan-deprecation-rules": "2.0.1",
     "rector/rector": "2.0.7",
     "symfony/cache": "^5.4 || ^6.3 || ^7.0",
     "symfony/translation-contracts": "^2.0 || ^3.0"
@@ -57,7 +60,10 @@
     }
   },
   "config": {
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "phpstan/extension-installer": true
+    }
   },
   "extra": {
     "branch-alias": {

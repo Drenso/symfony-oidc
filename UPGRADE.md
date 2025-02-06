@@ -2,8 +2,9 @@ This file describes the steps you will need to make when upgrading this bundle.
 
 # From 3.x to 4.0
 
-- `OidcTokens` is added as a parameter to `Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface::ensureUserExists()` method.
-  For upgrade please add this parameter to your implementation of `OidcUserProviderInterface::ensureUserExists()`.
+  - `OidcTokens` is added as a parameter to `Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface::ensureUserExists()` method. To upgrade please add this parameter to your implementation of `OidcUserProviderInterface::ensureUserExists()`.
+  - Explicit return types have been added where they were missing. You will need to adjust your implementations accordingly.
+  - PHPStan typing has been added: this can impact you if you are using static analysis.
 
 # From 3.0 to 3.1
 

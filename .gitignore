@@ -13,3 +13,6 @@ composer.phar
 
 # Rector cache
 /var/cache/rector
+
+# PHPStan cache
+/var/cache/phpstan

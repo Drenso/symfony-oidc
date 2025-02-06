@@ -22,6 +22,9 @@ include:
   # Lint
   - project: 'intern/runner-templates'
     ref: "15.3"
+    file: '/php/phpstan.yml'
+  - project: 'intern/runner-templates'
+    ref: "15.3"
     file: '/php/composer-require-checker.yml'
   - project: 'intern/runner-templates'
     ref: "15.3"
@@ -46,6 +49,12 @@ composer-unused:
   except:
     - master
     - tags
+
+phpstan:
+  rules:
+    - if: $CI_COMMIT_REF_NAME == "master" || $CI_COMMIT_TAG
+      when: never
+    - when: on_success
 
 deploy-staging:
   rules:
