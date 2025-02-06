@@ -4,11 +4,11 @@ namespace Drenso\OidcBundle\Model;
 
 use stdClass;
 use Symfony\Component\PropertyAccess\PropertyAccess;
-use Symfony\Component\PropertyAccess\PropertyAccessor;
+use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 class OidcIntrospectionData
 {
-  private static ?PropertyAccessor $accessor = null;
+  private static ?PropertyAccessorInterface $accessor = null;
   private readonly stdClass $introspectionData;
 
   public function __construct(array $introspectionData)
