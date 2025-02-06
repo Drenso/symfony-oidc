@@ -52,8 +52,8 @@ class OidcUrlFetcher
     // Set URL to download
     curl_setopt($ch, CURLOPT_URL, $url);
 
-    // Include header in result? (0 = yes, 1 = no)
-    curl_setopt($ch, CURLOPT_HEADER, 0);
+    // Include header in result?
+    curl_setopt($ch, CURLOPT_HEADER, false);
 
     // Allows following redirects
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
