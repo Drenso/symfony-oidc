@@ -116,11 +116,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
     return new OidcToken($passport, $firewallName);
   }
 
-  /**
-   * @todo: Remove when dropping support for Symfony 5.4
-   *
-   * @phan-suppress PhanUndeclaredTypeParameter
-   */
+  /** @todo: Remove when dropping support for Symfony 5.4 */
   public function createAuthenticatedToken(
     PassportInterface $passport,
     string $firewallName): TokenInterface

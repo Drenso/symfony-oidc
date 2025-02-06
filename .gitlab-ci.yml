@@ -22,9 +22,6 @@ include:
   # Lint
   - project: 'intern/runner-templates'
     ref: "15.3"
-    file: '/php/phan.yml'
-  - project: 'intern/runner-templates'
-    ref: "15.3"
     file: '/php/composer-require-checker.yml'
   - project: 'intern/runner-templates'
     ref: "15.3"
@@ -46,11 +43,6 @@ composer-require-checker:
     - tags
 
 composer-unused:
-  except:
-    - master
-    - tags
-
-php-analysis:
   except:
     - master
     - tags

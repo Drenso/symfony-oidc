@@ -169,7 +169,6 @@ class OidcClient implements OidcClientInterface
     }
 
     // Store remember me state
-    /** @phan-suppress-next-line PhanAccessMethodInternal */
     $parameter = $this->requestStack->getCurrentRequest()->get($this->rememberMeParameter);
     $this->sessionStorage->storeRememberMe($forceRememberMe || 'true' === $parameter || 'on' === $parameter || '1' === $parameter || 'yes' === $parameter || true === $parameter);
 
@@ -181,20 +180,16 @@ class OidcClient implements OidcClientInterface
       // Symfony 7
       defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR') => \Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR,
       // Symfony 6
-      /* @phan-suppress-next-line PhanUndeclaredConstantOfClass */
       defined('\Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR') => \Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR,
       // Symfony 5
-      /* @phan-suppress-next-line PhanUndeclaredClassConstant */
       default => \Symfony\Component\Security\Core\Security::AUTHENTICATION_ERROR,
     });
     $session->remove(match (true) {
       // Symfony 7
       defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME') => \Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME,
       // Symfony 6
-      /* @phan-suppress-next-line PhanUndeclaredConstantOfClass */
       defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME') => \Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME,
       // Symfony 5
-      /* @phan-suppress-next-line PhanUndeclaredClassConstant */
       default => \Symfony\Component\Security\Core\Security::LAST_USERNAME,
     });
 
@@ -546,8 +541,6 @@ class OidcClient implements OidcClientInterface
 
   /**
    * Retrieves the well-known configuration and saves it in the class.
-   *
-   * @phan-suppress PhanTypeInvalidThrowsIsInterface
    *
    * @throws OidcConfigurationResolveException
    */
