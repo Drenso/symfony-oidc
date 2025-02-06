@@ -330,8 +330,9 @@ class OidcJwtHelper
   }
 
   /**
-   * @return list<JwkObject>
    * @throws OidcConfigurationResolveException
+   *
+   * @return list<JwkObject>
    */
   private function getJwks(string $jwksUri, bool $forceNoCache = false): array
   {

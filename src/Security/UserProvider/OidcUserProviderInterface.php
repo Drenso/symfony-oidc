@@ -10,6 +10,7 @@ use Symfony\Component\Security\Core\User\UserProviderInterface;
 
 /**
  * @template-covariant TUser of UserInterface
+ *
  * @template-extends UserProviderInterface<TUser>
  */
 interface OidcUserProviderInterface extends UserProviderInterface
