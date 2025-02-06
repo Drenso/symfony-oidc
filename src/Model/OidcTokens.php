@@ -27,11 +27,11 @@ class OidcTokens extends UnvalidatedOidcTokens
 
   public function getAccessToken(): string
   {
-    return $this->accessToken;
+    return $this->accessToken ?? throw new OidcException('Access token not available');
   }
 
   public function getIdToken(): string
   {
-    return $this->idToken;
+    return $this->idToken ?? throw new OidcException('ID token not available');
   }
 }

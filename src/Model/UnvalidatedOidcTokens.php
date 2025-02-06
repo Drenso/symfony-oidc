@@ -22,7 +22,7 @@ class UnvalidatedOidcTokens
     if ($tokens instanceof self) {
       $this->accessToken  = $tokens->accessToken;
       $this->idToken      = $tokens->idToken;
-      $this->expiry       = DateTimeImmutable::createFromInterface($tokens->expiry);
+      $this->expiry       = $tokens->expiry ? DateTimeImmutable::createFromInterface($tokens->expiry) : null;
       $this->refreshToken = $tokens->refreshToken;
       $this->scope        = $tokens->scope;
 

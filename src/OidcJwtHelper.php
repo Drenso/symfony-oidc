@@ -7,6 +7,7 @@ use DateTimeImmutable;
 use Drenso\OidcBundle\Enum\OidcTokenType;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
+use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Security\Exception\InvalidJwtTokenException;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
@@ -113,7 +114,7 @@ class OidcJwtHelper
    */
   public function verifyIdToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
-    $idToken     = $tokens->getTokenByType(OidcTokenType::ID);
+    $idToken     = $tokens->getTokenByType(OidcTokenType::ID) ?? throw new OidcException('ID token missing');
     $accessToken = $tokens->getTokenByType(OidcTokenType::ACCESS);
 
     $additionalIdTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ID) ?? [];
@@ -133,7 +134,7 @@ class OidcJwtHelper
    */
   public function verifyAccessToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
-    $accessToken                      = $tokens->getTokenByType(OidcTokenType::ACCESS);
+    $accessToken                      = $tokens->getTokenByType(OidcTokenType::ACCESS) ?? throw new OidcException('Access token missing');
     $additionalAccessTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ACCESS) ?? [];
     try {
       $this->verifyToken($issuer, $jwksUri, OidcTokenType::ACCESS, self::parseToken($accessToken), false, null, ...$additionalAccessTokenConstraints);
@@ -395,6 +396,7 @@ class OidcJwtHelper
     };
   }
 
+  /** @phpstan-assert-if-true !null $this->jwksCache */
   public function isCacheEnabled(): bool
   {
     return $this->jwksCache && $this->jwksCacheTime !== null;

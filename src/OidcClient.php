@@ -173,7 +173,7 @@ class OidcClient implements OidcClientInterface
     }
 
     // Store remember me state
-    $parameter = $this->requestStack->getCurrentRequest()->get($this->rememberMeParameter);
+    $parameter = $this->requestStack->getCurrentRequest()?->get($this->rememberMeParameter);
     $this->sessionStorage->storeRememberMe($forceRememberMe || 'true' === $parameter || 'on' === $parameter || '1' === $parameter || 'yes' === $parameter || true === $parameter);
 
     // Remove security session state
@@ -316,7 +316,10 @@ class OidcClient implements OidcClientInterface
 
   protected function getRedirectUrl(): string
   {
-    return $this->httpUtils->generateUri($this->requestStack->getCurrentRequest(), $this->redirectRoute);
+    return $this->httpUtils->generateUri(
+      $this->requestStack->getCurrentRequest() ?? throw new RuntimeException('Current request could not be found'),
+      $this->redirectRoute
+    );
   }
 
   /**
@@ -415,7 +418,7 @@ class OidcClient implements OidcClientInterface
   private function generateCodeChallenge(): string
   {
     if (null === $this->codeChallengeMethod) {
-      throw new RuntimeException('Method should not called when a code challenge method isn\'t conmfigured');
+      throw new OidcConfigurationException('Method should not called when a code challenge method isn\'t configured');
     }
 
     if (!in_array($this->codeChallengeMethod, $this->getCodeChallengeMethodsSupported(), true)) {
@@ -561,6 +564,8 @@ class OidcClient implements OidcClientInterface
    * Retrieves the well-known configuration and saves it in the class.
    *
    * @throws OidcConfigurationResolveException
+   *
+   * @phpstan-assert !null $this->configuration
    */
   private function resolveConfiguration(): void
   {
