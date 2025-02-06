@@ -32,7 +32,10 @@ use Symfony\Component\Security\Http\HttpUtils;
  */
 class OidcAuthenticator implements InteractiveAuthenticatorInterface, AuthenticationEntryPointInterface
 {
-  /** @param OidcUserProviderInterface<TUser> $oidcUserProvider */
+  /**
+   * @param OidcUserProviderInterface<TUser> $oidcUserProvider
+   * @param non-empty-string                 $userIdentifierProperty
+   */
   public function __construct(
     private readonly HttpUtils $httpUtils,
     private readonly OidcClientInterface $oidcClient,

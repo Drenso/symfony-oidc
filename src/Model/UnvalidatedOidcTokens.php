@@ -4,6 +4,7 @@ namespace Drenso\OidcBundle\Model;
 
 use DateTimeImmutable;
 use Drenso\OidcBundle\Enum\OidcTokenType;
+use RuntimeException;
 use stdClass;
 
 /** Contains the unvalidated access and id tokens retrieved from the identity provider. */
@@ -32,7 +33,8 @@ class UnvalidatedOidcTokens
     $this->idToken     = $tokens->id_token ?? null;
 
     if (isset($tokens->expires_in)) {
-      $this->expiry = DateTimeImmutable::createFromFormat('U', (string)(time() + $tokens->expires_in));
+      $this->expiry = DateTimeImmutable::createFromFormat('U', (string)(time() + $tokens->expires_in))
+        ?: throw new RuntimeException('Failed to generate expiry');
     }
 
     if (isset($tokens->refresh_token)) {

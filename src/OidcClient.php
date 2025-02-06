@@ -37,6 +37,10 @@ class OidcClient implements OidcClientInterface
     'plain' => false,
   ];
 
+  /**
+   * @param non-empty-string $wellKnownUrl
+   * @param non-empty-string $clientId
+   */
   public function __construct(
     protected RequestStack $requestStack,
     protected HttpUtils $httpUtils,
@@ -72,10 +76,10 @@ class OidcClient implements OidcClientInterface
     }
 
     // Check whether the request contains the required state and code keys
-    if (!$code = $request->query->get('code')) {
+    if (!$code = (string)$request->query->get('code')) {
       throw new OidcAuthenticationException('Missing code in query');
     }
-    if (!$state = $request->query->get('state')) {
+    if (!$state = (string)$request->query->get('state')) {
       throw new OidcAuthenticationException('Missing state in query');
     }
 
@@ -291,8 +295,10 @@ class OidcClient implements OidcClientInterface
   }
 
   /**
-   * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
+   * @throws OidcConfigurationException
+   *
+   * @return non-empty-string
    */
   protected function getIssuer(): string
   {
@@ -316,6 +322,8 @@ class OidcClient implements OidcClientInterface
   /**
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
+   *
+   * @return non-empty-string
    */
   protected function getTokenEndpoint(): string
   {
@@ -353,6 +361,8 @@ class OidcClient implements OidcClientInterface
   /**
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
+   *
+   * @return non-empty-string
    */
   protected function getUserinfoEndpoint(): string
   {
@@ -377,6 +387,8 @@ class OidcClient implements OidcClientInterface
   /**
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException
+   *
+   * @return non-empty-string
    */
   protected function getIntrospectionEndpoint(): string
   {
@@ -421,7 +433,7 @@ class OidcClient implements OidcClientInterface
     if (!$pkceAlgorithm) {
       $codeChallenge = $codeVerifier;
     } else {
-      $codeChallenge = rtrim(strtr(base64_encode(hash(self::PKCE_ALGORITHMS[$this->codeChallengeMethod], $codeVerifier, true)), '+/', '-_'), '=');
+      $codeChallenge = rtrim(strtr(base64_encode(hash($pkceAlgorithm, $codeVerifier, true)), '+/', '-_'), '=');
     }
 
     return $codeChallenge;

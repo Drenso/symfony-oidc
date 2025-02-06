@@ -44,18 +44,19 @@ use Symfony\Contracts\Cache\ItemInterface;
 /**
  * Contains helper functions to decode/verify JWT data.
  *
- * @phpstan-type JwkObject object{kty: string, kid: string}
+ * @phpstan-type JwkObject object{kty: string, kid: string, alg: string}
  */
 class OidcJwtHelper
 {
   private static ?ParserInterface $parser = null;
   private static ?Validator $validator    = null;
 
-  /** @var JwkObject[] */
+  /** @var list<JwkObject> */
   protected ?array $jwks     = null;
   protected ?string $jwksUri = null;
   private ?string $cacheKey  = null;
 
+  /** @param non-empty-string $clientId */
   public function __construct(
     protected readonly ?CacheInterface $jwksCache,
     protected ?ClockInterface $clock,
@@ -72,6 +73,10 @@ class OidcJwtHelper
   public static function parseToken(string $token): UnencryptedToken
   {
     try {
+      if (!$token) {
+        throw new InvalidJwtTokenException('Token string cannot be empty');
+      }
+
       $parsedToken = (self::$parser ??= new Parser(new JoseEncoder()))->parse($token);
     } catch (InvalidTokenStructure $e) {
       throw new InvalidJwtTokenException('Invalid token structure', previous: $e);
@@ -88,6 +93,8 @@ class OidcJwtHelper
   /**
    * Validate the supplied OidcTokens.
    *
+   * @param non-empty-string $issuer
+   *
    * @throws OidcConfigurationResolveException|OidcConfigurationException Thrown on invalid configuration
    * @throws OidcAuthenticationException                                  Throw when a token is invalid
    */
@@ -97,6 +104,13 @@ class OidcJwtHelper
     $this->verifyAccessToken($issuer, $jwksUri, $tokens, $verifyNonce);
   }
 
+  /**
+   * @param non-empty-string $issuer
+   *
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   * @throws OidcAuthenticationException
+   */
   public function verifyIdToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
     $idToken     = $tokens->getTokenByType(OidcTokenType::ID);
@@ -110,6 +124,13 @@ class OidcJwtHelper
     }
   }
 
+  /**
+   * @param non-empty-string $issuer
+   *
+   * @throws OidcConfigurationException
+   * @throws OidcConfigurationResolveException
+   * @throws OidcAuthenticationException
+   */
   public function verifyAccessToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
   {
     $accessToken                      = $tokens->getTokenByType(OidcTokenType::ACCESS);
@@ -124,6 +145,8 @@ class OidcJwtHelper
 
   /**
    * Validate a token.
+   *
+   * @param non-empty-string $issuer
    *
    * @throws OidcConfigurationResolveException|OidcConfigurationException Thrown on invalid configuration
    * @throws OidcAuthenticationException                                  Throw when a token is invalid

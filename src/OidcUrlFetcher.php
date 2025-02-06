@@ -22,6 +22,7 @@ class OidcUrlFetcher
   /**
    * Retrieve the content from the specified url.
    *
+   * @param non-empty-string          $url
    * @param array<string, mixed>|null $params  if this is set the request type will be POST
    * @param string[]                  $headers extra headers to be sent with the request
    */
@@ -44,7 +45,7 @@ class OidcUrlFetcher
     }
 
     // Add a User-Agent header to prevent firewall blocks
-    $curlVersion = curl_version()['version'];
+    $curlVersion = (curl_version() ?: [])['version'] ?? 'unknown';
     $headers[]   = "User-Agent: curl/$curlVersion drenso/symfony-oidc";
 
     // Add custom headers to existing headers

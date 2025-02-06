@@ -32,6 +32,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/OidcClient.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Method Drenso\\\\OidcBundle\\\\OidcUrlFetcher\\:\\:fetchUrl\\(\\) should return string but returns string\\|true\\.$#',
+	'identifier' => 'return.type',
+	'count' => 1,
+	'path' => __DIR__ . '/src/OidcUrlFetcher.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Parameter \\#2 \\$option of function curl_setopt expects int, string given\\.$#',
 	'identifier' => 'argument.type',
 	'count' => 1,
