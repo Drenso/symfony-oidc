@@ -91,7 +91,7 @@ drenso_oidc:
 You will need to update your User Provider to implement the methods from the `OidcUserProviderInterface`. Two methods
 need to be implemented:
 
-- `ensureUserExists(string $userIdentifier, OidcUserData $userData, ?\Drenso\OidcBundle\Model\OidcTokens $oidcTokens = null)`:
+- `ensureUserExists(string $userIdentifier, OidcUserData $userData, OidcTokens $oidcTokens)`:
   Implement this method to bootstrap a new account using the data available from the passed `OidcUserData` object.
   The identifier is a configurable property from the user data, which defaults to `sub`.
   If the account cannot be bootstrapped, authentication will be impossible as the
