@@ -180,20 +180,16 @@ class OidcClient implements OidcClientInterface
       // Symfony 7
       defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR') => \Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR,
       // Symfony 6
-      /* @phpstan-ignore classConstant.notFound */
       defined('\Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR') => \Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR,
       // Symfony 5
-      /* @phpstan-ignore class.notFound */
       default => \Symfony\Component\Security\Core\Security::AUTHENTICATION_ERROR,
     });
     $session->remove(match (true) {
       // Symfony 7
       defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME') => \Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME,
       // Symfony 6
-      /* @phpstan-ignore classConstant.notFound */
       defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME') => \Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME,
       // Symfony 5
-      /* @phpstan-ignore class.notFound */
       default => \Symfony\Component\Security\Core\Security::LAST_USERNAME,
     });
 

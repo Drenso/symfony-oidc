@@ -1,3 +1,6 @@
+includes:
+    - phpstan-baseline.php
+
 parameters:
     level: 6
     tmpDir: var/cache/phpstan

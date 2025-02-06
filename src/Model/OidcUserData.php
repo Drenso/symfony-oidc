@@ -98,11 +98,7 @@ class OidcUserData
     return $this->getUserData($key) ?: '';
   }
 
-  /**
-   * Get an array property from the user data.
-   *
-   * @phpstan-ignore missingType.iterableValue
-   */
+  /** Get an array property from the user data. */
   public function getUserDataArray(string $key): array
   {
     return $this->getUserData($key) ?: [];

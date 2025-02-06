@@ -123,7 +123,6 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
 
   /** @todo: Remove when dropping support for Symfony 5.4 */
   public function createAuthenticatedToken(
-    /* @phpstan-ignore class.notFound */
     PassportInterface $passport,
     string $firewallName): TokenInterface
   {

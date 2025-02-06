@@ -73,7 +73,6 @@ class OidcUrlFetcher
     curl_setopt($ch, CURLOPT_TIMEOUT, 20);
 
     foreach ($this->customClientOptions as $opt => $value) {
-      /* @phpstan-ignore argument.type */
       curl_setopt($ch, $opt, $value);
     }
 

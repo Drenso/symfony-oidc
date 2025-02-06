@@ -93,8 +93,6 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
    * The following methods are required for Symfony 5.4 compatibility, but are not used.
    *
    * @todo: Remove when dropping support for Symfony 5.4
-   *
-   * @phpstan-ignore missingType.iterableValue
    */
   protected function createAuthProvider(
     ContainerBuilder $container,
