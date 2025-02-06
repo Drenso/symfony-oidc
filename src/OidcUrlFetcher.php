@@ -27,12 +27,7 @@ class OidcUrlFetcher
     $ch = curl_init();
 
     // Determine whether this is a GET or POST
-    if ($params != null) {
-      // Check params
-      if (!is_array($params)) {
-        throw new OidcAuthenticationException('The parameters should be specified as array!');
-      }
-
+    if ($params !== null) {
       $params = http_build_query($params);
 
       // Allows to keep the POST method even after redirect
