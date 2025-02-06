@@ -1,5 +1,10 @@
 This file describes the steps you will need to make when upgrading this bundle.
 
+# From 3.x to 4.0
+
+- `OidcTokens` is added as a parameter to `Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface::ensureUserExists()` method.
+  For upgrade please add this parameter to your implementation of `OidcUserProviderInterface::ensureUserExists()`.
+
 # From 3.0 to 3.1
 
   - The `iss`, `iat`, `nbf` and `exp` claims set in the access token are only validated when they are actually available. While this is strictly speaking not according to the JWT specification, we have decided to handle these cases gracefully.
