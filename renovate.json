@@ -6,7 +6,7 @@
   "rangeStrategy": "widen",
   "packageRules": [
     {
-      "matchPackageNames": ["friendsofphp/php-cs-fixer", "rector/rector"],
+      "matchPackageNames": ["friendsofphp/php-cs-fixer", "phpstan/phpstan", "rector/rector"],
       "rangeStrategy": "pin"
     }
   ]
