@@ -13,6 +13,7 @@ use Exception;
 use InvalidArgumentException;
 use LogicException;
 use phpseclib3\Crypt\RSA;
+use Psr\Log\LoggerInterface;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -50,8 +51,9 @@ class OidcClient implements OidcClientInterface
     private readonly string $rememberMeParameter,
     protected ?OidcWellKnownParserInterface $wellKnownParser = null,
     private readonly ?string $codeChallengeMethod = null,
-    private readonly bool $disableNonce = false)
-  {
+    private readonly bool $disableNonce = false,
+    private readonly LoggerInterface $logger,
+  ) {
     // Check for required phpseclib classes
     if (!class_exists('\phpseclib\Crypt\RSA') && !class_exists(RSA::class)) {
       throw new RuntimeException('Unable to find phpseclib Crypt/RSA.php.  Ensure phpseclib/phpseclib is installed.');
@@ -68,6 +70,7 @@ class OidcClient implements OidcClientInterface
 
   public function authenticate(Request $request): OidcTokens
   {
+    $this->logger->info('Starting authentication');
     // Check whether the request has an error state
     if ($request->request->has('error')) {
       throw new OidcAuthenticationException(sprintf('OIDC error: %s. Description: %s.',
@@ -401,6 +404,8 @@ class OidcClient implements OidcClientInterface
       'client_secret' => $this->clientSecret,
     ];
 
+    $this->logger->info('requestTokens data', $params);
+
     if (null !== $code) {
       $params['code'] = $code;
     }
@@ -415,10 +420,9 @@ class OidcClient implements OidcClientInterface
 
     // Use basic auth if offered
     $headers = [];
-    if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods())) {
+    if (in_array('client_secret_basic', $this->getTokenEndpointAuthMethods(), true)) {
       $headers = ['Authorization: Basic ' . base64_encode(urlencode($this->clientId) . ':' . urlencode($this->clientSecret))];
-      unset($params['client_id']);
-      unset($params['client_secret']);
+      unset($params['client_id'], $params['client_secret']);
     }
 
     if ($codeVerifier = $this->sessionStorage->getCodeVerifier()) {
@@ -430,6 +434,8 @@ class OidcClient implements OidcClientInterface
     }
 
     $jsonToken = json_decode($this->urlFetcher->fetchUrl($this->getTokenEndpoint(), $params, $headers));
+
+    $this->logger->info('Retrieve the content from the specified url', (array)$jsonToken);
 
     // Throw an error if the server returns one
     if (isset($jsonToken->error)) {
@@ -459,9 +465,9 @@ class OidcClient implements OidcClientInterface
     // If this is a valid claim
     if ($this->jwtHelper->verifyJwtClaims($this->getIssuer(), $claims, $tokens, $verifyNonce)) {
       return $tokens;
-    } else {
-      throw new OidcAuthenticationException('Unable to verify JWT claims');
     }
+
+    throw new OidcAuthenticationException('Unable to verify JWT claims');
   }
 
   /**
