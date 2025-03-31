@@ -45,7 +45,7 @@
   "require-dev": {
     "friendsofphp/php-cs-fixer": "3.70.2",
     "phpstan/extension-installer": "1.4.3",
-    "phpstan/phpstan": "2.1.10",
+    "phpstan/phpstan": "2.1.11",
     "phpstan/phpstan-deprecation-rules": "2.0.1",
     "rector/rector": "2.0.10",
     "symfony/cache": "^5.4 || ^6.3 || ^7.0",
