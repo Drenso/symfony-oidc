@@ -47,7 +47,7 @@
     "phpstan/extension-installer": "1.4.3",
     "phpstan/phpstan": "2.1.11",
     "phpstan/phpstan-deprecation-rules": "2.0.1",
-    "rector/rector": "2.0.10",
+    "rector/rector": "2.0.11",
     "symfony/cache": "^5.4 || ^6.3 || ^7.0",
     "symfony/translation-contracts": "^2.0 || ^3.0"
   },
