@@ -199,7 +199,7 @@ class OidcJwtHelper
           $constraints[] = new HasClaimWithValue(
             'at_hash',
             self::urlEncode(
-              substr(hash("sha$bit", $accessToken, true), 0, (int)$bit / 16),
+              substr(hash("sha$bit", $accessToken, true), 0, (int)($bit / 16)),
             ),
           );
         }
