@@ -6,7 +6,9 @@ use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\OidcClientInterface;
 use Drenso\OidcBundle\OidcJwtHelper;
 use Drenso\OidcBundle\OidcSessionStorage;
+use Drenso\OidcBundle\Model\OidcUserData;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
+use Drenso\OidcBundle\Security\Exception\OidcConfigurationDisableUserInfoNotSupportedException;
 use Drenso\OidcBundle\Security\Exception\UnsupportedManagerException;
 use Drenso\OidcBundle\Security\Token\OidcToken;
 use Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface;
@@ -48,6 +50,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
     private readonly string $userIdentifierProperty,
     private readonly bool $enableRememberMe,
     private readonly bool $userIdentifierFromIdToken = false,
+    private readonly bool $enableRetrieveUserInfo = true,
   ) {
   }
 
@@ -70,8 +73,15 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
       // Try to authenticate the request
       $authData = $this->oidcClient->authenticate($request);
 
-      // Retrieve the user data with the authentication data
-      $userData = $this->oidcClient->retrieveUserInfo($authData);
+      // Optionally retrieve the user data with the authentication data
+      if ($this->enableRetrieveUserInfo) {
+        $userData = $this->oidcClient->retrieveUserInfo($authData);
+      } else {
+        if (!$this->userIdentifierFromIdToken) {
+          throw new OidcConfigurationDisableUserInfoNotSupportedException();
+        }
+        $userData = new OidcUserData([]);
+      }
 
       // Look for the user identifier in either the id_token or the userinfo endpoint
       if ($this->userIdentifierFromIdToken) {
