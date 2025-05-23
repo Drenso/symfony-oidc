@@ -2,13 +2,13 @@
 
 namespace Drenso\OidcBundle\Security;
 
+use Drenso\OidcBundle\Exception\OidcConfigurationDisableUserInfoNotSupportedException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcUserData;
 use Drenso\OidcBundle\OidcClientInterface;
 use Drenso\OidcBundle\OidcJwtHelper;
 use Drenso\OidcBundle\OidcSessionStorage;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
-use Drenso\OidcBundle\Security\Exception\OidcConfigurationDisableUserInfoNotSupportedException;
 use Drenso\OidcBundle\Security\Exception\UnsupportedManagerException;
 use Drenso\OidcBundle\Security\Token\OidcToken;
 use Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface;

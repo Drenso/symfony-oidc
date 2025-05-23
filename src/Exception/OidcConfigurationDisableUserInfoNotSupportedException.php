@@ -1,8 +1,6 @@
 <?php
 
-namespace Drenso\OidcBundle\Security\Exception;
-
-use Drenso\OidcBundle\Exception\OidcException;
+namespace Drenso\OidcBundle\Exception;
 
 class OidcConfigurationDisableUserInfoNotSupportedException extends OidcException
 {
