@@ -30,6 +30,7 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
     $this->addOption('enable_end_session_listener', false);
     $this->addOption('use_logout_target_path', true);
     $this->addOption('enable_retrieve_user_info', true);
+    $this->addOption('user_info_from_idtoken', false);
   }
 
   public function getPriority(): int
@@ -64,7 +65,8 @@ class OidcFactory extends AbstractFactory implements AuthenticatorFactoryInterfa
       ->addArgument($config['user_identifier_property'])
       ->addArgument($config['enable_remember_me'])
       ->addArgument($config['user_identifier_from_idtoken'])
-      ->addArgument($config['enable_retrieve_user_info']);
+      ->addArgument($config['enable_retrieve_user_info'])
+      ->addArgument($config['user_info_from_idtoken']);
 
     $logoutListenerId = sprintf('security.logout.listener.default.%s', $firewallName);
 

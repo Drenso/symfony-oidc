@@ -51,6 +51,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
     private readonly bool $enableRememberMe,
     private readonly bool $userIdentifierFromIdToken = false,
     private readonly bool $enableRetrieveUserInfo = true,
+    private readonly bool $userInfoFromIdToken = false,
   ) {
   }
 
@@ -73,6 +74,13 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
       // Try to authenticate the request
       $authData = $this->oidcClient->authenticate($request);
 
+      // Parse ID token if necessary
+      if ($this->userIdentifierFromIdToken || $this->userInfoFromIdToken) {
+        $idToken = OidcJwtHelper::parseToken($authData->getIdToken());
+      } else {
+        $idToken = null;
+      }
+
       // Optionally retrieve the user data with the authentication data
       if ($this->enableRetrieveUserInfo) {
         $userData = $this->oidcClient->retrieveUserInfo($authData);
@@ -80,14 +88,17 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
         if (!$this->userIdentifierFromIdToken) {
           throw new OidcConfigurationDisableUserInfoNotSupportedException();
         }
-        $userData = new OidcUserData([]);
+
+        if ($this->userInfoFromIdToken) {
+          $userData = new OidcUserData($idToken->claims()->all());
+        } else {
+          $userData = new OidcUserData([]);
+        }
       }
 
       // Look for the user identifier in either the id_token or the userinfo endpoint
       if ($this->userIdentifierFromIdToken) {
-        $userIdentifier = OidcJwtHelper::parseToken($authData->getIdToken())
-          ->claims()
-          ->get($this->userIdentifierProperty);
+        $userIdentifier = $idToken->claims()->get($this->userIdentifierProperty);
       } else {
         $userIdentifier = $userData->getUserDataString($this->userIdentifierProperty);
       }
