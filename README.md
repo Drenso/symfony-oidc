@@ -140,6 +140,7 @@ There are a couple of options available for the `oidc` listener.
 | `failure_forward`                | `false`         | Used for the failure handler                                                                                                                  |
 | `failure_path_parameter`         | `_failure_path` | Used for the failure handler                                                                                                                  |
 | `enable_retrieve_user_info`      | `true`          | Enable fetching data from the user info endpoint. *Required:* If disabled, `user_identifier_from_idtoken` must be set to `true`.              |
+| `user_info_from_idtoken`         | `false`         | The user info data is set from the ID token instead of fetching it from the endpoint.                                                         |
 
 You can configure them directly under the `oidc` listener in your firewall, for example the `user_identifier_property`:
 

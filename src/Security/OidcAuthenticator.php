@@ -12,6 +12,7 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Drenso\OidcBundle\Security\Exception\UnsupportedManagerException;
 use Drenso\OidcBundle\Security\Token\OidcToken;
 use Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface;
+use Lcobucci\JWT\UnencryptedToken;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -51,6 +52,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
     private readonly bool $enableRememberMe,
     private readonly bool $userIdentifierFromIdToken = false,
     private readonly bool $enableRetrieveUserInfo = true,
+    private readonly bool $userInfoFromIdToken = false,
   ) {
   }
 
@@ -73,6 +75,12 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
       // Try to authenticate the request
       $authData = $this->oidcClient->authenticate($request);
 
+      // Parse ID token if necessary
+      $idToken = null;
+      if ($this->userIdentifierFromIdToken || $this->userInfoFromIdToken) {
+        $idToken = OidcJwtHelper::parseToken($authData->getIdToken());
+      }
+
       // Optionally retrieve the user data with the authentication data
       if ($this->enableRetrieveUserInfo) {
         $userData = $this->oidcClient->retrieveUserInfo($authData);
@@ -80,14 +88,19 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
         if (!$this->userIdentifierFromIdToken) {
           throw new OidcConfigurationDisableUserInfoNotSupportedException();
         }
-        $userData = new OidcUserData([]);
+
+        if ($this->userInfoFromIdToken) {
+          /** @var UnencryptedToken $idToken */
+          $userData = new OidcUserData($idToken->claims()->all());
+        } else {
+          $userData = new OidcUserData([]);
+        }
       }
 
       // Look for the user identifier in either the id_token or the userinfo endpoint
       if ($this->userIdentifierFromIdToken) {
-        $userIdentifier = OidcJwtHelper::parseToken($authData->getIdToken())
-          ->claims()
-          ->get($this->userIdentifierProperty);
+        /** @var UnencryptedToken $idToken */
+        $userIdentifier = $idToken->claims()->get($this->userIdentifierProperty);
       } else {
         $userIdentifier = $userData->getUserDataString($this->userIdentifierProperty);
       }
