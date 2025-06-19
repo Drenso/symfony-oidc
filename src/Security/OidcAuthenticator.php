@@ -12,6 +12,7 @@ use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Drenso\OidcBundle\Security\Exception\UnsupportedManagerException;
 use Drenso\OidcBundle\Security\Token\OidcToken;
 use Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface;
+use Lcobucci\JWT\UnencryptedToken;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -90,6 +91,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
         }
 
         if ($this->userInfoFromIdToken) {
+          /** @var UnencryptedToken $idToken */
           $userData = new OidcUserData($idToken->claims()->all());
         } else {
           $userData = new OidcUserData([]);
@@ -98,6 +100,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
 
       // Look for the user identifier in either the id_token or the userinfo endpoint
       if ($this->userIdentifierFromIdToken) {
+        /** @var UnencryptedToken $idToken */
         $userIdentifier = $idToken->claims()->get($this->userIdentifierProperty);
       } else {
         $userIdentifier = $userData->getUserDataString($this->userIdentifierProperty);
