@@ -32,6 +32,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/OidcClient.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^Strict comparison using \\=\\=\\= between string and false will always evaluate to false\\.$#',
+	'identifier' => 'identical.alwaysFalse',
+	'count' => 2,
+	'path' => __DIR__ . '/src/OidcClient.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Method Drenso\\\\OidcBundle\\\\OidcUrlFetcher\\:\\:fetchUrl\\(\\) should return string but returns string\\|true\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
