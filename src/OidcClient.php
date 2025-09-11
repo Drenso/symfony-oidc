@@ -525,6 +525,7 @@ class OidcClient implements OidcClientInterface
       if (isset($params['client_secret']) && empty($params['client_secret'])) {
         unset($params['client_secret']);
       }
+
       $params = array_merge($params, [
         'code_verifier' => $codeVerifier,
       ]);
