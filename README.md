@@ -125,7 +125,7 @@ There are a couple of options available for the `oidc` listener.
 | Option                           | Default         | Description                                                                                                                                   |
 |----------------------------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | `check_path`                     | `/login_check`  | Only on this path the authenticator will accept authentication. Note that this should match with the redirect configured for the OIDC client. |
-| `login_path`                     | `/login`        | The path to forward to when authentication is required                                                                                        | 
+| `login_path`                     | `/login`        | The path to forward to when authentication is required                                                                                        |
 | `client`                         | `default`       | The configured OIDC client to use                                                                                                             |
 | `user_identifier_property`       | `sub`           | The OidcUserData property to use as unique user identifier                                                                                    |
 | `user_identifier_from_idtoken`   | `false`         | The identifier is fetched from the id_token instead of userinfo endpoint                                                                      |
