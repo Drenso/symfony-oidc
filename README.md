@@ -253,6 +253,53 @@ If for some reason you have several OIDC clients configured and need to retrieve
 
 The locator will throw an OidcClientNotFoundException when the requested client is not found. When called without an argument, it will return the configured default client.
 
+### Token Exchange Authenticator
+
+The `OidcTokenExchangeAuthenticator` is designed for API authentication using access tokens obtained through OAuth 2.0 Token Exchange (RFC 8693). Unlike the regular `OidcAuthenticator` which handles the full OIDC login flow, this authenticator only validates Bearer tokens in the Authorization header.
+
+**Configuration Example:**
+
+```yaml
+security:
+  firewalls:
+    api:
+      pattern: ^/api/
+      oidc_token_exchange:
+        client: default
+        user_identifier_property: sub
+      stateless: true
+```
+
+**Available Options:**
+
+| Option                     | Default    | Description                                                                |
+|----------------------------|------------|----------------------------------------------------------------------------|
+| `client`                   | `default`  | The configured OIDC client to use for token introspection                  |
+| `user_identifier_property` | `sub`      | The property from introspection data to use as user identifier             |
+
+**Usage:**
+This authenticator automatically handles requests with `Authorization: Bearer <token>` headers. It will:
+1. Extract the Bearer token from the Authorization header
+2. Introspect the token using the configured OIDC client
+3. Validate that the token is active
+4. Create or load the user based on the introspection data
+5. Return a 401 JSON response if authentication fails
+
+**Example API Request:**
+```bash
+curl -H "Authorization: Bearer your_access_token_here" https://your-app.com/api/protected-endpoint
+```
+
+**Response on Success:**
+- Request continues normally with authenticated user
+
+**Response on Failure:**
+```json
+{
+  "message": "Token is not active"
+}
+```
+
 ### Leeway
 
 This bundle uses a 300 seconds leeway when validating the access tokens. This value can be configured with the `token_leeway_seconds` client option.
