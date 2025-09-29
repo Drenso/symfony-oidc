@@ -95,4 +95,19 @@ class OidcSessionStorage
   {
     return 'drenso.oidc.session.state.' . $this->clientName;
   }
+
+  private function accessTokenKey(): string
+  {
+    return 'drenso.oidc.session.access_token.' . $this->clientName;
+  }
+
+  public function getAccessToken(): ?string
+  {
+    return $this->getSession()->get($this->accessTokenKey());
+  }
+
+  public function storeAccessToken(string $value): void
+  {
+    $this->getSession()->set($this->accessTokenKey(), $value);
+  }
 }

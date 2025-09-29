@@ -319,6 +319,102 @@ Some providers return incorrect or incomplete well known information. You can co
 
 This bundle support Token Exchange: you can use the `exchangeTokens` on the `OidcClient` to do so. This was added with https://github.com/Drenso/symfony-oidc/pull/66, which contains some more background information regarding the procedure as well.
 
+#### OAuth2TokenExchangeFactory
+
+The bundle provides an `OAuth2TokenExchangeFactory` service that simplifies token exchange operations. This factory automatically handles caching of exchanged tokens and provides a clean interface for obtaining access tokens with different scopes and audiences.
+
+**Configuration:**
+
+You can configure token exchange factories for each OIDC client in your `drenso_oidc.yaml`:
+
+```yaml
+drenso_oidc:
+    default_client: 'main'  # The default client name
+    clients:
+        main:
+            # ... other client configuration ...
+            token_exchange_factories:
+                api_access:  # This becomes $apiAccessTokenExchangeFactory
+                    scope: 'api:read api:write'
+                    audience: 'https://api.example.com'
+                    cache_time: 3600  # Optional, defaults to 3600 seconds
+                admin_access:  # This becomes $adminAccessTokenExchangeFactory
+                    scope: 'admin:full'
+                    audience: 'https://admin.example.com'
+                    cache_time: 1800
+        secondary:
+            # ... other client configuration ...
+            token_exchange_factories:
+                external_api:  # This becomes $externalApiTokenExchangeFactory
+                    scope: 'external:read'
+                    audience: 'https://external.example.com'
+```
+
+**Usage:**
+
+The factory services are automatically registered and can be autowired:
+
+```php
+use Drenso\OidcBundle\Http\OAuth2TokenExchangeFactoryInterface;
+
+class ApiController
+{
+    public function __construct(
+        // Default factory (first factory from default client)
+        private OAuth2TokenExchangeFactoryInterface $tokenExchangeFactory,
+        
+        // Named factories (using the factory name from config)
+        private OAuth2TokenExchangeFactoryInterface $apiAccessTokenExchangeFactory,
+        private OAuth2TokenExchangeFactoryInterface $adminAccessTokenExchangeFactory,
+    ) {}
+
+    public function getApiData(): Response
+    {
+        // Get access token with API scope and audience
+        $accessToken = $this->apiAccessTokenTokenExchangeFactory->getAccessToken();
+        
+        // Use the token to make API calls
+        // ...
+    }
+}
+```
+
+**Autowiring:**
+
+- **Default factory**: `OAuth2TokenExchangeFactoryInterface $tokenExchangeFactory` - gets the first factory from the default client
+- **Default client factories**: `OAuth2TokenExchangeFactoryInterface ${factoryName}TokenExchangeFactory` - simple names
+- **Other client factories**: `OAuth2TokenExchangeFactoryInterface ${clientName}${factoryName}TokenExchangeFactory` - client-prefixed names
+
+**Examples:**
+- `$apiAccessTokenExchangeFactory` (default client)
+- `$secondaryApiAccessTokenExchangeFactory` (secondary client)
+
+**Usage Example:**
+
+```php
+class MyController
+{
+    public function __construct(
+        // Default factory (first from default client)
+        private OAuth2TokenExchangeFactoryInterface $tokenExchangeFactory,
+        
+        // Default client factories (simple names)
+        private OAuth2TokenExchangeFactoryInterface $apiAccessTokenExchangeFactory,
+        private OAuth2TokenExchangeFactoryInterface $adminAccessTokenExchangeFactory,
+        
+        // Other client factories (client-prefixed names)
+        private OAuth2TokenExchangeFactoryInterface $secondaryExternalApiTokenExchangeFactory,
+    ) {}
+}
+```
+
+**Features:**
+
+- **Automatic caching**: Exchanged tokens are cached based on the original token, scope, and audience
+- **Token expiry handling**: Cache expiry is automatically set based on the token's actual expiry time
+- **Error handling**: Graceful fallback when caching fails
+- **Multiple factories**: Configure multiple factories per client for different scopes/audiences
+
 ## Known usages
 
 A list of open source projects that use this bundle:
