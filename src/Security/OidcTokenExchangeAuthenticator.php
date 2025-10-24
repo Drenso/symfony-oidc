@@ -10,7 +10,6 @@ use Drenso\OidcBundle\OidcClientInterface;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Drenso\OidcBundle\Security\Token\OidcToken;
 use Drenso\OidcBundle\Security\UserProvider\OidcUserProviderInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
@@ -33,7 +32,6 @@ class OidcTokenExchangeAuthenticator implements AuthenticatorInterface
   public function __construct(
     private readonly OidcClientInterface $oidcClient,
     private readonly OidcUserProviderInterface $oidcUserProvider,
-    private readonly LoggerInterface $logger,
     private readonly string $userIdentifierProperty = 'sub',
   ) {
   }
@@ -66,16 +64,9 @@ class OidcTokenExchangeAuthenticator implements AuthenticatorInterface
         'id_token'     => $accessToken, // Using same token for both
       ]);
 
-      $this->logger->info('Introspecting token', [
-        'access_token' => $accessToken,
-        'id_token'     => $accessToken, // Using same token for both
-      ]);
       // Introspect the token to validate it
       $introspectionData = $this->oidcClient->introspect($tokens, OidcTokenType::ACCESS);
 
-      $this->logger->info('Introspection data', [
-        'introspection_data' => $introspectionData,
-      ]);
 
       if (!$introspectionData->isActive()) {
         throw new AuthenticationException('Token is not active');
@@ -103,9 +94,6 @@ class OidcTokenExchangeAuthenticator implements AuthenticatorInterface
 
       return $passport;
     } catch (OidcException $e) {
-      $this->logger->error('OIDC authentication failed', [
-        'exception' => $e,
-      ]);
       throw new OidcAuthenticationException('OIDC authentication failed', $e);
     }
   }
