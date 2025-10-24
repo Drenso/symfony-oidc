@@ -7,6 +7,7 @@ use Drenso\OidcBundle\Exception\OidcCodeChallengeMethodNotSupportedException;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
+use Drenso\OidcBundle\Model\AccessTokens;
 use Drenso\OidcBundle\Model\OidcIntrospectionData;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
@@ -37,7 +38,7 @@ interface OidcClientInterface
    *
    * @throws OidcException
    */
-  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens;
+  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): AccessTokens;
 
   /**
    * Create the redirect that should be followed in order to authorize.
