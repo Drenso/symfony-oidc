@@ -2,14 +2,15 @@
 
 namespace Drenso\OidcBundle\DependencyInjection;
 
-use Drenso\OidcBundle\Http\TokenExchangeClientInterface;
-use Drenso\OidcBundle\OidcClientInterface;
 use Symfony\Component\Config\FileLocator;
+use Drenso\OidcBundle\OidcClientInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Component\DependencyInjection\Reference;
+use Drenso\OidcBundle\Http\TokenExchangeClientInterface;
 use Symfony\Component\DependencyInjection\ChildDefinition;
-use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 class DrensoOidcExtension extends ConfigurableExtension
@@ -34,7 +35,7 @@ class DrensoOidcExtension extends ConfigurableExtension
     // Load the configured clients
     $clientServices = [];
     foreach ($mergedConfig['clients'] as $clientName => $clientConfig) {
-      $clientServices[$clientName] = $this->registerClient($container, $clientName, $clientConfig);
+      $clientServices[$clientName] = $this->registerClient($container, $clientName, $clientConfig, $mergedConfig['default_client']);
     }
 
     // Setup default alias
@@ -61,7 +62,7 @@ class DrensoOidcExtension extends ConfigurableExtension
   }
 
   /** @param array<string, mixed> $config */
-  private function registerClient(ContainerBuilder $container, string $name, array $config): Reference
+  private function registerClient(ContainerBuilder $container, string $name, array $config, string $defaultClientName): Reference
   {
     $urlFetcherId = sprintf('%s.%s', self::URL_FETCHER_ID, $name);
     $container
@@ -108,23 +109,22 @@ class DrensoOidcExtension extends ConfigurableExtension
     $client = new Reference($clientId);
     // Register token exchange clients for this client
     foreach ($config['token_exchange_clients'] as $exchangeClientName => $exchangeClientConfig) {
-      $sessionStorageId  = sprintf('%s.%s', self::SESSION_STORAGE_ID, $clientName);
-      $exchangeClientId  = sprintf('%s.%s.%s', self::TOKEN_EXCHANGE_CLIENT_ID, $clientName, $exchangeClientName);
+      $sessionStorageId  = sprintf('%s.%s', self::SESSION_STORAGE_ID, $name);
+      $exchangeClientId  = sprintf('%s.%s.%s', self::TOKEN_EXCHANGE_CLIENT_ID, $name, $exchangeClientName);
       $container
         ->setDefinition($exchangeClientId, new ChildDefinition(self::TOKEN_EXCHANGE_CLIENT_ID))
         ->addArgument($client)
         ->addArgument(new Reference($sessionStorageId))
         ->addArgument($exchangeClientConfig['scope'])
         ->addArgument($exchangeClientConfig['audience'])
-        ->addArgument(new Reference('cache.app'))
+        ->addArgument(CacheInterface::class)
         ->addArgument($exchangeClientConfig['cache_time'])
       ;
 
       // Use client prefix only for non-default clients
-      $defaultClientName = $mergedConfig['default_client'] ?? 'default';
-      $autowiringName    = ($clientName === $defaultClientName)
+      $autowiringName    = ($name === $defaultClientName)
         ? sprintf('%sTokenExchangeClient', ucfirst($exchangeClientName))
-        : sprintf('%s%sTokenExchangeClient', $clientName, ucfirst($exchangeClientName));
+        : sprintf('%s%sTokenExchangeClient', $name, ucfirst($exchangeClientName));
 
       $container
         ->registerAliasForArgument($exchangeClientId, TokenExchangeClientInterface::class, $autowiringName);
