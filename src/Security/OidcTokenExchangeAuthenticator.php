@@ -27,6 +27,9 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
  */
 class OidcTokenExchangeAuthenticator implements AuthenticatorInterface
 {
+  /**
+   * @param OidcUserProviderInterface<\Symfony\Component\Security\Core\User\UserInterface> $oidcUserProvider
+   */
   public function __construct(
     private readonly OidcClientInterface $oidcClient,
     private readonly OidcUserProviderInterface $oidcUserProvider,

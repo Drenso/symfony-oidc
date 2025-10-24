@@ -10,6 +10,7 @@ class OidcIntrospectionData
 {
   private static ?PropertyAccessorInterface $accessor = null;
   private readonly stdClass $introspectionData;
+  /** @var array<string, mixed> */
   private readonly array $introspectionDataArray;
 
   /** @param array<string, mixed> $introspectionData */
@@ -134,6 +135,7 @@ class OidcIntrospectionData
     return self::$accessor->getValue($this->introspectionData, $propertyPath);
   }
 
+  /** @return array<string, mixed> */
   public function getIntrospectionDataArray(): array
   {
     return $this->introspectionDataArray;

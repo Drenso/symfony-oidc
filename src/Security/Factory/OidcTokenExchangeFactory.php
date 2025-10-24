@@ -60,6 +60,7 @@ class OidcTokenExchangeFactory extends AbstractFactory implements AuthenticatorF
    *
    * @todo: Remove when dropping support for Symfony 5.4
    */
+  /** @param array<string, mixed> $config */
   protected function createAuthProvider(
     ContainerBuilder $container,
     string $id,
