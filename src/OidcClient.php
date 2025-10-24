@@ -38,8 +38,9 @@ class OidcClient implements OidcClientInterface
   ];
 
   /**
-   * @param non-empty-string $wellKnownUrl
-   * @param non-empty-string $clientId
+   * @param non-empty-string    $wellKnownUrl
+   * @param non-empty-string    $clientId
+   * @param 'S256'|'plain'|null $codeChallengeMethod
    */
   public function __construct(
     protected RequestStack $requestStack,
