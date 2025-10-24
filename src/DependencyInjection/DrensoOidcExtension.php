@@ -117,7 +117,7 @@ class DrensoOidcExtension extends ConfigurableExtension
         ->addArgument(new Reference($sessionStorageId))
         ->addArgument($exchangeClientConfig['scope'])
         ->addArgument($exchangeClientConfig['audience'])
-        ->addArgument(CacheInterface::class)
+        ->addArgument(new Reference('cache.app'))
         ->addArgument($exchangeClientConfig['cache_time'])
       ;
 
