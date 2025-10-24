@@ -125,7 +125,7 @@ There are a couple of options available for the `oidc` listener.
 | Option                           | Default         | Description                                                                                                                                   |
 |----------------------------------|-----------------|-----------------------------------------------------------------------------------------------------------------------------------------------|
 | `check_path`                     | `/login_check`  | Only on this path the authenticator will accept authentication. Note that this should match with the redirect configured for the OIDC client. |
-| `login_path`                     | `/login`        | The path to forward to when authentication is required                                                                                        | 
+| `login_path`                     | `/login`        | The path to forward to when authentication is required                                                                                        |
 | `client`                         | `default`       | The configured OIDC client to use                                                                                                             |
 | `user_identifier_property`       | `sub`           | The OidcUserData property to use as unique user identifier                                                                                    |
 | `user_identifier_from_idtoken`   | `false`         | The identifier is fetched from the id_token instead of userinfo endpoint                                                                      |
@@ -318,6 +318,113 @@ Some providers return incorrect or incomplete well known information. You can co
 ### OAuth 2.0 Token Exchange [RFC 8693](https://datatracker.ietf.org/doc/html/rfc8693)
 
 This bundle support Token Exchange: you can use the `exchangeTokens` on the `OidcClient` to do so. This was added with https://github.com/Drenso/symfony-oidc/pull/66, which contains some more background information regarding the procedure as well.
+
+#### TokenExchangeClient
+
+The bundle provides an `TokenExchangeClient` service that simplifies token exchange operations. This factory automatically handles caching of exchanged tokens and provides a clean interface for getting access tokens with different scopes and audiences.
+
+**Configuration:**
+
+You can configure token exchange client for each OIDC client in your `drenso_oidc.yaml`:
+
+```yaml
+drenso_oidc:
+    default_client: 'main'  # The default client name
+    clients:
+        main:
+            # ... other client configuration ...
+            token_exchange_clients:
+                api_access:  # This becomes $apiAccessTokenExchangeClient
+                    scope: 'api:read api:write'
+                    audience: 'https://api.example.com'
+                    cache_time: 3600  # Optional, defaults to 3600 seconds
+                admin_access:  # This becomes $adminAccessTokenExchangeClient
+                    scope: 'admin:full'
+                    audience: 'https://admin.example.com'
+                    cache_time: 1800
+        secondary:
+            # ... other client configuration ...
+            token_exchange_clients:
+                external_api:  # This becomes $externalApiTokenExchangeClient
+                    scope: 'external:read'
+                    audience: 'https://external.example.com'
+```
+
+**Usage:**
+
+The token exchange client services are automatically registered and can be autowired:
+
+```php
+use Drenso\OidcBundle\Http\TokenExchangeClientInterface;
+use Drenso\OidcBundle\Security\Token\OidcToken;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
+
+class ApiController
+{
+    public function __construct(
+        // Default token exchange client (first client from default client)
+        private TokenExchangeClientInterface $tokenExchangeClient,
+
+        // Named factories (using the factory name from config)
+        private TokenExchangeClientInterface $apiAccessTokenExchangeClient,
+        private TokenExchangeClientInterface $adminAccessTokenExchangeClient,
+        private TokenStorageInterface $tokenStorage,
+    ) {}
+
+    public function getApiData(): Response
+    {
+        // Get the original access token from the security token
+        $token = $this->tokenStorage->getToken();
+        if (!$token instanceof OidcToken) {
+            throw new \RuntimeException('User must be authenticated with OIDC');
+        }
+
+        $originalAccessToken = $token->getAccessToken();
+
+        // Get access token with API scope and audience
+        $exchangedAccessToken = $this->apiAccessTokenTokenExchangeClient->getExchangedAccessToken($originalAccessToken);
+
+        // Use the token to make API calls
+        // ...
+    }
+}
+```
+
+**Autowiring:**
+
+- **Default factory**: `TokenExchangeClientInterface $tokenExchangeClient` - gets the first factory from the default client
+- **Default client factories**: `TokenExchangeClientInterface ${factoryName}TokenExchangeClient` - simple names
+- **Other client factories**: `TokenExchangeClientInterface ${clientName}${factoryName}TokenExchangeClient` - client-prefixed names
+
+**Examples:**
+- `$apiAccessTokenExchangeClient` (default client)
+- `$secondaryApiAccessTokenExchangeClient` (secondary client)
+
+**Usage Example:**
+
+```php
+class MyController
+{
+    public function __construct(
+        // Default token exchange client (first from default client)
+        private TokenExchangeClientInterface $tokenExchangeClient,
+
+        // Default token exchange client (simple names)
+        private TokenExchangeClientInterface $apiAccessTokenExchangeClient,
+        private TokenExchangeClientInterface $adminAccessTokenExchangeClient,
+
+        // Other client factories (client-prefixed names)
+        private TokenExchangeClientInterface $secondaryExternalApiTokenExchangeClient,
+    ) {}
+}
+```
+
+**Features:**
+
+- **Automatic caching**: Exchanged tokens are cached based on the original token, scope, and audience
+- **Token expiry handling**: Cache expiry is automatically set based on the token's actual expiry time
+- **Error handling**: Graceful fallback when caching fails
+- **Multiple clients**: Configure multiple token exchange clients per client for different scopes/audiences
 
 ## Known usages
 
