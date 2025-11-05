@@ -115,7 +115,7 @@ class OidcAuthenticator implements InteractiveAuthenticatorInterface, Authentica
       // Create the passport
       $passport = new SelfValidatingPassport(new UserBadge(
         $userIdentifier,
-        fn (string $userIdentifier) => $this->oidcUserProvider->loadOidcUser($userIdentifier),
+        $this->oidcUserProvider->loadOidcUser(...),
       ));
       $passport->setAttribute(OidcToken::AUTH_DATA_ATTR, $authData);
       $passport->setAttribute(OidcToken::USER_DATA_ATTR, $userData);
