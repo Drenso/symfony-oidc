@@ -1,6 +1,7 @@
 <?php
 
 use Drenso\OidcBundle\DependencyInjection\DrensoOidcExtension;
+use Drenso\OidcBundle\Http\TokenExchangeClient;
 use Drenso\OidcBundle\OidcClient;
 use Drenso\OidcBundle\OidcClientLocator;
 use Drenso\OidcBundle\OidcJwtHelper;
@@ -42,6 +43,9 @@ return function (ContainerConfigurator $configurator): void {
       service(HttpUtils::class),
       service(CacheInterface::class)->nullOnInvalid(),
     ])
+    ->abstract()
+
+    ->set(DrensoOidcExtension::TOKEN_EXCHANGE_CLIENT_ID, TokenExchangeClient::class)
     ->abstract()
 
     ->set(DrensoOidcExtension::CLIENT_LOCATOR_ID, OidcClientLocator::class)
