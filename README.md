@@ -321,7 +321,7 @@ This bundle support Token Exchange: you can use the `exchangeTokens` on the `Oid
 
 #### TokenExchangeClient
 
-The bundle provides an `TokenExchangeClient` service that simplifies token exchange operations. This factory automatically handles caching of exchanged tokens and provides a clean interface for getting access tokens with different scopes and audiences.
+The bundle provides an `TokenExchangeClient` service that simplifies token exchange operations. This client automatically handles caching of exchanged tokens and provides a clean interface for getting access tokens with different scopes and audiences.
 
 **Configuration:**
 
