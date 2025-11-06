@@ -325,7 +325,7 @@ The bundle provides an `TokenExchangeClient` service that simplifies token excha
 
 **Configuration:**
 
-You can configure token exchange client for each OIDC client in your `drenso_oidc.yaml`:
+You can configure token exchange clients for each OIDC client in your configuration:
 
 ```yaml
 drenso_oidc:
