@@ -31,16 +31,16 @@
     "psr/container": "^1.1 || ^2.0",
     "psr/clock": "^1.0",
     "psr/log": "^1.1 || ^2.0 || ^3.0",
-    "symfony/config": "^5.4 || ^6.3 || ^7.0",
-    "symfony/dependency-injection": "^5.4 || ^6.3 || ^7.0",
-    "symfony/event-dispatcher": "^5.4 || ^6.3 || ^7.0",
-    "symfony/http-foundation": "^5.4 || ^6.3 || ^7.0",
-    "symfony/http-kernel": "^5.4 || ^6.3 || ^7.0",
-    "symfony/property-access": "^5.4 || ^6.3 || ^7.0",
-    "symfony/security-bundle": "^5.4 || ^6.3 || ^7.0",
-    "symfony/security-core": "^5.4 || ^6.3 || ^7.0",
-    "symfony/security-http": "^5.4 || ^6.3 || ^7.0",
-    "symfony/string": "^5.4 || ^6.3 || ^7.0"
+    "symfony/config": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/dependency-injection": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/event-dispatcher": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/http-foundation": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/http-kernel": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/property-access": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/security-bundle": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/security-core": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/security-http": "^5.4 || ^6.3 || ^7.0 || ^8.0",
+    "symfony/string": "^5.4 || ^6.3 || ^7.0 || ^8.0"
   },
   "require-dev": {
     "friendsofphp/php-cs-fixer": "3.89.2",
@@ -48,7 +48,7 @@
     "phpstan/phpstan": "2.1.32",
     "phpstan/phpstan-deprecation-rules": "^2.0",
     "rector/rector": "2.2.8",
-    "symfony/cache": "^5.4 || ^6.3 || ^7.0",
+    "symfony/cache": "^5.4 || ^6.3 || ^7.0 || ^8.0",
     "symfony/translation-contracts": "^2.0 || ^3.0"
   },
   "suggest": {
