@@ -32,12 +32,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/OidcClient.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Call to an undefined method Symfony\\\\Component\\\\HttpFoundation\\\\Request\\:\\:get\\(\\)\\.$#',
-	'identifier' => 'method.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/src/OidcClient.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Strict comparison using \\=\\=\\= between string and false will always evaluate to false\\.$#',
 	'identifier' => 'identical.alwaysFalse',
 	'count' => 2,

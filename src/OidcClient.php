@@ -175,6 +175,7 @@ class OidcClient implements OidcClientInterface
 
     // Store remember me state
     $parameter = $this->requestStack->getCurrentRequest()?->query->get($this->rememberMeParameter);
+    /* @phpstan-ignore-next-line identical.alwaysFalse */
     $this->sessionStorage->storeRememberMe($forceRememberMe || 'true' === $parameter || 'on' === $parameter || '1' === $parameter || 'yes' === $parameter || true === $parameter);
 
     // Remove security session state
