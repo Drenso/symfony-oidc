@@ -82,10 +82,33 @@ class Configuration implements ConfigurationInterface
                 ->booleanNode('disable_nonce')
                   ->defaultFalse()
                 ->end() // disable_nonce
+                ->arrayNode('token_exchange_clients')
+                  ->useAttributeAsKey('name')
+                  ->arrayPrototype()
+                    ->children()
+                      ->scalarNode('scope')
+                        ->isRequired()
+                        ->info('The target scope for token exchange')
+                      ->end() // scope
+                      ->scalarNode('audience')
+                         ->isRequired()
+                         ->info('The target audience for token exchange')
+                      ->end() // audience
+                      ->scalarNode('cache_time')
+                        ->defaultValue(3600)
+                        ->info('Cache time in seconds for exchanged tokens')
+                        ->validate()
+                          ->ifTrue(fn ($value) => $value !== null && !is_int($value))
+                          ->thenInvalid('Must be either null or an integer value')
+                        ->end()
+                      ->end() // cache_time
+                    ->end() // array prototype children
+                  ->end() // array prototype
+                ->end() // token_exchange_clients
               ->end() // array prototype children
             ->end() // array prototype
           ->end() // clients
-        ->end(); // root children
+      ->end(); // root children
 
     return $treeBuilder;
   }
