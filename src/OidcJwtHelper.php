@@ -9,6 +9,7 @@ use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
 use Drenso\OidcBundle\Model\OidcTokens;
+use Drenso\OidcBundle\Model\UnvalidatedOidcTokens;
 use Drenso\OidcBundle\Security\Exception\InvalidJwtTokenException;
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 use Exception;
@@ -132,7 +133,7 @@ class OidcJwtHelper
    * @throws OidcConfigurationResolveException
    * @throws OidcAuthenticationException
    */
-  public function verifyAccessToken(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
+  public function verifyAccessToken(string $issuer, string $jwksUri, UnvalidatedOidcTokens $tokens, bool $verifyNonce): void
   {
     $accessToken                      = $tokens->getTokenByType(OidcTokenType::ACCESS) ?? throw new OidcException('Access token missing');
     $additionalAccessTokenConstraints = $this->oidcTokenConstraintProvider?->getAdditionalConstraints(OidcTokenType::ACCESS) ?? [];

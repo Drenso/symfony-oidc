@@ -2,25 +2,28 @@
 
 namespace Drenso\OidcBundle\DependencyInjection;
 
-use Drenso\OidcBundle\OidcClientInterface;
 use Symfony\Component\Config\FileLocator;
+use Drenso\OidcBundle\OidcClientInterface;
+use Symfony\Contracts\Cache\CacheInterface;
+use Symfony\Component\DependencyInjection\Reference;
+use Drenso\OidcBundle\Http\TokenExchangeClientInterface;
 use Symfony\Component\DependencyInjection\ChildDefinition;
-use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader\PhpFileLoader;
-use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Compiler\ServiceLocatorTagPass;
 use Symfony\Component\HttpKernel\DependencyInjection\ConfigurableExtension;
 
 class DrensoOidcExtension extends ConfigurableExtension
 {
-  public const BASE_ID                  = 'drenso.oidc.';
-  public const AUTHENTICATOR_ID         = self::BASE_ID . 'authenticator';
-  public const URL_FETCHER_ID           = self::BASE_ID . 'url_fetcher';
-  public const JWT_HELPER_ID            = self::BASE_ID . 'jwt_helper';
-  public const SESSION_STORAGE_ID       = self::BASE_ID . 'session_storage';
-  public const CLIENT_ID                = self::BASE_ID . 'client';
-  public const CLIENT_LOCATOR_ID        = self::BASE_ID . 'client_locator';
-  public const END_SESSION_LISTENER_ID  = self::BASE_ID . 'end_session_listener';
+  public const BASE_ID                   = 'drenso.oidc.';
+  public const AUTHENTICATOR_ID          = self::BASE_ID . 'authenticator';
+  public const URL_FETCHER_ID            = self::BASE_ID . 'url_fetcher';
+  public const JWT_HELPER_ID             = self::BASE_ID . 'jwt_helper';
+  public const SESSION_STORAGE_ID        = self::BASE_ID . 'session_storage';
+  public const CLIENT_ID                 = self::BASE_ID . 'client';
+  public const CLIENT_LOCATOR_ID         = self::BASE_ID . 'client_locator';
+  public const END_SESSION_LISTENER_ID   = self::BASE_ID . 'end_session_listener';
+  public const TOKEN_EXCHANGE_CLIENT_ID  = self::BASE_ID . 'token_exchange_client';
 
   /** @param array<string, mixed> $mergedConfig */
   public function loadInternal(array $mergedConfig, ContainerBuilder $container): void
@@ -32,12 +35,24 @@ class DrensoOidcExtension extends ConfigurableExtension
     // Load the configured clients
     $clientServices = [];
     foreach ($mergedConfig['clients'] as $clientName => $clientConfig) {
-      $clientServices[$clientName] = $this->registerClient($container, $clientName, $clientConfig);
+      $clientServices[$clientName] = $this->registerClient($container, $clientName, $clientConfig, $mergedConfig['default_client']);
     }
 
     // Setup default alias
     $container
       ->setAlias(OidcClientInterface::class, sprintf('drenso.oidc.client.%s', $mergedConfig['default_client']));
+
+    // Setup default token exchange client alias if any clients exist for the default client
+    $defaultClientName = $mergedConfig['default_client'];
+    if (isset($mergedConfig['clients'][$defaultClientName]['token_exchange_clients'])) {
+      $defaultClientClients = $mergedConfig['clients'][$defaultClientName]['token_exchange_clients'];
+      if (!empty($defaultClientClients)) {
+        $firstDefaultClient = array_key_first($defaultClientClients);
+        $defaultClientId    = sprintf('%s.%s.%s', self::TOKEN_EXCHANGE_CLIENT_ID, $defaultClientName, $firstDefaultClient);
+        $container
+          ->setAlias(TokenExchangeClientInterface::class, $defaultClientId);
+      }
+    }
 
     // Configure client locator
     $container
@@ -47,7 +62,7 @@ class DrensoOidcExtension extends ConfigurableExtension
   }
 
   /** @param array<string, mixed> $config */
-  private function registerClient(ContainerBuilder $container, string $name, array $config): Reference
+  private function registerClient(ContainerBuilder $container, string $name, array $config, string $defaultClientName): Reference
   {
     $urlFetcherId = sprintf('%s.%s', self::URL_FETCHER_ID, $name);
     $container
@@ -91,6 +106,29 @@ class DrensoOidcExtension extends ConfigurableExtension
     $container
       ->registerAliasForArgument($clientId, OidcClientInterface::class, sprintf('%sOidcClient', $name));
 
-    return new Reference($clientId);
+    $client = new Reference($clientId);
+    // Register token exchange clients for this client
+    foreach ($config['token_exchange_clients'] as $exchangeClientName => $exchangeClientConfig) {
+      $exchangeClientId  = sprintf('%s.%s.%s', self::TOKEN_EXCHANGE_CLIENT_ID, $name, $exchangeClientName);
+      $container
+        ->setDefinition($exchangeClientId, new ChildDefinition(self::TOKEN_EXCHANGE_CLIENT_ID))
+        ->addArgument($client)
+        ->addArgument(new Reference($sessionStorageId))
+        ->addArgument($exchangeClientConfig['scope'])
+        ->addArgument($exchangeClientConfig['audience'])
+        ->addArgument(new Reference('cache.app'))
+        ->addArgument($exchangeClientConfig['cache_time'])
+      ;
+
+      // Use client prefix only for non-default clients
+      $autowiringName    = ($name === $defaultClientName)
+        ? sprintf('%sTokenExchangeClient', ucfirst($exchangeClientName))
+        : sprintf('%s%sTokenExchangeClient', $name, ucfirst($exchangeClientName));
+
+      $container
+        ->registerAliasForArgument($exchangeClientId, TokenExchangeClientInterface::class, $autowiringName);
+    }
+
+    return $client;
   }
 }

@@ -7,6 +7,7 @@ use Drenso\OidcBundle\Exception\OidcCodeChallengeMethodNotSupportedException;
 use Drenso\OidcBundle\Exception\OidcConfigurationException;
 use Drenso\OidcBundle\Exception\OidcConfigurationResolveException;
 use Drenso\OidcBundle\Exception\OidcException;
+use Drenso\OidcBundle\Model\AccessTokens;
 use Drenso\OidcBundle\Model\OidcIntrospectionData;
 use Drenso\OidcBundle\Model\OidcTokens;
 use Drenso\OidcBundle\Model\OidcUserData;
@@ -116,18 +117,19 @@ class OidcClient implements OidcClientInterface
     );
   }
 
-  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null): OidcTokens
+  public function exchangeTokens(string $accessToken, ?string $targetScope = null, ?string $targetAudience = null, ?string $subjectTokenType = null): AccessTokens
   {
     // Clear session after check
     $this->sessionStorage->clearState();
 
     // Request and verify exchange tokens
-    $tokens = new OidcTokens(
+    $tokens = new AccessTokens(
       $this->requestTokens(
         'urn:ietf:params:oauth:grant-type:token-exchange',
         subjectToken: $accessToken,
         scope: $targetScope,
-        audience: $targetAudience
+        audience: $targetAudience,
+        subjectTokenType: $subjectTokenType ?? 'urn:ietf:params:oauth:token-type:access_token',
       )
     );
     $this->jwtHelper->verifyAccessToken($this->getIssuer(), $this->getJwksUri(), $tokens, false);
@@ -233,9 +235,6 @@ class OidcClient implements OidcClientInterface
     // Retrieve the user information and convert the encoding to UTF-8 to harden for surfconext UTF-8 bug
     $jsonData = $this->urlFetcher->fetchUrl($this->getUserinfoEndpoint(), null, $headers);
     $jsonData = mb_convert_encoding($jsonData, 'UTF-8');
-    if ($jsonData === false) {
-      throw new OidcException('Invalid json data returned from user info endpoint');
-    }
 
     // Read the data
     $data = json_decode($jsonData, true);
@@ -269,9 +268,6 @@ class OidcClient implements OidcClientInterface
 
     $jsonData = $this->urlFetcher->fetchUrl($this->getIntrospectionEndpoint(), $params, $headers);
     $jsonData = mb_convert_encoding($jsonData, 'UTF-8');
-    if ($jsonData === false) {
-      throw new OidcException('Invalid json data returned from introspection endpoint');
-    }
 
     // Read the data
     $data = json_decode($jsonData, true);
@@ -495,8 +491,9 @@ class OidcClient implements OidcClientInterface
     ?string $refreshToken = null,
     ?string $subjectToken = null,
     ?string $scope = null,
-    ?string $audience = null): UnvalidatedOidcTokens
-  {
+    ?string $audience = null,
+    ?string $subjectTokenType = null,
+  ): UnvalidatedOidcTokens {
     $params = [
       'grant_type'    => $grantType,
       'client_id'     => $this->clientId,
@@ -543,6 +540,10 @@ class OidcClient implements OidcClientInterface
 
     if (null !== $audience) {
       $params['audience'] = $audience;
+    }
+
+    if (null !== $subjectTokenType) {
+      $params['subject_token_type'] = $subjectTokenType;
     }
 
     $jsonToken = json_decode($this->urlFetcher->fetchUrl($this->getTokenEndpoint(), $params, $headers));
