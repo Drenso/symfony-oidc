@@ -20,18 +20,6 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/OidcClient.php',
 ];
 $ignoreErrors[] = [
-	'message' => '#^Access to undefined constant Symfony\\\\Bundle\\\\SecurityBundle\\\\Security\\:\\:AUTHENTICATION_ERROR\\.$#',
-	'identifier' => 'classConstant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/src/OidcClient.php',
-];
-$ignoreErrors[] = [
-	'message' => '#^Access to undefined constant Symfony\\\\Bundle\\\\SecurityBundle\\\\Security\\:\\:LAST_USERNAME\\.$#',
-	'identifier' => 'classConstant.notFound',
-	'count' => 1,
-	'path' => __DIR__ . '/src/OidcClient.php',
-];
-$ignoreErrors[] = [
 	'message' => '#^Strict comparison using \\=\\=\\= between string and false will always evaluate to false\\.$#',
 	'identifier' => 'identical.alwaysFalse',
 	'count' => 2,
