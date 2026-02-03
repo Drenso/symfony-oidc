@@ -324,9 +324,9 @@ class OidcJwtHelper
 
     if ($keyId !== null) {
       throw new OidcAuthenticationException("Unable to find a key for (algorithm, key id): $algorithm, $keyId");
-    } else {
-      throw new OidcAuthenticationException('Unable to find a signing key');
     }
+
+    throw new OidcAuthenticationException('Unable to find a signing key');
   }
 
   /**
