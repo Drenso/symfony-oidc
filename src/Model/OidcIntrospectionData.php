@@ -10,12 +10,15 @@ class OidcIntrospectionData
 {
   private static ?PropertyAccessorInterface $accessor = null;
   private readonly stdClass $introspectionData;
+  /** @var array<string, mixed> */
+  private readonly array $introspectionDataArray;
 
   /** @param array<string, mixed> $introspectionData */
   public function __construct(array $introspectionData)
   {
     // Cast the array data to a stdClass for easy access
-    $this->introspectionData = (object)$introspectionData;
+    $this->introspectionData      = (object)$introspectionData;
+    $this->introspectionDataArray = $introspectionData;
   }
 
   public function isActive(): bool
@@ -130,5 +133,11 @@ class OidcIntrospectionData
 
     // Cast the introspection data to a stdClass
     return self::$accessor->getValue($this->introspectionData, $propertyPath);
+  }
+
+  /** @return array<string, mixed> */
+  public function getIntrospectionDataArray(): array
+  {
+    return $this->introspectionDataArray;
   }
 }
