@@ -30,9 +30,7 @@ use Symfony\Component\Security\Http\Authenticator\Passport\SelfValidatingPasspor
 use Symfony\Component\Security\Http\EntryPoint\AuthenticationEntryPointInterface;
 use Symfony\Component\Security\Http\HttpUtils;
 
-/**
- * @template-covariant TUser of UserInterface
- */
+/** @template-covariant TUser of UserInterface */
 class OidcAuthenticator implements InteractiveAuthenticatorInterface, AuthenticationEntryPointInterface
 {
   /**

@@ -5,9 +5,7 @@ namespace Drenso\OidcBundle\Model;
 use Drenso\OidcBundle\Exception\OidcException;
 use stdClass;
 
-/**
- * Contains the access and id tokens retrieved from the identity provider.
- */
+/** Contains the access and id tokens retrieved from the identity provider. */
 class OidcTokens extends UnvalidatedOidcTokens
 {
   /** @throws OidcException */

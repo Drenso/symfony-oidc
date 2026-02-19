@@ -24,9 +24,7 @@ use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
 
-/**
- * This class implements the Oidc protocol.
- */
+/** This class implements the Oidc protocol. */
 class OidcClient implements OidcClientInterface
 {
   /** @var array<string, mixed> OIDC configuration values */

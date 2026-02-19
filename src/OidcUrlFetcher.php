@@ -4,9 +4,7 @@ namespace Drenso\OidcBundle;
 
 use Drenso\OidcBundle\Security\Exception\OidcAuthenticationException;
 
-/**
- * Helper for resource loading.
- */
+/** Helper for resource loading. */
 class OidcUrlFetcher
 {
   /**

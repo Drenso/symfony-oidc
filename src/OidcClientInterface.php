@@ -13,9 +13,7 @@ use Drenso\OidcBundle\Model\OidcUserData;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-/**
- * This class implements the Oidc protocol.
- */
+/** This class implements the Oidc protocol. */
 interface OidcClientInterface
 {
   /**
