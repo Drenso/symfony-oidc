@@ -7,7 +7,9 @@ use Drenso\OidcBundle\Enum\OidcTokenType;
 use RuntimeException;
 use stdClass;
 
-/** Contains the unvalidated access and id tokens retrieved from the identity provider. */
+/**
+ * Contains the unvalidated access and id tokens retrieved from the identity provider.
+ */
 class UnvalidatedOidcTokens
 {
   protected readonly ?string $accessToken;
