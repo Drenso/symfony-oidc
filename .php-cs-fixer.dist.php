@@ -37,6 +37,7 @@ return (new PhpCsFixer\Config())
     'nullable_type_declaration_for_default_null_value' => true,
     'ordered_imports'                                  => ['imports_order' => ['class', 'function', 'const']],
     'phpdoc_line_span'                                 => [
+      'case'         => 'single',
       'class'        => 'single',
       'const'        => 'single',
       'method'       => 'single',
