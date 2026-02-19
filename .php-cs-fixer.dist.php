@@ -36,12 +36,19 @@ return (new PhpCsFixer\Config())
     'method_chaining_indentation'                      => true,
     'nullable_type_declaration_for_default_null_value' => true,
     'ordered_imports'                                  => ['imports_order' => ['class', 'function', 'const']],
-    'phpdoc_line_span'                                 => ['const' => 'single', 'method' => 'single', 'property' => 'single'],
-    'phpdoc_order'                                     => true,
-    'phpdoc_to_comment'                                => ['ignored_tags' => ['noinspection', 'noRector']],
-    'single_line_throw'                                => false,
-    'single_line_comment_spacing'                      => false,
-    'yoda_style'                                       => false,
+    'phpdoc_line_span'                                 => [
+      'class' => 'single',
+      'const' => 'single',
+      'method' => 'single',
+      'other' => 'single',
+      'property' => 'single',
+      'trait_import' => 'single'
+    ],
+    'phpdoc_order'                => true,
+    'phpdoc_to_comment'           => ['ignored_tags' => ['noinspection', 'noRector']],
+    'single_line_throw'           => false,
+    'single_line_comment_spacing' => false,
+    'yoda_style'                  => false,
   ])
   ->setFinder(
     PhpCsFixer\Finder::create()
