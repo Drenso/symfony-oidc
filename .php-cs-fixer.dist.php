@@ -37,12 +37,12 @@ return (new PhpCsFixer\Config())
     'nullable_type_declaration_for_default_null_value' => true,
     'ordered_imports'                                  => ['imports_order' => ['class', 'function', 'const']],
     'phpdoc_line_span'                                 => [
-      'class' => 'single',
-      'const' => 'single',
-      'method' => 'single',
-      'other' => 'single',
-      'property' => 'single',
-      'trait_import' => 'single'
+      'class'        => 'single',
+      'const'        => 'single',
+      'method'       => 'single',
+      'other'        => 'single',
+      'property'     => 'single',
+      'trait_import' => 'single',
     ],
     'phpdoc_order'                => true,
     'phpdoc_to_comment'           => ['ignored_tags' => ['noinspection', 'noRector']],
