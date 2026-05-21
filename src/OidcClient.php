@@ -55,7 +55,8 @@ class OidcClient implements OidcClientInterface
     private readonly string $rememberMeParameter,
     protected ?OidcWellKnownParserInterface $wellKnownParser = null,
     private readonly ?string $codeChallengeMethod = null,
-    private readonly bool $disableNonce = false)
+    private readonly bool $disableNonce = false,
+    private readonly bool $allowDiscoveryAccessTokenIssuer = false)
   {
     if (!$this->wellKnownUrl || filter_var($this->wellKnownUrl, FILTER_VALIDATE_URL) === false) {
       throw new LogicException(sprintf('Invalid well known url (%s) for OIDC', $this->wellKnownUrl));
@@ -128,7 +129,7 @@ class OidcClient implements OidcClientInterface
         audience: $targetAudience
       )
     );
-    $this->jwtHelper->verifyAccessToken($this->getIssuer(), $this->getJwksUri(), $tokens, false);
+    $this->jwtHelper->verifyAccessToken($this->getAccessTokenIssuer(), $this->getJwksUri(), $tokens, false);
 
     return $tokens;
   }
@@ -309,6 +310,27 @@ class OidcClient implements OidcClientInterface
   protected function getIssuer(): string
   {
     return $this->getConfigurationValue('issuer');
+  }
+
+  /**
+   * Returns the issuer to use when validating the access token.
+   *
+   * When the `allow_discovery_access_token_issuer` option is enabled, it honors the non-standard
+   * `access_token_issuer` field from the discovery document when present (e.g. ADFS),
+   * and falls back to the standard `issuer` when absent or when the option is disabled.
+   *
+   * @throws OidcConfigurationResolveException
+   * @throws OidcConfigurationException
+   *
+   * @return non-empty-string
+   */
+  protected function getAccessTokenIssuer(): string
+  {
+    if (!$this->allowDiscoveryAccessTokenIssuer) {
+      return $this->getIssuer();
+    }
+
+    return $this->getConfigurationValue('access_token_issuer', $this->getIssuer());
   }
 
   /**
@@ -563,7 +585,7 @@ class OidcClient implements OidcClientInterface
   private function verifyTokens(UnvalidatedOidcTokens $unvalidatedTokens, bool $verifyNonce = true): OidcTokens
   {
     $tokens = new OidcTokens($unvalidatedTokens);
-    $this->jwtHelper->verifyTokens($this->getIssuer(), $this->getJwksUri(), $tokens, $verifyNonce);
+    $this->jwtHelper->verifyTokens($this->getIssuer(), $this->getJwksUri(), $tokens, $verifyNonce, $this->getAccessTokenIssuer());
 
     return $tokens;
   }

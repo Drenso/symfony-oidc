@@ -82,6 +82,10 @@ class Configuration implements ConfigurationInterface
                 ->booleanNode('disable_nonce')
                   ->defaultFalse()
                 ->end() // disable_nonce
+                ->booleanNode('allow_discovery_access_token_issuer')
+                  ->info('Allow the non-standard `access_token_issuer` field in the discovery document as the expected issuer for access token validation.')
+                  ->defaultFalse()
+                ->end() // allow_discovery_access_token_issuer
               ->end() // array prototype children
             ->end() // array prototype
           ->end() // clients

@@ -94,15 +94,18 @@ class OidcJwtHelper
   /**
    * Validate the supplied OidcTokens.
    *
-   * @param non-empty-string $issuer
+   * @param non-empty-string      $issuer
+   * @param non-empty-string|null $accessTokenIssuer Optional override for the expected issuer of the access token. When null, the standard $issuer is used. Useful when the OP publishes a non-standard `access_token_issuer` discovery field (see MS-OIDCE).
    *
    * @throws OidcConfigurationResolveException|OidcConfigurationException Thrown on invalid configuration
    * @throws OidcAuthenticationException                                  Throw when a token is invalid
    */
-  public function verifyTokens(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce): void
+  public function verifyTokens(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce /* , ?string $accessTokenIssuer = null */): void
   {
+    $accessTokenIssuer = 5 <= \func_num_args() ? \func_get_arg(4) : null;
+
     $this->verifyIdToken($issuer, $jwksUri, $tokens, $verifyNonce);
-    $this->verifyAccessToken($issuer, $jwksUri, $tokens, $verifyNonce);
+    $this->verifyAccessToken($accessTokenIssuer ?? $issuer, $jwksUri, $tokens, $verifyNonce);
   }
 
   /**
@@ -126,7 +129,7 @@ class OidcJwtHelper
   }
 
   /**
-   * @param non-empty-string $issuer
+   * @param non-empty-string $issuer The expected issuer for the access token. When the OP publishes a non-standard `access_token_issuer` discovery field (see MS-OIDCE), callers should pass that value here instead of the standard `issuer`.
    *
    * @throws OidcConfigurationException
    * @throws OidcConfigurationResolveException

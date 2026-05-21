@@ -29,6 +29,7 @@ The following IdPs are known to work with this bundle:
 | OpenConext         | ✅      | Used by SURFconext in the Netherlands                                                                                                              |
 | Keycloak           | ✅      |                                                                                                                                                    |
 | Microsoft Entra ID | ✅      | Will not work with default configuration, make sure to follow [these steps.](https://github.com/Drenso/symfony-oidc/blob/main/docs/ms-entra-id.md) |
+| Microsoft ADFS     | ✅      | On-prem v1 deployments need an opt-in flag, see [these steps.](https://github.com/Drenso/symfony-oidc/blob/main/docs/adfs.md)                      |
 
 If you are using this bundle with any other IdP, please submit a PR to add it!
 
@@ -78,6 +79,7 @@ drenso_oidc:
             #custom_client_headers: []
             #code_challenge_method: ~ # Code challenge method, can be null, 'S256' or 'plain'
             #disable_nonce: false # Set to true when nonce verification should not be used
+            #allow_discovery_access_token_issuer: false # Set to true to allow the non-standard `access_token_issuer` field from the discovery document. See docs/adfs.md for details.
 
         # Add any extra client
         #link: # Will be accessible using $linkOidcClient

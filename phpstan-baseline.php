@@ -26,6 +26,12 @@ $ignoreErrors[] = [
 	'path' => __DIR__ . '/src/OidcClient.php',
 ];
 $ignoreErrors[] = [
+	'message' => '#^PHPDoc tag @param references unknown parameter\\: \\$accessTokenIssuer$#',
+	'identifier' => 'parameter.notFound',
+	'count' => 1,
+	'path' => __DIR__ . '/src/OidcJwtHelper.php',
+];
+$ignoreErrors[] = [
 	'message' => '#^Method Drenso\\\\OidcBundle\\\\OidcUrlFetcher\\:\\:fetchUrl\\(\\) should return string but returns string\\|true\\.$#',
 	'identifier' => 'return.type',
 	'count' => 1,
