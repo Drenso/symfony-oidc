@@ -4,6 +4,7 @@
     "static", "self", "parent",
     "array", "string", "int", "float", "bool", "iterable", "callable", "void", "object", "mixed",
     "random_bytes",
+    "phpseclib3\\Crypt\\PublicKeyLoader",
     "Psr\\Cache\\InvalidArgumentException",
     "Symfony\\Contracts\\Cache\\CacheInterface",
     "Symfony\\Component\\Security\\Core\\Security",

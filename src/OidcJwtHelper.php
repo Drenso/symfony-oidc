@@ -35,7 +35,7 @@ use Lcobucci\JWT\Validation\Constraint\PermittedFor;
 use Lcobucci\JWT\Validation\Constraint\SignedWith;
 use Lcobucci\JWT\Validation\RequiredConstraintsViolated;
 use Lcobucci\JWT\Validation\Validator;
-use phpseclib3\Crypt\PublicKeyLoader;
+use phpseclib4\Crypt\PublicKeyLoader;
 use Psr\Cache\InvalidArgumentException;
 use Psr\Clock\ClockInterface;
 use Symfony\Component\String\Slugger\AsciiSlugger;
@@ -276,7 +276,13 @@ class OidcJwtHelper
     }
 
     try {
-      return InMemory::plainText(PublicKeyLoader::loadPublicKey($jwkData)->toString('pkcs8'));
+      // To support both v3 and v4 of phpseclib
+      $publicKey = class_exists(PublicKeyLoader::class)
+        ? PublicKeyLoader::loadPublicKey($jwkData)
+        /* @phpstan-ignore-next-line class.notFound */
+        : \phpseclib3\Crypt\PublicKeyLoader::loadPublicKey($jwkData);
+
+      return InMemory::plainText($publicKey->toString('pkcs8'));
     } catch (Exception $e) {
       throw new OidcAuthenticationException('Failed to load JWK', previous: $e);
     }

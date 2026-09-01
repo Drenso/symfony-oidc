@@ -27,7 +27,7 @@
     "ext-json": "*",
     "ext-mbstring": "*",
     "lcobucci/jwt": "^5.0",
-    "phpseclib/phpseclib": "^3.0.36",
+    "phpseclib/phpseclib": "^3.0.36 || ^4.0",
     "psr/container": "^1.1 || ^2.0",
     "psr/clock": "^1.0",
     "psr/log": "^1.1 || ^2.0 || ^3.0",
