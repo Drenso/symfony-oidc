@@ -100,8 +100,13 @@ class OidcJwtHelper
    * @throws OidcConfigurationResolveException|OidcConfigurationException Thrown on invalid configuration
    * @throws OidcAuthenticationException                                  Throw when a token is invalid
    */
-  public function verifyTokens(string $issuer, string $jwksUri, OidcTokens $tokens, bool $verifyNonce /* , ?string $accessTokenIssuer = null */): void
-  {
+  public function verifyTokens(
+    string $issuer,
+    string $jwksUri,
+    OidcTokens $tokens,
+    bool $verifyNonce,
+    /* ?string $accessTokenIssuer = null, */
+  ): void {
     $accessTokenIssuer = 5 <= \func_num_args() ? \func_get_arg(4) : null;
 
     $this->verifyIdToken($issuer, $jwksUri, $tokens, $verifyNonce);
@@ -175,7 +180,7 @@ class OidcJwtHelper
     } catch (RequiredConstraintsViolated $e) {
       throw new OidcAuthenticationException(
         "Unable to verify signature - {$e->getMessage()}",
-        previous: $e
+        previous: $e,
       );
     }
 
@@ -242,7 +247,7 @@ class OidcJwtHelper
     } catch (RequiredConstraintsViolated $e) {
       throw new OidcAuthenticationException(
         "Unable to verify JWT claims - {$e->getMessage()}",
-        previous: $e
+        previous: $e,
       );
     }
   }
