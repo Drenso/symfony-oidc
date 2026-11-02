@@ -16,10 +16,12 @@ use Exception;
 use InvalidArgumentException;
 use LogicException;
 use RuntimeException;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\Security\Http\HttpUtils;
+use Symfony\Component\Security\Http\SecurityRequestAttributes;
 use Symfony\Component\String\Slugger\AsciiSlugger;
 use Symfony\Contracts\Cache\CacheInterface;
 use Symfony\Contracts\Cache\ItemInterface;
@@ -183,17 +185,17 @@ class OidcClient implements OidcClientInterface
     // BC for attribute definition
     $session->remove(match (true) {
       // Symfony 7
-      defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR') => \Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR,
+      defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::AUTHENTICATION_ERROR') => SecurityRequestAttributes::AUTHENTICATION_ERROR,
       // Symfony 6
-      defined('\Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR') => \Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR,
+      defined('\Symfony\Bundle\SecurityBundle\Security::AUTHENTICATION_ERROR') => Security::AUTHENTICATION_ERROR,
       // Symfony 5
       default => \Symfony\Component\Security\Core\Security::AUTHENTICATION_ERROR,
     });
     $session->remove(match (true) {
       // Symfony 7
-      defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME') => \Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME,
+      defined('\Symfony\Component\Security\Http\SecurityRequestAttributes::LAST_USERNAME') => SecurityRequestAttributes::LAST_USERNAME,
       // Symfony 6
-      defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME') => \Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME,
+      defined('\Symfony\Bundle\SecurityBundle\Security::LAST_USERNAME') => Security::LAST_USERNAME,
       // Symfony 5
       default => \Symfony\Component\Security\Core\Security::LAST_USERNAME,
     });
